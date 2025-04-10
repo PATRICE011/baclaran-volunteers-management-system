@@ -1,21 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login | Baclaran Volunteers Management</title>
-  <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/baclaran-church-logo.jpg')}}">
+@extends('components.layout')
+@section('title','Login | Baclaran Volunteers Management')
 
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <style>
+@section('styles')
+<style>
     .login-container {
       background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
   </style>
-
-</head>
+@endsection
+ 
+@section('content')
 <body class="bg-gray-100 h-screen font-sans">
   <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 login-container">
     <div class="max-w-md w-full bg-white rounded-xl shadow-2xl overflow-hidden p-10">
@@ -25,18 +19,18 @@
       </div>
 
       <!-- Login Form -->
-      <form class="mt-8 space-y-6" method="POST" action="#">
+      <form class="mt-8 space-y-6" method="POST" action="#" autocomplete="off">
         <div class="rounded-md -space-y-px">
           <div class="mb-4">
             <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email address</label>
             <input id="email" name="email" type="email" required placeholder="name@company.com"
-              class="appearance-none block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+              class="appearance-none block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" autocomplete="off">
           </div>
 
           <div class="mb-1 relative">
             <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input id="password" name="password" type="password" required placeholder="••••••••"
-              class="appearance-none block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm pr-10">
+            <input id="password" name="password" type="password" required placeholder="••••••••" 
+              class="appearance-none block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm pr-10" autocomplete="new-password">
 
             <!-- Toggle visibility icon -->
             <button type="button" onclick="togglePassword()" class="absolute right-3 top-9 text-gray-500 focus:outline-none">
@@ -74,7 +68,9 @@
     </div>
   </div>
 
-  <script>
+@endsection
+@section('scripts')
+<script>
     function togglePassword() {
       const passwordInput = document.getElementById('password');
       const eyeIcon = document.getElementById('eyeIcon');
@@ -93,5 +89,5 @@
             d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
     }
   </script>
-</body>
-</html>
+@endsection
+
