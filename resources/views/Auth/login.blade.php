@@ -19,8 +19,9 @@
       </div>
 
       <!-- Login Form -->
-      <form class="mt-8 space-y-6" method="POST" action="#" autocomplete="off">
-        <div class="rounded-md -space-y-px">
+      <form class="mt-8 space-y-6" method="POST" action="{{ route('authorizeUser') }}" autocomplete="off">
+      @csrf  
+      <div class="rounded-md -space-y-px">
           <div class="mb-4">
             <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email address</label>
             <input id="email" name="email" type="email" required placeholder="name@company.com"
