@@ -24,7 +24,11 @@
     <div class="form-container">
         <div class="row">
             <div class="col-md-4">
-                <div class="photo-box"></div>
+                <div class="photo-box" onclick="document.getElementById('photoUpload').click();">
+                    <img id="photoPreview" src="" alt="Photo Preview" style="display: none;">
+                    <span id="photoPlaceholder">Click to upload photo</span>
+                    <input type="file" id="photoUpload" accept="image/*" onchange="previewPhoto(event)" hidden>
+                </div>
 
                 <div class="section-header text-center">BASIC INFO</div>
 
@@ -34,14 +38,11 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="info">Date of Birth <small>MM / DD / YY</small></label>
+                    <label class="info">Date of Birth <small>DD / MM / YYYY</small></label>
                     <input type="date" class="form-control form-field">
                 </div>
 
                 <div class="mb-3">
-                    <div>
-                        
-                    </div>
                     <label class="info">Sex:</label>
                     <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" name="sex" id="male" value="male">
@@ -78,44 +79,43 @@
                     <input type="text" class="form-control form-field">
                 </div>
 
-                <div class="mb-3">
-                    <label class="info">Civil Status:</label>
-                    <div class="row ms-2">
+                <div class="mb-3 civil-status-section">
+                    <label class="info civil-status-label">Civil Status:</label>
+
+                    <div class="row ms-2 civil-status-options">
                         <div class="col-6">
-                            <div class="form-check">
+                            <div class="form-check civil-option-single">
                                 <input class="form-check-input" type="radio" name="civilStatus" id="single" value="single">
                                 <label class="form-check-label" for="single">Single</label>
                             </div>
 
-                            <div class="form-check">
+                            <div class="form-check civil-option-widower">
                                 <input class="form-check-input" type="radio" name="civilStatus" id="widower" value="widower">
                                 <label class="form-check-label" for="widower">Widow/er</label>
                             </div>
                         </div>
 
                         <div class="col-6">
-                            <div class="form-check">
+                            <div class="form-check civil-option-separated">
                                 <input class="form-check-input" type="radio" name="civilStatus" id="separated" value="separated">
                                 <label class="form-check-label" for="separated">Separated</label>
                             </div>
                         </div>
                     </div>
 
-                    <div class="row ms-2 mt-2">
+                    <div class="row ms-2 mt-2 marriage-type-row">
                         <div class="col-4">
-                            <div class="form-check">
+                            <div class="form-check civil-option-married">
                                 <input class="form-check-input" type="radio" name="civilStatus" id="married" value="married">
                                 <label class="form-check-label" for="married">Married</label>
                             </div>
                         </div>
 
-                        <div class="col-4">
-                            <p>
-                                <strong>If Married</strong>
-                            </p>
+                        <div class="col-4 marriage-type-label">
+                            <p><strong>If Married</strong></p>
                         </div>
 
-                        <div class="col-4">
+                        <div class="col-4 marriage-type-options">
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="marriageType" id="church" value="church">
                                 <label class="form-check-label" for="church">Church</label>
@@ -128,9 +128,9 @@
                         </div>
                     </div>
 
-                    <div class="mt-2">
+                    <div class="mt-2 civil-status-other">
                         <label class="info">Others:</label>
-                        <input type="text" class="form-control form-field">
+                        <input type="text" class="form-control form-field civil-status-other-input">
                     </div>
                 </div>
 
@@ -189,7 +189,7 @@
                 </div>
 
                 <div class="d-flex align-items-center mb-2">
-                    <label class="me-2 mb-0" style="min-width: 100px;">MINISTRY:</label>
+                    <label class="me-2 mb-0 ministry" style="min-width: 100px;">MINISTRY:</label>
                     <input type="text" class="form-control form-field">
                 </div>
 
@@ -198,26 +198,27 @@
 
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <label>Month & Year applied as Volunteer:</label>
+                        <label class="volunteerMonthYear">Month & Year applied as Volunteer:</label>
                         <input type="text" class="form-control form-field">
                     </div>
+
                     <div class="col-md-6">
-                        <label>No. of Years/Month as Regular Volunteer:</label>
+                        <label class="volunteerDuration">No. of Years/Month as Regular Volunteer:</label>
                         <input type="text" class="form-control form-field">
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label>Name: <small>Surname, First Name, M.I.</small></label>
+                    <label class="info">Name: <small>Surname, First Name, M.I.</small></label>
                     <div class="row">
                         <div class="col-md-4">
-                            <input type="text" class="form-control form-field">
+                            <input type="text" class="form-control form-field" name="surname">
                         </div>
                         <div class="col-md-6">
-                            <input type="text" class="form-control form-field">
+                            <input type="text" class="form-control form-field" name="firstname">
                         </div>
                         <div class="col-md-2">
-                            <input type="text" class="form-control form-field">
+                            <input type="text" class="form-control form-field" name="middle_initial" maxlength="1">
                         </div>
                     </div>
                 </div>
@@ -230,11 +231,11 @@
 
                 <table class="table table-bordered mb-4">
                     <thead>
-                        <tr>
-                            <th>Name of Organization/Ministry</th>
-                            <th>Year Started-Year Ended</th>
-                            <th>Total Years</th>
-                            <th>Active? Y/N</th>
+                        <tr class="volunteer-experience-header">
+                            <th class="header-org-name">Name of Organization/Ministry</th>
+                            <th class="header-years-earned">Year Started-Year Ended</th>
+                            <th class="header-total-years">Total Years</th>
+                            <th class="header-active-status">Active? Y/N</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -242,25 +243,48 @@
                             <td><input type="text" class="form-control form-field border-0"></td>
                             <td><input type="text" class="form-control form-field border-0"></td>
                             <td><input type="text" class="form-control form-field border-0"></td>
-                            <td><input type="text" class="form-control form-field border-0"></td>
+                            <td>
+                                <select class="form-select form-field border-0 header-active-status-dropdown">
+                                    <option value="yes">Yes</option>
+                                    <option value="no">No</option>
+                                </select>
+                            </td>
                         </tr>
+
                         <tr>
                             <td><input type="text" class="form-control form-field border-0"></td>
                             <td><input type="text" class="form-control form-field border-0"></td>
                             <td><input type="text" class="form-control form-field border-0"></td>
-                            <td><input type="text" class="form-control form-field border-0"></td>
+                            <td>
+                                <select class="form-select form-field border-0 header-active-status-dropdown">
+                                    <option value="yes">Yes</option>
+                                    <option value="no">No</option>
+                                </select>
+                            </td>
                         </tr>
+
                         <tr>
                             <td><input type="text" class="form-control form-field border-0"></td>
                             <td><input type="text" class="form-control form-field border-0"></td>
                             <td><input type="text" class="form-control form-field border-0"></td>
-                            <td><input type="text" class="form-control form-field border-0"></td>
+                            <td>
+                                <select class="form-select form-field border-0 header-active-status-dropdown">
+                                    <option value="yes">Yes</option>
+                                    <option value="no">No</option>
+                                </select>
+                            </td>
                         </tr>
+
                         <tr>
                             <td><input type="text" class="form-control form-field border-0"></td>
                             <td><input type="text" class="form-control form-field border-0"></td>
                             <td><input type="text" class="form-control form-field border-0"></td>
-                            <td><input type="text" class="form-control form-field border-0"></td>
+                            <td>
+                                <select class="form-select form-field border-0 header-active-status-dropdown">
+                                    <option value="yes">Yes</option>
+                                    <option value="no">No</option>
+                                </select>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -269,34 +293,53 @@
                     <i class="ri-account-circle-line user-icon"></i>
                     OTHER AFFILIATIONS
                 </div>
-                <p>Please indicate (if any) all Organization/Ministry you belong to outside the Shrine</p>
+
+                <p class="outside-affiliations-note">Please indicate (if any) all Organization/Ministry you belong to outside the Shrine</p>
 
                 <table class="table table-bordered mb-4">
                     <thead>
-                        <tr>
-                            <th>Name of Organization/Ministry</th>
-                            <th>Year Started-Year Ended</th>
-                            <th>Active? Y/N</th>
+                        <tr class="other-affiliations-header">
+                            <th class="header-affiliation-org-name">Name of Organization/Ministry</th>
+                            <th class="header-affiliation-years">Year Started-Year Ended</th>
+                            <th class="header-affiliation-status">Active? Y/N</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td><input type="text" class="form-control form-field border-0"></td>
                             <td><input type="text" class="form-control form-field border-0"></td>
-                            <td><input type="text" class="form-control form-field border-0"></td>
+                            <td>
+                                <select class="form-select form-field border-0 header-active-status-dropdown">
+                                    <option value="yes">Yes</option>
+                                    <option value="no">No</option>
+                                </select>
+                            </td>
                         </tr>
+
                         <tr>
                             <td><input type="text" class="form-control form-field border-0"></td>
                             <td><input type="text" class="form-control form-field border-0"></td>
-                            <td><input type="text" class="form-control form-field border-0"></td>
+                            <td>
+                                <select class="form-select form-field border-0 header-active-status-dropdown">
+                                    <option value="yes">Yes</option>
+                                    <option value="no">No</option>
+                                </select>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
 
-                <div class="mb-4">
-                    <p><strong>Privacy Notice:</strong> The personal information collected in this form are part of the requirement for your application as volunteer of the National Shrine of Mother of Perpetual Help. The processing, and disposal of any personal data shall be in accordance with the provisions of the <strong>Republic Act 10173</strong> or the <strong>Data Privacy Act of 2012 (DPA)</strong>. For more information on the <strong>Shrine's Data Privacy Policy</strong>, please visit this site: https://baclaranchurch.org/privacy.html</p>
+                <div class="privacy-notice-section mb-4">
+                    <p class="privacy-description">
+                        <strong>Privacy Notice:</strong> The personal information collected in this form are part of the requirement for your application as volunteer of the National Shrine of Mother of Perpetual Help.
+                        The processing, and disposal of any personal data shall be in accordance with the provisions of the <strong>Republic Act 10173</strong> or the <strong>Data Privacy Act of 2012 (DPA)</strong>.
+                        For more information on the <strong>Shrine's Data Privacy Policy</strong>, please visit this site:
+                        <a href="https://baclaranchurch.org/privacy.html" class="privacy-policy-link" target="_blank">https://baclaranchurch.org/privacy.html</a>
+                    </p>
 
-                    <p>I hereby affix my Signature to certify that all the above information is true and to allow processing of my personal data in accordance with the <strong>Data Privacy Act</strong>.</p>
+                    <p class="privacy-declaration">
+                        I hereby affix my Signature to certify that all the above information is true and to allow processing of my personal data in accordance with the <strong>Data Privacy Act</strong>.
+                    </p>
                 </div>
 
                 <div class="row mb-4">
@@ -335,5 +378,25 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function previewPhoto(event) {
+            const input = event.target;
+            const preview = document.getElementById('photoPreview');
+            const placeholder = document.getElementById('photoPlaceholder');
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                };
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
 </body>
+
 </html>
