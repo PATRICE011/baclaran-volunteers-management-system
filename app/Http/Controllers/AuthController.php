@@ -4,42 +4,76 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    //
-
-    public function getLogin(){
-
+    // Show the login page
+    public function getLogin()
+    {
         return view('Auth.login');
     }
 
+    // Handle the login request
+    public function login(Request $request)
+    {
+        try {
+            // Validate the login credentials
+            $credentials = $request->validate([
+                'email' => ['required', 'string', 'email'],
+                'password' => ['required', 'string'],
+            ]);
 
-    // public function login(Request $request)
-    // {
-    //     $credentials = $request->validate([
-    //         'email' => ['required', 'email'],
-    //         'password' => ['required'],
-    //     ]);
+            Log::info('Login attempt', ['email' => $request->email]);
 
-    //     if (Auth::attempt($credentials, $request->boolean('remember'))) {
-    //         $request->session()->regenerate();
+            // Attempt login with the credentials
+            if (Auth::attempt($credentials, $request->boolean('remember'))) {
+                $request->session()->regenerate();
+                $user = Auth::user();
 
-    //         return redirect()->intended(route('dashboard'));
-    //     }
+                Log::info('User logged in successfully', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'role' => $user->role
+                ]);
 
-    //     return back()->withErrors([
-    //         'email' => 'The provided credentials do not match our records.',
-    //     ])->onlyInput('email');
-    // }
+                // Redirect based on user role (admin or non-admin)
+                return redirect()->intended('/dashboard');
+            }
 
-    // public function logout(Request $request)
-    // {
-    //     Auth::logout();
+            // Log failed login attempt
+            Log::warning('Failed login attempt', [
+                'email' => $request->email,
+                'ip' => $request->ip()
+            ]);
 
-    //     $request->session()->invalidate();
-    //     $request->session()->regenerateToken();
+            // Throw validation exception if login fails
+            throw ValidationException::withMessages([
+                'email' => [trans('auth.failed')],
+            ]);
+        } catch (\Exception $e) {
+            // Log any exceptions
+            Log::error('Exception during login process', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Re-throw the exception after logging
+            throw $e;
+        }
+    }
 
-    //     return redirect('/');
-    // }
+    // Uncomment and use if you need a logout function
+    
+    public function logout(Request $request)
+    {
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/');
+    }
+    
 }
