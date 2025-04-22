@@ -12,13 +12,22 @@ Route::get('/information-sheet', function () {
     return view('information_sheet');
 });
 
-
 Route::post('/login', [AuthController::class, 'login'])->name('authorizeUser');
-
-
 
 // authenticated routes
 Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index']);
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+});
+
+Route::get('/admin-dashboard', function () {
+    return view('admin_dashboard');
+});
+
+Route::get('/volunteers', function () {
+    return view('admin_volunteer');
+});
+
+Route::get('/schedule', function () {
+    return view('admin_schedule');
 });
