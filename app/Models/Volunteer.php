@@ -49,4 +49,9 @@ class Volunteer extends Model
             ->withPivot('attendance_status', 'checked_in_at')
             ->withTimestamps();
     }
+
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
 }
