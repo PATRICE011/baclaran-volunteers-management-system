@@ -5,13 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Volunteer extends Model
 {
     protected $fillable = [
-        'nickname', 'date_of_birth', 'sex', 'address',
-        'mobile_number', 'email_address', 'occupation', 'civil_status',
-        'sacraments_received', 'formations_received',
+        'nickname',
+        'date_of_birth',
+        'sex',
+        'address',
+        'mobile_number',
+        'email_address',
+        'occupation',
+        'civil_status',
+        'sacraments_received',
+        'formations_received',
     ];
 
     protected $casts = [
@@ -34,5 +42,9 @@ class Volunteer extends Model
     {
         return $this->hasMany(OtherAffiliation::class);
     }
-}
 
+    public function events(): BelongsToMany
+    {
+        return $this->belongsToMany(Event::class);
+    }
+}
