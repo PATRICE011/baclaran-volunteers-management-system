@@ -45,6 +45,8 @@ class Volunteer extends Model
 
     public function events(): BelongsToMany
     {
-        return $this->belongsToMany(Event::class);
+        return $this->belongsToMany(Event::class)
+            ->withPivot('attendance_status', 'checked_in_at')
+            ->withTimestamps();
     }
 }
