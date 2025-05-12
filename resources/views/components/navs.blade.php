@@ -7,7 +7,8 @@
 
       <div class="flex-1 overflow-auto py-2">
         <nav class="grid gap-1 px-2">
-          <a href="{{ url('/dashboard') }}" class="flex items-center gap-3 rounded-md bg-blue-500 px-3 py-2 text-white">
+          <a href="{{ url('/dashboard') }}" class="flex items-center gap-3 rounded-md bg-blue-500 px-3 py-2 text-white 
+          @if(request()->is('dashboard')) bg-blue-500 text-white @else text-gray-600 hover:bg-blue-500 hover:text-white @endif">
             <!-- Home Icon -->
             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
               viewBox="0 0 24 24" stroke="currentColor">
@@ -17,7 +18,8 @@
             <span>Dashboard</span>
           </a>
 
-          <a href="{{ url('/volunteers') }}" class="flex items-center gap-3 rounded-md px-3 py-2 text-gray-600 hover:bg-blue-500 hover:text-white">
+          <a href="{{ url('/volunteers') }}" class="flex items-center gap-3 rounded-md px-3 py-2 text-gray-600 hover:bg-blue-500 hover:text-white 
+          @if(request()->is('volunteers')) bg-blue-500 text-white @else text-gray-600 hover:bg-blue-500 hover:text-white @endif">
             <!-- Users Icon -->
             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
               viewBox="0 0 24 24" stroke="currentColor">
@@ -27,7 +29,8 @@
             <span>Volunteers</span>
           </a>
 
-          <a href="{{ url('/schedule') }}" class="flex items-center gap-3 rounded-md px-3 py-2 text-gray-600 hover:bg-blue-500 hover:text-white">
+          <a href="{{ url('/schedule') }}" class="flex items-center gap-3 rounded-md px-3 py-2 text-gray-600 hover:bg-blue-500 hover:text-white 
+          @if(request()->is('schedule')) bg-blue-500 text-white @else text-gray-600 hover:bg-blue-500 hover:text-white @endif">
             <!-- Calendar Icon -->
             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
               viewBox="0 0 24 24" stroke="currentColor">
@@ -37,7 +40,8 @@
             <span>Schedule</span>
           </a>
 
-          <a href="#" class="flex items-center gap-3 rounded-md px-3 py-2 text-gray-600 hover:bg-blue-500 hover:text-white">
+          <a href="#" class="flex items-center gap-3 rounded-md px-3 py-2 text-gray-600 hover:bg-blue-500 hover:text-white 
+          @if(request()->is('tasks')) bg-blue-500 text-white @else text-gray-600 hover:bg-blue-500 hover:text-white @endif">
             <!-- List Icon -->
             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
               viewBox="0 0 24 24" stroke="currentColor">

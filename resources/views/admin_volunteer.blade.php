@@ -51,6 +51,8 @@
 
   <!-- Volunteers Data -->
   @php
+  $current = request()->is('volunteers') ? 'active' : '';
+
     $volunteers = [
       ['id'=>'1','name'=>'John Smith','email'=>'john.smith@example.com','phone'=>'(555) 123-4567','avatar'=>'https://api.dicebear.com/7.x/avataaars/svg?seed=john','skills'=>['Music','Teaching','Leadership'],'ministries'=>['Worship','Youth'],'availability'=>['Sunday Morning','Wednesday Evening'],'joinDate'=>'2022-01-15','status'=>'active'],
       ['id'=>'2','name'=>'Sarah Johnson','email'=>'sarah.j@example.com','phone'=>'(555) 987-6543','avatar'=>'https://api.dicebear.com/7.x/avataaars/svg?seed=sarah','skills'=>['Administration','Hospitality'],'ministries'=>['Children','Hospitality'],'availability'=>['Sunday Morning','Sunday Evening'],'joinDate'=>'2021-08-22','status'=>'active'],

@@ -7,6 +7,8 @@
 
 <body class="bg-gray-50">
   @php
+  $current = request()->is('dashboard') ? 'active' : '';
+
   $metrics = [
   'totalVolunteers' => 124,
   'activeVolunteers' => 98,
