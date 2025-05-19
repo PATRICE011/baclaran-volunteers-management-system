@@ -7,6 +7,8 @@
 
 <body class="bg-gray-50">
   @php
+  $current = request()->is('dashboard') ? 'active' : '';
+
   $metrics = [
   'totalVolunteers' => 124,
   'activeVolunteers' => 98,
@@ -130,7 +132,6 @@
                 Tasks
               </button>
             </div>
-
 
             <!-- Tab Contents -->
             <div id="overview" class="mt-4">
