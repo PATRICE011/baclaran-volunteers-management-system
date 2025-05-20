@@ -162,9 +162,10 @@
 
     <!-- Tabs -->
     <div id="registrationTabs" class="mb-4 flex gap-2">
-      <button class="reg-tab px-4 py-2 border-b-2 border-blue-600" data-tab="personal">Basic Info</button>
-      <button class="reg-tab px-4 py-2 border-b-2 border-transparent" data-tab="sheet">Info Sheet</button>
+      <button class="reg-tab px-4 py-2 border-b-2 border-blue-600" data-tab="personal" data-step="1">Basic Info</button>
+      <button class="reg-tab px-4 py-2 border-b-2 border-transparent tab-locked" data-tab="sheet" data-step="2">Info Sheet</button>
     </div>
+
 
     <div id="regTabContent">
       <!-- Basic Info -->
@@ -562,12 +563,19 @@
   // Tabs switching
   document.querySelectorAll('.reg-tab').forEach(tab => {
     tab.addEventListener('click', function() {
+      // Block tab if it’s locked
+      if (this.classList.contains('tab-locked')) return;
+
+      // Visual and content switching
       document.querySelectorAll('.reg-tab').forEach(t => t.classList.replace('border-blue-600', 'border-transparent'));
       this.classList.replace('border-transparent', 'border-blue-600');
+
       document.querySelectorAll('.reg-content').forEach(c => c.classList.add('hidden'));
       document.getElementById('tab-' + this.dataset.tab).classList.remove('hidden');
     });
   });
+
+
   // Profile modal
   function openProfile(id) {
     const vols = @json($volunteers);
@@ -615,26 +623,34 @@
   });
 
   document.getElementById('nextToSheet').addEventListener('click', () => {
-    // Basic validation example: only check required fields here if needed
     const requiredFields = ['nickname', 'dob', 'sex', 'address', 'phone', 'email', 'occupation'];
     let valid = true;
+
     requiredFields.forEach(name => {
       const field = document.querySelector(`[name="${name}"]`);
-      if (field && !field.value) {
-        field.classList.add('border-red-500');
+      if (!field || !field.value) {
+        if (field) field.classList.add('border-red-500');
         valid = false;
       } else {
         field.classList.remove('border-red-500');
       }
     });
 
+    const sex = document.querySelector('[name="sex"]:checked');
+    const civil = document.querySelector('[name="civil_status"]:checked');
+    if (!sex || !civil) valid = false;
+
     if (!valid) {
       toastr.warning('Please fill out all required fields.');
       return;
     }
 
-    // Switch tab
-    document.querySelector('.reg-tab[data-tab="sheet"]').click();
+    // Unlock and switch to Info Sheet tab
+    const infoTab = document.querySelector('.reg-tab[data-tab="sheet"]');
+    infoTab.classList.remove('tab-locked');
+    infoTab.click();
+
+    // Hide Next, Show Register
     document.getElementById('nextToSheet').classList.add('hidden');
     document.getElementById('submitRegistration').classList.remove('hidden');
   });

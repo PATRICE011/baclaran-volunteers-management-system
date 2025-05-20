@@ -8,23 +8,21 @@ use App\Models\Ministry;
 
 class VolunteersController extends Controller
 {
-    //
     public function index()
     {
         $ministries = Ministry::whereNull('parent_id')->with('children')->get();
         return view('admin_volunteer', compact('ministries'));
     }
 
-   
     public function store(Request $request)
     {
         try {
-            // Determine actual civil status
+            // Normalize civil status
             $civilStatus = $request->civil_status === 'others'
                 ? ($request->civil_status_other ?: 'Others')
                 : $request->civil_status;
 
-            // Create the main volunteer record
+            // Create main volunteer
             $volunteer = Volunteer::create([
                 'nickname' => $request->nickname,
                 'date_of_birth' => $request->dob,
@@ -40,29 +38,30 @@ class VolunteersController extends Controller
 
             // Create detail
             $volunteer->detail()->create([
-                'ministry_id' => null,
-                'line_group' => $request->ministry_id,
+                'ministry_id' => $request->ministry_id ?: null,
+                'line_group' => $request->ministry_id, // optional: adjust if line_group differs
                 'applied_month_year' => $request->applied_date,
                 'regular_years_month' => $request->regular_duration,
-                'full_name' => trim($request->last_name . ' ' . $request->first_name . ' ' . $request->middle_initial),
+                'full_name' => trim("{$request->last_name} {$request->first_name} {$request->middle_initial}"),
             ]);
 
             // Timeline entries
             foreach ($request->timeline_org ?? [] as $i => $org) {
                 if (!empty($org)) {
+                    $total = $request->timeline_total[$i] ?? '';
+                    $totalYears = (int) filter_var($total, FILTER_SANITIZE_NUMBER_INT);
+
                     $volunteer->timelines()->create([
                         'organization_name' => $org,
                         'year_started' => $request->timeline_start_year[$i] ?? null,
                         'year_ended' => $request->timeline_end_year[$i] ?? null,
-                        'total_years' => isset($request->timeline_total[$i])
-                            ? (int) filter_var($request->timeline_total[$i], FILTER_SANITIZE_NUMBER_INT)
-                            : null,
+                        'total_years' => $totalYears ?: null,
                         'is_active' => ($request->timeline_active[$i] ?? '') === 'Y',
                     ]);
                 }
             }
 
-            // Other affiliations
+            // Affiliations
             foreach ($request->affil_org ?? [] as $i => $org) {
                 if (!empty($org)) {
                     $volunteer->affiliations()->create([
