@@ -17,7 +17,14 @@ Route::post('/login', [AuthController::class, 'login'])->name('authorizeUser');
 Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index']);
-    Route::get('/volunteers', [VolunteersController::class, 'index']);
+    
     Route::get('/schedule', [SchedulesController::class, 'index']);
     
+    // volunteers page
+    Route::prefix('volunteers')->group(function(){
+        Route::get('/', [VolunteersController::class, 'index']);
+        Route::post('/register', [VolunteersController::class, 'store'])->name('volunteers.register');
+    });
+    
+
 });
