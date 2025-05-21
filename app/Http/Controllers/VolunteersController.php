@@ -39,10 +39,11 @@ class VolunteersController extends Controller
             // Create detail
             $volunteer->detail()->create([
                 'ministry_id' => $request->ministry_id ?: null,
-                'line_group' => $request->ministry_id, // optional: adjust if line_group differs
+                'line_group' => $request->ministry_id, 
                 'applied_month_year' => $request->applied_date,
                 'regular_years_month' => $request->regular_duration,
                 'full_name' => trim("{$request->last_name} {$request->first_name} {$request->middle_initial}"),
+                'volunteer_status' => 'Active',
             ]);
 
             // Timeline entries
