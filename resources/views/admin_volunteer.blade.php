@@ -83,10 +83,11 @@
           @endif
         </div>
 
-        <!-- Status (based on profile completion) -->
-        <span class="mt-3 inline-block px-2 py-1 text-xs rounded {{ $volunteer->hasCompleteProfile() ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-yellow-100 text-yellow-700 border border-yellow-200' }}">
-          {{ $volunteer->detail->volunteer_status }}
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+          {{ $volunteer->hasCompleteProfile() ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+          {{ $volunteer->detail->volunteer_status ?? 'No Status' }}
         </span>
+
       </div>
     </div>
     @empty
@@ -160,9 +161,11 @@
             </td>
 
             <td class="px-6 py-4 whitespace-nowrap hidden md:table-cell">
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $volunteer->hasCompleteProfile() ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
-                {{  $volunteer->detail->volunteer_status  }}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                {{ $volunteer->hasCompleteProfile() ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                {{ $volunteer->detail->volunteer_status ?? 'No Status' }}
               </span>
+
             </td>
 
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -196,11 +199,47 @@
   </div>
 
   <!-- Pagination -->
-  @if($volunteers->hasPages())
-  <div class="flex justify-center mt-6">
-    {{ $volunteers->links() }}
+  @if ($volunteers->hasPages())
+  <div class="mt-6 flex justify-center">
+    <nav role="navigation" aria-label="Pagination Navigation" class="inline-flex items-center space-x-1">
+      {{-- Previous Page Link --}}
+      @if ($volunteers->onFirstPage())
+      <span class="px-3 py-1 text-sm text-gray-400 bg-gray-100 border border-gray-300 rounded">
+        &laquo;
+      </span>
+      @else
+      <a href="{{ $volunteers->previousPageUrl() }}" rel="prev" class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-200">
+        &laquo;
+      </a>
+      @endif
+
+      {{-- Pagination Elements --}}
+      @foreach ($volunteers->getUrlRange(1, $volunteers->lastPage()) as $page => $url)
+      @if ($page == $volunteers->currentPage())
+      <span class="px-3 py-1 text-sm font-semibold text-white bg-blue-500 border border-blue-500 rounded">
+        {{ $page }}
+      </span>
+      @else
+      <a href="{{ $url }}" class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-200">
+        {{ $page }}
+      </a>
+      @endif
+      @endforeach
+
+      {{-- Next Page Link --}}
+      @if ($volunteers->hasMorePages())
+      <a href="{{ $volunteers->nextPageUrl() }}" rel="next" class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-200">
+        &raquo;
+      </a>
+      @else
+      <span class="px-3 py-1 text-sm text-gray-400 bg-gray-100 border border-gray-300 rounded">
+        &raquo;
+      </span>
+      @endif
+    </nav>
   </div>
   @endif
+
 </div>
 
 <!-- Registration Modal -->
