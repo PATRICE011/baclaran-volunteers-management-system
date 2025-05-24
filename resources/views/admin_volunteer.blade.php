@@ -543,14 +543,33 @@
 @section('scripts')
 <script>
   // Toggle grid/list
-  document.getElementById('gridViewBtn').addEventListener('click', () => {
+  const gridBtn = document.getElementById('gridViewBtn');
+  const listBtn = document.getElementById('listViewBtn');
+
+  gridBtn.addEventListener('click', () => {
     document.getElementById('gridView').style.display = 'grid';
     document.getElementById('listView').style.display = 'none';
+
+    // Toggle button styles
+    gridBtn.classList.add('bg-blue-600', 'text-white');
+    gridBtn.classList.remove('bg-white', 'text-gray-700');
+
+    listBtn.classList.remove('bg-blue-600', 'text-white');
+    listBtn.classList.add('bg-white', 'text-gray-700');
   });
-  document.getElementById('listViewBtn').addEventListener('click', () => {
+
+  listBtn.addEventListener('click', () => {
     document.getElementById('gridView').style.display = 'none';
     document.getElementById('listView').style.display = 'block';
+
+    // Toggle button styles
+    listBtn.classList.add('bg-blue-600', 'text-white');
+    listBtn.classList.remove('bg-white', 'text-gray-700');
+
+    gridBtn.classList.remove('bg-blue-600', 'text-white');
+    gridBtn.classList.add('bg-white', 'text-gray-700');
   });
+
 
   // Search filter
   document.getElementById('searchInput').addEventListener('input', function() {
