@@ -11,9 +11,22 @@ class VolunteersController extends Controller
     public function index()
     {
         $ministries = Ministry::whereNull('parent_id')->with('children')->get();
-        return view('admin_volunteer', compact('ministries'));
-    }
 
+        // Fetch volunteers with their related data
+        $volunteers = Volunteer::with([
+            'detail.ministry',
+            'timelines' => function ($query) {
+                $query->where('is_active', true);
+            },
+            'affiliations' => function ($query) {
+                $query->where('is_active', true);
+            }
+        ])
+            ->orderBy('created_at', 'desc')
+            ->paginate(12); // Adjust pagination as needed
+
+        return view('admin_volunteer', compact('ministries', 'volunteers'));
+    }
     public function store(Request $request)
     {
         try {
@@ -39,7 +52,7 @@ class VolunteersController extends Controller
             // Create detail
             $volunteer->detail()->create([
                 'ministry_id' => $request->ministry_id ?: null,
-                'line_group' => $request->ministry_id, 
+                'line_group' => $request->ministry_id,
                 'applied_month_year' => $request->applied_date,
                 'regular_years_month' => $request->regular_duration,
                 'full_name' => trim("{$request->last_name} {$request->first_name} {$request->middle_initial}"),
@@ -79,6 +92,42 @@ class VolunteersController extends Controller
             return response()->json([
                 'message' => 'Error registering volunteer',
                 'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function show($id)
+    {
+        try {
+            $volunteer = Volunteer::with(['detail.ministry'])
+                ->findOrFail($id);
+
+            // Add computed properties for the frontend
+            $volunteer->has_complete_profile = $volunteer->hasCompleteProfile();
+
+            return response()->json($volunteer);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Volunteer not found'
+            ], 404);
+        }
+    }
+
+    // You might also want to add a destroy method for the delete functionality
+    public function destroy($id)
+    {
+        try {
+            $volunteer = Volunteer::findOrFail($id);
+            $volunteer->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Volunteer deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete volunteer'
             ], 500);
         }
     }

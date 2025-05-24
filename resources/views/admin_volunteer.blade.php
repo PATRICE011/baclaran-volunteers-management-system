@@ -33,11 +33,11 @@
             d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
         </svg>
       </div>
-      <input id="searchInput" type="text" placeholder="Search volunteers by name, email, skills, or ministry..."
+      <input id="searchInput" type="text" placeholder="Search volunteers by name, email, or ministry..."
         class="pl-10 pr-3 py-2 border rounded w-full focus:outline-none focus:border-blue-500">
     </div>
     <div class="flex gap-2">
-      <button id="gridViewBtn" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100">Grid</button>
+      <button id="gridViewBtn" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100 bg-blue-50 border-blue-200">Grid</button>
       <button id="listViewBtn" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100">List</button>
       <button id="filterBtn" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100 flex items-center">
         <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -49,103 +49,158 @@
     </div>
   </div>
 
-  <!-- Volunteers Data -->
-  @php
-  $current = request()->is('volunteers') ? 'active' : '';
-
-  $volunteers = [
-  ['id'=>'1','name'=>'John Smith','email'=>'john.smith@example.com','phone'=>'(555) 123-4567','avatar'=>'https://api.dicebear.com/7.x/avataaars/svg?seed=john','skills'=>['Music','Teaching','Leadership'],'ministries'=>['Worship','Youth'],'availability'=>['Sunday Morning','Wednesday Evening'],'joinDate'=>'2022-01-15','status'=>'active'],
-  ['id'=>'2','name'=>'Sarah Johnson','email'=>'sarah.j@example.com','phone'=>'(555) 987-6543','avatar'=>'https://api.dicebear.com/7.x/avataaars/svg?seed=sarah','skills'=>['Administration','Hospitality'],'ministries'=>['Children','Hospitality'],'availability'=>['Sunday Morning','Sunday Evening'],'joinDate'=>'2021-08-22','status'=>'active'],
-  ['id'=>'3','name'=>'Michael Chen','email'=>'michael.c@example.com','phone'=>'(555) 456-7890','avatar'=>'https://api.dicebear.com/7.x/avataaars/svg?seed=michael','skills'=>['Technical','Media','Design'],'ministries'=>['Media','Tech Team'],'availability'=>['Sunday Morning','Saturday'],'joinDate'=>'2022-03-10','status'=>'active'],
-  ['id'=>'4','name'=>'Emily Rodriguez','email'=>'emily.r@example.com','phone'=>'(555) 234-5678','avatar'=>'https://api.dicebear.com/7.x/avataaars/svg?seed=emily','skills'=>['Teaching','Counseling'],'ministries'=>['Women','Prayer'],'availability'=>['Tuesday Evening','Thursday Evening'],'joinDate'=>'2021-11-05','status'=>'inactive'],
-  ['id'=>'5','name'=>'David Wilson','email'=>'david.w@example.com','phone'=>'(555) 876-5432','avatar'=>'https://api.dicebear.com/7.x/avataaars/svg?seed=david','skills'=>['Leadership','Finance','Teaching'],'ministries'=>['Men','Finance'],'availability'=>['Sunday Morning','Monday Evening'],'joinDate'=>'2022-02-18','status'=>'active'],
-  ['id'=>'6','name'=>'Lisa Thompson','email'=>'lisa.t@example.com','phone'=>'(555) 345-6789','avatar'=>'https://api.dicebear.com/7.x/avataaars/svg?seed=lisa','skills'=>['Music','Hospitality'],'ministries'=>['Worship','Hospitality'],'availability'=>['Sunday Morning','Wednesday Evening'],'joinDate'=>'2021-09-30','status'=>'active'],
-  ];
-  @endphp
-
   <!-- Grid View -->
   <div id="gridView" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-    @foreach($volunteers as $vol)
+    @forelse($volunteers as $volunteer)
     <div class="bg-white shadow rounded overflow-hidden cursor-pointer volunteer-card"
-      data-name="{{ strtolower($vol['name']) }}"
-      data-email="{{ strtolower($vol['email']) }}"
-      data-skills="{{ strtolower(implode(' ', $vol['skills'])) }}"
-      data-ministries="{{ strtolower(implode(' ', $vol['ministries'])) }}"
-      data-id="{{ $vol['id'] }}"
-      onclick="openProfile('{{ $vol['id'] }}')">
+      data-name="{{ strtolower($volunteer->nickname ?? $volunteer->detail?->full_name ?? 'No Name') }}"
+      data-email="{{ strtolower($volunteer->email_address ?? '') }}"
+      data-ministry="{{ strtolower($volunteer->ministry_name) }}"
+      data-id="{{ $volunteer->id }}"
+      onclick="openProfile('{{ $volunteer->id }}')">
       <div class="p-4 flex flex-col items-center">
-        <img src="{{ $vol['avatar'] }}" alt="{{ $vol['name'] }}" class="w-20 h-20 rounded-full mb-4">
-        <h3 class="font-semibold text-lg">{{ $vol['name'] }}</h3>
-        <p class="text-sm text-gray-500 mb-2">{{ $vol['email'] }}</p>
+        <!-- Generate avatar based on name -->
+        @php
+        $displayName = $volunteer->nickname ?? $volunteer->detail?->full_name ?? 'No Name';
+        $avatarSeed = str_replace(' ', '', strtolower($displayName));
+        @endphp
+        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ $avatarSeed }}"
+          alt="{{ $displayName }}" class="w-20 h-20 rounded-full mb-4">
+
+        <h3 class="font-semibold text-lg text-center">{{ $displayName }}</h3>
+        <p class="text-sm text-gray-500 mb-2 text-center">{{ $volunteer->email_address ?? 'No email' }}</p>
+
+        <!-- Ministry Display -->
         <div class="flex flex-wrap gap-1 justify-center mt-2">
-          @foreach($vol['ministries'] as $m)
-          <span class="inline-block px-2 py-1 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-200">{{ $m }}</span>
-          @endforeach
+          @if($volunteer->detail && $volunteer->detail->ministry)
+          <span class="inline-block px-2 py-1 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+            {{ $volunteer->detail->ministry->ministry_name }}
+          </span>
+          @else
+          <span class="inline-block px-2 py-1 text-xs rounded-full bg-gray-50 text-gray-500 border border-gray-200">
+            No Ministry Assigned
+          </span>
+          @endif
         </div>
-        <span class="mt-3 inline-block px-2 py-1 text-xs rounded {{ $vol['status']==='active' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-gray-100 text-gray-700 border border-gray-200' }}">
-          {{ ucfirst($vol['status']) }}
+
+        <!-- Status (based on profile completion) -->
+        <span class="mt-3 inline-block px-2 py-1 text-xs rounded {{ $volunteer->hasCompleteProfile() ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-yellow-100 text-yellow-700 border border-yellow-200' }}">
+          {{ $volunteer->detail->volunteer_status }}
         </span>
       </div>
     </div>
-    @endforeach
+    @empty
+    <div class="col-span-full flex flex-col items-center justify-center py-12 text-gray-500">
+      <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+      </svg>
+      <p class="text-lg font-medium">No volunteers found</p>
+      <p class="text-sm">Start by adding your first volunteer to the system.</p>
+    </div>
+    @endforelse
   </div>
 
   <!-- List View -->
   <div id="listView" class="hidden">
-    <table class="min-w-full bg-white border">
-      <thead class="bg-gray-200">
-        <tr>
-          <th class="px-4 py-2 text-left">Name</th>
-          <th class="px-4 py-2 text-left hidden md:table-cell">Email</th>
-          <th class="px-4 py-2 text-left hidden lg:table-cell">Phone</th>
-          <th class="px-4 py-2 text-left hidden lg:table-cell">Ministries</th>
-          <th class="px-4 py-2 text-left hidden md:table-cell">Status</th>
-          <th class="px-4 py-2 text-right">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        @foreach($volunteers as $vol)
-        <tr class="border-t hover:bg-gray-100 volunteer-row"
-          data-name="{{ strtolower($vol['name']) }}"
-          data-email="{{ strtolower($vol['email']) }}"
-          data-skills="{{ strtolower(implode(' ', $vol['skills'])) }}"
-          data-ministries="{{ strtolower(implode(' ', $vol['ministries'])) }}"
-          data-id="{{ $vol['id'] }}">
-          <td class="px-4 py-2 flex items-center gap-2 cursor-pointer" onclick="openProfile('{{ $vol['id'] }}')">
-            <img src="{{ $vol['avatar'] }}" alt="{{ $vol['name'] }}" class="w-8 h-8 rounded-full">
-            {{ $vol['name'] }}
-          </td>
-          <td class="px-4 py-2 hidden md:table-cell">{{ $vol['email'] }}</td>
-          <td class="px-4 py-2 hidden lg:table-cell">{{ $vol['phone'] }}</td>
-          <td class="px-4 py-2 hidden lg:table-cell">
-            <div class="flex gap-1">
-              @foreach($vol['ministries'] as $m)
-              <span class="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded border border-blue-200">{{ $m }}</span>
-              @endforeach
-            </div>
-          </td>
-          <td class="px-4 py-2 hidden md:table-cell">
-            <span class="px-2 py-1 text-xs rounded {{ $vol['status']==='active' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-gray-100 text-gray-700 border border-gray-200' }}">{{ ucfirst($vol['status']) }}</span>
-          </td>
-          <td class="px-4 py-2 text-right">
-            <button class="text-blue-500 mr-2" onclick="openProfile('{{ $vol['id'] }}'); event.stopPropagation();">View</button>
-            <button class="text-blue-500 mr-2">Edit</button>
-            <button class="text-red-500">Delete</button>
-          </td>
-        </tr>
-        @endforeach
-      </tbody>
-    </table>
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <table class="min-w-full">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Email</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Phone</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Ministry</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Status</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          @forelse($volunteers as $volunteer)
+          <tr class="hover:bg-gray-50 volunteer-row"
+            data-name="{{ strtolower($volunteer->nickname ?? $volunteer->detail?->full_name ?? 'No Name') }}"
+            data-email="{{ strtolower($volunteer->email_address ?? '') }}"
+            data-ministry="{{ strtolower($volunteer->ministry_name) }}"
+            data-id="{{ $volunteer->id }}">
+
+            <td class="px-6 py-4 whitespace-nowrap cursor-pointer" onclick="openProfile('{{ $volunteer->id }}')">
+              <div class="flex items-center">
+                @php
+                $displayName = $volunteer->nickname ?? $volunteer->detail?->full_name ?? 'No Name';
+                $avatarSeed = str_replace(' ', '', strtolower($displayName));
+                @endphp
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ $avatarSeed }}"
+                  alt="{{ $displayName }}" class="w-10 h-10 rounded-full mr-3">
+                <div>
+                  <div class="text-sm font-medium text-gray-900">{{ $displayName }}</div>
+                  @if($volunteer->occupation)
+                  <div class="text-sm text-gray-500">{{ $volunteer->occupation }}</div>
+                  @endif
+                </div>
+              </div>
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
+              {{ $volunteer->email_address ?? 'No email' }}
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
+              {{ $volunteer->mobile_number ?? 'No phone' }}
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap hidden lg:table-cell">
+              @if($volunteer->detail && $volunteer->detail->ministry)
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                {{ $volunteer->detail->ministry->ministry_name }}
+              </span>
+              @else
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                No Ministry Assigned
+              </span>
+              @endif
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap hidden md:table-cell">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $volunteer->hasCompleteProfile() ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                {{  $volunteer->detail->volunteer_status  }}
+              </span>
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <button class="text-blue-600 hover:text-blue-900 mr-3" onclick="openProfile('{{ $volunteer->id }}'); event.stopPropagation();">
+                View
+              </button>
+              <button class="text-blue-600 hover:text-blue-900 mr-3" onclick="editVolunteer('{{ $volunteer->id }}'); event.stopPropagation();">
+                Edit
+              </button>
+              <button class="text-red-600 hover:text-red-900" onclick="deleteVolunteer('{{ $volunteer->id }}'); event.stopPropagation();">
+                Delete
+              </button>
+            </td>
+          </tr>
+          @empty
+          <tr>
+            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+              <div class="flex flex-col items-center">
+                <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                <p class="text-lg font-medium">No volunteers found</p>
+                <p class="text-sm">Start by adding your first volunteer to the system.</p>
+              </div>
+            </td>
+          </tr>
+          @endforelse
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- Pagination -->
-  <div class="flex justify-center space-x-2 mt-6">
-    <button class="px-3 py-1 border rounded text-gray-500 hover:bg-gray-100">Previous</button>
-    <button class="px-3 py-1 bg-blue-600 text-white rounded">1</button>
-    <button class="px-3 py-1 border rounded text-gray-500 hover:bg-gray-100">2</button>
-    <button class="px-3 py-1 border rounded text-gray-500 hover:bg-gray-100">3</button>
-    <button class="px-3 py-1 border rounded text-gray-500 hover:bg-gray-100">Next</button>
+  @if($volunteers->hasPages())
+  <div class="flex justify-center mt-6">
+    {{ $volunteers->links() }}
   </div>
+  @endif
 </div>
 
 <!-- Registration Modal -->
@@ -402,7 +457,7 @@
 
 <!-- Profile Modal -->
 <div id="profileModal" class="fixed inset-0 hidden items-center justify-center modal-bg">
-  <div class="bg-white rounded-lg w-full max-w-md p-6 relative">
+  <div class="bg-white rounded-lg w-full max-w-2xl p-6 relative max-h-[90vh] overflow-y-auto">
     <button id="closeProfile" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 focus:outline-none">
       <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -578,30 +633,251 @@
 
   // Profile modal
   function openProfile(id) {
-    const vols = @json($volunteers);
-    const v = vols.find(x => x.id === id);
-    if (!v) return;
-    let html = `
-      <div class="flex items-center gap-4">
-        <img src="${v.avatar}" alt="${v.name}" class="w-16 h-16 rounded-full">
-        <div>
-          <h2 class="text-xl font-bold">${v.name}</h2>
-          <p class="text-sm text-gray-500">Joined on ${new Date(v.joinDate).toLocaleDateString()}</p>
-        </div>
-      </div>
-      <div class="mt-4 grid grid-cols-2 gap-4">
-        <div><p class="text-sm font-medium text-gray-500">Email</p><p>${v.email}</p></div>
-        <div><p class="text-sm font-medium text-gray-500">Phone</p><p>${v.phone}</p></div>
-        <div><p class="text-sm font-medium text-gray-500">Status</p><p>${v.status==='active'?'Active':'Inactive'}</p></div>
-      </div>
-      <div class="mt-4">
-        <p class="text-sm font-medium text-gray-500">Ministries</p>
-        <div class="flex flex-wrap gap-1">
-          ${v.ministries.map(m=>`<span class="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded border border-blue-200">${m}</span>`).join('')}
-        </div>
-      </div>`;
-    document.getElementById('profileContent').innerHTML = html;
+    // Show loading state
+    const profileContent = document.getElementById('profileContent');
+    profileContent.innerHTML = `
+    <div class="flex items-center justify-center py-8">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <span class="ml-2 text-gray-600">Loading profile...</span>
+    </div>
+  `;
+
+    // Show modal immediately with loading state
     document.getElementById('profileModal').classList.replace('hidden', 'flex');
+
+    // Fetch volunteer data from backend
+    fetch(`/volunteers/${id}`, {
+        method: 'GET',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+          'Accept': 'application/json',
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch volunteer data');
+        }
+        return response.json();
+      })
+      .then(volunteer => {
+        // Generate avatar seed from name
+        const displayName = volunteer.nickname || volunteer.detail?.full_name || 'No Name';
+        const avatarSeed = displayName.replace(/\s/g, '').toLowerCase();
+        const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`;
+
+        // Format join date
+        const joinDate = volunteer.created_at ? new Date(volunteer.created_at).toLocaleDateString() : 'Unknown';
+
+        // Get ministry information
+        const ministryName = volunteer.detail?.ministry?.ministry_name || 'No Ministry Assigned';
+
+        // Get profile completion status
+        const profileStatus = volunteer.detail?.volunteer_status
+        const statusClass = volunteer.has_complete_profile ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700';
+
+        // Format sacraments
+        const sacraments = volunteer.detail?.sacraments ?
+          volunteer.detail.sacraments.split(',').map(s => s.trim()).filter(s => s) : [];
+
+        // Format formations
+        const formations = volunteer.detail?.formations ?
+          volunteer.detail.formations.split(',').map(f => f.trim()).filter(f => f) : [];
+
+        // Build the profile HTML
+        const html = `
+      <div class="flex items-center gap-4 mb-6">
+        <img src="${avatarUrl}" alt="${displayName}" class="w-16 h-16 rounded-full">
+        <div>
+          <h2 class="text-xl font-bold">${displayName}</h2>
+          <p class="text-sm text-gray-500">Joined on ${joinDate}</p>
+          <span class="inline-block px-2 py-1 text-xs rounded-full ${statusClass} mt-1">
+            ${profileStatus}
+          </span>
+        </div>
+      </div>
+      
+      <div class="space-y-4">
+        <!-- Contact Information -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p class="text-sm font-medium text-gray-500">Email</p>
+            <p class="text-sm">${volunteer.email_address || 'Not provided'}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-500">Phone</p>
+            <p class="text-sm">${volunteer.mobile_number || 'Not provided'}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-500">Date of Birth</p>
+            <p class="text-sm">${volunteer.date_birth ? new Date(volunteer.date_birth).toLocaleDateString() : 'Not provided'}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-500">Occupation</p>
+            <p class="text-sm">${volunteer.occupation || 'Not provided'}</p>
+          </div>
+        </div>
+        
+        <!-- Address -->
+        ${volunteer.address ? `
+        <div>
+          <p class="text-sm font-medium text-gray-500">Address</p>
+          <p class="text-sm">${volunteer.address}</p>
+        </div>
+        ` : ''}
+        
+        <!-- Ministry -->
+        <div>
+          <p class="text-sm font-medium text-gray-500">Ministry</p>
+          <span class="inline-block px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded border border-blue-200">
+            ${ministryName}
+          </span>
+        </div>
+        
+        <!-- Personal Information -->
+        ${volunteer.sex || volunteer.civil_status ? `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          ${volunteer.sex ? `
+          <div>
+            <p class="text-sm font-medium text-gray-500">Gender</p>
+            <p class="text-sm capitalize">${volunteer.sex}</p>
+          </div>
+          ` : ''}
+          ${volunteer.civil_status ? `
+          <div>
+            <p class="text-sm font-medium text-gray-500">Civil Status</p>
+            <p class="text-sm capitalize">${volunteer.civil_status}</p>
+          </div>
+          ` : ''}
+        </div>
+        ` : ''}
+        
+        <!-- Sacraments -->
+        ${sacraments.length > 0 ? `
+        <div>
+          <p class="text-sm font-medium text-gray-500 mb-2">Sacraments Received</p>
+          <div class="flex flex-wrap gap-1">
+            ${sacraments.map(sacrament => 
+              `<span class="px-2 py-1 text-xs bg-purple-50 text-purple-700 rounded border border-purple-200">${sacrament}</span>`
+            ).join('')}
+          </div>
+        </div>
+        ` : ''}
+        
+        <!-- Formations -->
+        ${formations.length > 0 ? `
+        <div>
+          <p class="text-sm font-medium text-gray-500 mb-2">Formations Received</p>
+          <div class="flex flex-wrap gap-1">
+            ${formations.map(formation => 
+              `<span class="px-2 py-1 text-xs bg-green-50 text-green-700 rounded border border-green-200">${formation}</span>`
+            ).join('')}
+          </div>
+        </div>
+        ` : ''}
+        
+        <!-- Volunteer Timeline -->
+        ${volunteer.detail?.applied_date || volunteer.detail?.regular_duration ? `
+        <div>
+          <p class="text-sm font-medium text-gray-500 mb-2">Volunteer Information</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${volunteer.detail?.applied_date ? `
+            <div>
+              <p class="text-xs text-gray-400">Month & Year Applied</p>
+              <p class="text-sm">${new Date(volunteer.detail.applied_date + '-01').toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</p>
+            </div>
+            ` : ''}
+            ${volunteer.detail?.regular_duration ? `
+            <div>
+              <p class="text-xs text-gray-400">Years as Regular Volunteer</p>
+              <p class="text-sm">${volunteer.detail.regular_duration}</p>
+            </div>
+            ` : ''}
+          </div>
+        </div>
+        ` : ''}
+        
+        <!-- Additional Notes -->
+        ${volunteer.others ? `
+        <div>
+          <p class="text-sm font-medium text-gray-500">Additional Notes</p>
+          <p class="text-sm">${volunteer.others}</p>
+        </div>
+        ` : ''}
+      </div>
+    `;
+
+        profileContent.innerHTML = html;
+
+        // Store volunteer ID for edit functionality
+        document.getElementById('editProfile').setAttribute('data-volunteer-id', id);
+        document.getElementById('scheduleVolunteer').setAttribute('data-volunteer-id', id);
+      })
+      .catch(error => {
+        console.error('Error fetching volunteer data:', error);
+        profileContent.innerHTML = `
+      <div class="flex items-center justify-center py-8 text-center">
+        <div class="text-red-600">
+          <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <p class="font-medium">Failed to load profile</p>
+          <p class="text-sm text-gray-500 mt-1">Please try again later</p>
+        </div>
+      </div>
+    `;
+      });
+  }
+
+  // Update the edit profile button functionality
+  document.getElementById('editProfile').addEventListener('click', function() {
+    const volunteerId = this.getAttribute('data-volunteer-id');
+    if (volunteerId) {
+      editVolunteer(volunteerId);
+    }
+  });
+
+  // Update the schedule volunteer button functionality
+  document.getElementById('scheduleVolunteer').addEventListener('click', function() {
+    const volunteerId = this.getAttribute('data-volunteer-id');
+    if (volunteerId) {
+      // You can customize this action based on your needs
+      alert(`Scheduling volunteer with ID: ${volunteerId}`);
+      // Or redirect to a scheduling page:
+      // window.location.href = `/volunteers/${volunteerId}/schedule`;
+    }
+  });
+
+  // Add these helper functions if they don't exist
+  function editVolunteer(id) {
+    // Implement your edit volunteer functionality
+    alert(`Edit volunteer with ID: ${id}`);
+    // You might want to redirect to an edit page or open an edit modal
+    // window.location.href = `/volunteers/${id}/edit`;
+  }
+
+  function deleteVolunteer(id) {
+    if (confirm('Are you sure you want to delete this volunteer?')) {
+      fetch(`/volunteers/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            toastr.success('Volunteer deleted successfully');
+            location.reload(); // Refresh the page to update the list
+          } else {
+            toastr.error('Failed to delete volunteer');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          toastr.error('An error occurred while deleting the volunteer');
+        });
+    }
   }
   document.getElementById('closeProfile').addEventListener('click', () => {
     document.getElementById('profileModal').classList.replace('flex', 'hidden');

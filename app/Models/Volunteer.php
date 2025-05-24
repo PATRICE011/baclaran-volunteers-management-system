@@ -32,6 +32,14 @@ class Volunteer extends Model
     {
         return $this->hasOne(VolunteerDetail::class);
     }
+       public function getMinistryNameAttribute()
+    {
+        return $this->detail?->ministry?->ministry_name ?? 'No Ministry Assigned';
+    }
+     public function hasCompleteProfile(): bool
+    {
+        return $this->detail !== null;
+    }
 
     public function timelines(): HasMany
     {

@@ -24,6 +24,8 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::prefix('volunteers')->group(function(){
         Route::get('/', [VolunteersController::class, 'index']);
         Route::post('/register', [VolunteersController::class, 'store'])->name('volunteers.register');
+        Route::get('/{id}', [VolunteersController::class, 'show'])->name('volunteers.show');
+        Route::delete('/{id}', [VolunteersController::class, 'destroy'])->name('volunteers.destroy');
     });
     
 
