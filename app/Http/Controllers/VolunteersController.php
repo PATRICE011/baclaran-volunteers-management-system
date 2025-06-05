@@ -8,25 +8,60 @@ use App\Models\Ministry;
 
 class VolunteersController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $ministries = Ministry::whereNull('parent_id')->with('children')->get();
+        // Build the base query, including eager-loaded relations
+        $query = Volunteer::with(['detail.ministry']);
 
-        // Fetch volunteers with their related data
-        $volunteers = Volunteer::with([
-            'detail.ministry',
-            'timelines' => function ($query) {
-                $query->where('is_active', true);
-            },
-            'affiliations' => function ($query) {
-                $query->where('is_active', true);
-            }
-        ])
-            ->orderBy('created_at', 'desc')
-            ->paginate(12); // Adjust pagination as needed
+        /* ---------- Search filter ---------- */
+        if ($request->filled('search')) {
+            $searchTerm = trim($request->input('search'));
 
-        return view('admin_volunteer', compact('ministries', 'volunteers'));
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('nickname',      'like', "%{$searchTerm}%")
+                    ->orWhere('email_address', 'like', "%{$searchTerm}%")
+
+                    // full_name lives on the related detail model
+                    ->orWhereHas('detail', function ($q) use ($searchTerm) {
+                        $q->where('full_name', 'like', "%{$searchTerm}%");
+                    })
+
+                    // ministry_name lives on the grand-child relation
+                    ->orWhereHas('detail.ministry', function ($q) use ($searchTerm) {
+                        $q->where('ministry_name', 'like', "%{$searchTerm}%");
+                    });
+            });
+        }
+
+        /* ---------- Run the query, newest first ---------- */
+        $volunteers = $query->latest()          // 👈 newest at the top
+            ->paginate(12)
+            ->appends($request->only(['search', 'view']));
+
+
+        /* ---------- AJAX or full page ---------- */
+        if ($request->ajax() || $request->wantsJson()) {
+            $viewType = $request->get('view', 'grid');
+            $viewName = $viewType === 'list'
+                ? 'partials.volunteer_list_row'
+                : 'partials.volunteer_card';
+
+            return response()->json([
+                'success' => true,
+                'html'    => view($viewName, compact('volunteers'))->render(),
+                'view'    => $viewType,
+            ]);
+        }
+
+        // Full page load
+        $ministries = Ministry::whereNull('parent_id')
+            ->with('children')
+            ->get();
+
+        return view('admin_volunteer', compact('volunteers', 'ministries'));
     }
+
+
     public function store(Request $request)
     {
         try {

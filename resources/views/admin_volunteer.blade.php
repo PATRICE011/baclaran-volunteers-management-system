@@ -36,9 +36,20 @@
       <input id="searchInput" type="text" placeholder="Search volunteers by name, email, or ministry..."
         class="pl-10 pr-3 py-2 border rounded w-full focus:outline-none focus:border-blue-500">
     </div>
+    {{-- Update your view toggle buttons section --}}
     <div class="flex gap-2">
-      <button id="gridViewBtn" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100 bg-blue-50 border-blue-200">Grid</button>
-      <button id="listViewBtn" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100">List</button>
+      <button id="gridViewBtn" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100 bg-white" data-view="grid">
+        <svg class="inline mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+        </svg>
+        Grid
+      </button>
+      <button id="listViewBtn" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100 bg-white" data-view="list">
+        <svg class="inline mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+        </svg>
+        List
+      </button>
       <button id="filterBtn" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100 flex items-center">
         <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -47,469 +58,275 @@
         Filter
       </button>
     </div>
-  </div>
 
-  <!-- Grid View -->
-  <div id="gridView" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-    @forelse($volunteers as $volunteer)
-    <div class="bg-white shadow rounded overflow-hidden cursor-pointer volunteer-card"
-      data-name="{{ strtolower($volunteer->nickname ?? $volunteer->detail?->full_name ?? 'No Name') }}"
-      data-email="{{ strtolower($volunteer->email_address ?? '') }}"
-      data-ministry="{{ strtolower($volunteer->ministry_name) }}"
-      data-id="{{ $volunteer->id }}"
-      onclick="openProfile('{{ $volunteer->id }}')">
-      <div class="p-4 flex flex-col items-center">
-        <!-- Generate avatar based on name -->
-        @php
-        $displayName = $volunteer->nickname ?? $volunteer->detail?->full_name ?? 'No Name';
-        $avatarSeed = str_replace(' ', '', strtolower($displayName));
-        @endphp
-        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ $avatarSeed }}"
-          alt="{{ $displayName }}" class="w-20 h-20 rounded-full mb-4">
-
-        <h3 class="font-semibold text-lg text-center">{{ $displayName }}</h3>
-        <p class="text-sm text-gray-500 mb-2 text-center">{{ $volunteer->email_address ?? 'No email' }}</p>
-
-        <!-- Ministry Display -->
-        <div class="flex flex-wrap gap-1 justify-center mt-2">
-          @if($volunteer->detail && $volunteer->detail->ministry)
-          <span class="inline-block px-2 py-1 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-            {{ $volunteer->detail->ministry->ministry_name }}
-          </span>
-          @else
-          <span class="inline-block px-2 py-1 text-xs rounded-full bg-gray-50 text-gray-500 border border-gray-200">
-            No Ministry Assigned
-          </span>
-          @endif
-        </div>
-
-        @php
-        $status = $volunteer->detail->volunteer_status ?? 'Unknown';
-        $statusClass = match ($status) {
-        'Active' => 'bg-green-100 text-green-700 border border-green-200',
-        'Inactive' => 'bg-red-100 text-red-700 border border-red-200',
-        default => 'bg-gray-100 text-gray-500 border border-gray-200',
-        };
-        @endphp
-
-        <span class="mt-2 inline-block px-2 py-1 text-xs rounded-full {{ $statusClass }}">
-          {{ $status }}
-        </span>
-
-
+    {{-- Add loading overlay for better UX --}}
+    <div id="viewLoadingOverlay" class="fixed inset-0 bg-black bg-opacity-25 hidden items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+        <span class="text-gray-700">Loading view...</span>
       </div>
     </div>
-    @empty
-    <div class="col-span-full flex flex-col items-center justify-center py-12 text-gray-500">
-      <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-      </svg>
-      <p class="text-lg font-medium">No volunteers found</p>
-      <p class="text-sm">Start by adding your first volunteer to the system.</p>
-    </div>
-    @endforelse
+
   </div>
 
+  <!-- Grid View Container -->
+  <div id="gridView" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" style="display: {{ request('view') === 'list' ? 'none' : 'grid' }};">
+    {{-- This will be dynamically replaced by AJAX --}}
+  </div>
   <!-- List View -->
   <div id="listView" class="hidden">
-    <div class="bg-white shadow rounded-lg overflow-hidden">
-      <table class="min-w-full">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Email</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Phone</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Ministry</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Status</th>
-            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200">
-          @forelse($volunteers as $volunteer)
-          <tr class="hover:bg-gray-50 volunteer-row"
-            data-name="{{ strtolower($volunteer->nickname ?? $volunteer->detail?->full_name ?? 'No Name') }}"
-            data-email="{{ strtolower($volunteer->email_address ?? '') }}"
-            data-ministry="{{ strtolower($volunteer->ministry_name) }}"
-            data-id="{{ $volunteer->id }}">
-
-            <td class="px-6 py-4 whitespace-nowrap cursor-pointer" onclick="openProfile('{{ $volunteer->id }}')">
-              <div class="flex items-center">
-                @php
-                $displayName = $volunteer->nickname ?? $volunteer->detail?->full_name ?? 'No Name';
-                $avatarSeed = str_replace(' ', '', strtolower($displayName));
-                @endphp
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ $avatarSeed }}"
-                  alt="{{ $displayName }}" class="w-10 h-10 rounded-full mr-3">
-                <div>
-                  <div class="text-sm font-medium text-gray-900">{{ $displayName }}</div>
-                  @if($volunteer->occupation)
-                  <div class="text-sm text-gray-500">{{ $volunteer->occupation }}</div>
-                  @endif
-                </div>
-              </div>
-            </td>
-
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
-              {{ $volunteer->email_address ?? 'No email' }}
-            </td>
-
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
-              {{ $volunteer->mobile_number ?? 'No phone' }}
-            </td>
-
-            <td class="px-6 py-4 whitespace-nowrap hidden lg:table-cell">
-              @if($volunteer->detail && $volunteer->detail->ministry)
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                {{ $volunteer->detail->ministry->ministry_name }}
-              </span>
-              @else
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                No Ministry Assigned
-              </span>
-              @endif
-            </td>
-
-            <td class="px-6 py-4 whitespace-nowrap hidden md:table-cell">
-              @php
-              $status = $volunteer->detail->volunteer_status ?? 'Unknown';
-              $statusClass = match ($status) {
-              'Active' => 'bg-green-100 text-green-700 border border-green-200',
-              'Inactive' => 'bg-red-100 text-red-700 border border-red-200',
-              default => 'bg-gray-100 text-gray-500 border border-gray-200',
-              };
-              @endphp
-
-              <span class="inline-block px-2 py-1 text-xs rounded-full {{ $statusClass }}">
-                {{ $status }}
-              </span>
-
-
-            </td>
-
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <button class="text-blue-600 hover:text-blue-900 mr-3" onclick="openProfile('{{ $volunteer->id }}'); event.stopPropagation();">
-                View
-              </button>
-              <button class="text-blue-600 hover:text-blue-900 mr-3" onclick="editVolunteer('{{ $volunteer->id }}'); event.stopPropagation();">
-                Edit
-              </button>
-              <button class="text-red-600 hover:text-red-900" onclick="deleteVolunteer('{{ $volunteer->id }}'); event.stopPropagation();">
-                Delete
-              </button>
-            </td>
-          </tr>
-          @empty
-          <tr>
-            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
-              <div class="flex flex-col items-center">
-                <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                </svg>
-                <p class="text-lg font-medium">No volunteers found</p>
-                <p class="text-sm">Start by adding your first volunteer to the system.</p>
-              </div>
-            </td>
-          </tr>
-          @endforelse
-        </tbody>
-      </table>
-    </div>
+    {{-- This will be dynamically replaced by AJAX --}}
   </div>
+  <!-- Registration Modal -->
+  <div id="registrationModal" class="fixed inset-0 hidden items-center justify-center modal-bg">
+    <div class="bg-white rounded-lg w-full max-w-lg p-6 relative max-h-[80vh] overflow-y-auto">
+      <button id="closeRegistration" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 focus:outline-none">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
 
-  <!-- Pagination -->
-  @if ($volunteers->hasPages())
-  <div class="mt-6 flex justify-center">
-    <nav role="navigation" aria-label="Pagination Navigation" class="inline-flex items-center space-x-1">
-      {{-- Previous Page Link --}}
-      @if ($volunteers->onFirstPage())
-      <span class="px-3 py-1 text-sm text-gray-400 bg-gray-100 border border-gray-300 rounded">
-        &laquo;
-      </span>
-      @else
-      <a href="{{ $volunteers->previousPageUrl() }}" rel="prev" class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-200">
-        &laquo;
-      </a>
-      @endif
+      <h2 class="text-xl font-bold mb-4">Volunteer Registration</h2>
 
-      {{-- Pagination Elements --}}
-      @foreach ($volunteers->getUrlRange(1, $volunteers->lastPage()) as $page => $url)
-      @if ($page == $volunteers->currentPage())
-      <span class="px-3 py-1 text-sm font-semibold text-white bg-blue-500 border border-blue-500 rounded">
-        {{ $page }}
-      </span>
-      @else
-      <a href="{{ $url }}" class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-200">
-        {{ $page }}
-      </a>
-      @endif
-      @endforeach
-
-      {{-- Next Page Link --}}
-      @if ($volunteers->hasMorePages())
-      <a href="{{ $volunteers->nextPageUrl() }}" rel="next" class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-200">
-        &raquo;
-      </a>
-      @else
-      <span class="px-3 py-1 text-sm text-gray-400 bg-gray-100 border border-gray-300 rounded">
-        &raquo;
-      </span>
-      @endif
-    </nav>
-  </div>
-  @endif
-
-</div>
-
-<!-- Registration Modal -->
-<div id="registrationModal" class="fixed inset-0 hidden items-center justify-center modal-bg">
-  <div class="bg-white rounded-lg w-full max-w-lg p-6 relative max-h-[80vh] overflow-y-auto">
-    <button id="closeRegistration" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 focus:outline-none">
-      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M6 18L18 6M6 6l12 12" />
-      </svg>
-    </button>
-
-    <h2 class="text-xl font-bold mb-4">Volunteer Registration</h2>
-
-    <!-- Tabs -->
-    <div id="registrationTabs" class="mb-4 flex gap-2">
-      <button class="reg-tab px-4 py-2 border-b-2 border-blue-600" data-tab="personal" data-step="1">Basic Info</button>
-      <button class="reg-tab px-4 py-2 border-b-2 border-transparent tab-locked" data-tab="sheet" data-step="2">Info Sheet</button>
-    </div>
-
-
-    <div id="regTabContent">
-      <!-- Basic Info -->
-      <div class="reg-content" id="tab-personal">
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1" for="reg-nickname">Nickname</label>
-          <input id="reg-nickname" name="nickname" type="text" placeholder="e.g. Chaz" class="w-full border rounded px-3 py-2">
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1" for="reg-dob">Date of Birth</label>
-          <input id="reg-dob" name="dob" type="date" class="w-full border rounded px-3 py-2">
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1">Sex</label>
-          <div class="flex items-center space-x-6">
-            <label class="inline-flex items-center">
-              <input type="radio" name="sex" value="male" class="form-radio text-blue-600">
-              <span class="ml-2">Male</span>
-            </label>
-            <label class="inline-flex items-center">
-              <input type="radio" name="sex" value="female" class="form-radio text-pink-600">
-              <span class="ml-2">Female</span>
-            </label>
-          </div>
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1" for="reg-address">Address</label>
-          <textarea id="reg-address" name="address" placeholder="123 Main St, City, Province" class="w-full border rounded px-3 py-2"></textarea>
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1" for="reg-phone">Mobile Number</label>
-          <input id="reg-phone" name="phone" type="tel" placeholder="+63 912 345 6789" class="w-full border rounded px-3 py-2">
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1" for="reg-email">Email Address</label>
-          <input id="reg-email" name="email" type="email" placeholder="you@example.com" class="w-full border rounded px-3 py-2">
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1" for="reg-occupation">Occupation</label>
-          <input id="reg-occupation" name="occupation" type="text" placeholder="e.g. Software Developer" class="w-full border rounded px-3 py-2">
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1">Civil Status</label>
-          <div class="grid grid-cols-2 gap-2">
-            <label class="flex items-center">
-              <input type="radio" name="civil_status" value="single" class="form-radio mr-2"> Single
-            </label>
-            <label class="flex items-center">
-              <input type="radio" name="civil_status" value="married" class="form-radio mr-2"> Married
-            </label>
-            <label class="flex items-center">
-              <input type="radio" name="civil_status" value="widower" class="form-radio mr-2"> Widow(er)
-            </label>
-            <label class="flex items-center">
-              <input type="radio" name="civil_status" value="separated" class="form-radio mr-2"> Separated
-            </label>
-            <label class="flex items-center">
-              <input type="radio" name="civil_status" value="others" class="form-radio mr-2" id="civilOthers"> Others
-            </label>
-          </div>
-
-          <!-- Custom input for others -->
-          <div id="civilOtherInput" class="mt-2 hidden">
-            <input type="text" name="civil_status_other" placeholder="Specify other civil status" class="w-full border rounded px-3 py-2">
-          </div>
-        </div>
-
-
-        <div class="mb-4">
-          <span class="block text-sm font-medium mb-1">Sacrament/s Received</span>
-          <div class="grid grid-cols-3 gap-2">
-            <label class="flex items-center"><input type="checkbox" name="sacraments[]" value="baptism" class="form-checkbox mr-2"> Baptism</label>
-            <label class="flex items-center"><input type="checkbox" name="sacraments[]" value="first_communion" class="form-checkbox mr-2"> First Communion</label>
-            <label class="flex items-center"><input type="checkbox" name="sacraments[]" value="confirmation" class="form-checkbox mr-2"> Confirmation</label>
-          </div>
-        </div>
-        <div class="mb-4">
-          <span class="block text-sm font-medium mb-1">Formations Received</span>
-          <div class="grid grid-cols-1 gap-2">
-            <label class="flex items-center"><input type="checkbox" name="formations[]" value="BOS" class="form-checkbox mr-2"> Basic Orientation Seminar (BOS)</label>
-            <label class="flex items-center"><input type="checkbox" name="formations[]" value="BFF" class="form-checkbox mr-2"> Basic Faith Formation (BFF)</label>
-          </div>
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1" for="reg-others">Others</label>
-          <input id="reg-others" name="others" type="text" placeholder="Anything else?" class="w-full border rounded px-3 py-2">
-        </div>
+      <!-- Tabs -->
+      <div id="registrationTabs" class="mb-4 flex gap-2">
+        <button class="reg-tab px-4 py-2 border-b-2 border-blue-600" data-tab="personal" data-step="1">Basic Info</button>
+        <button class="reg-tab px-4 py-2 border-b-2 border-transparent tab-locked" data-tab="sheet" data-step="2">Info Sheet</button>
       </div>
 
-      <!-- Info Sheet -->
-      <div class="reg-content hidden" id="tab-sheet">
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1" for="reg-ministry">Ministry</label>
-          <select name="ministry_id" id="reg-ministry" class="w-full border rounded px-3 py-2">
-            <option value="">-- Select Ministry --</option>
-            @foreach($ministries as $ministry)
-            <optgroup label="{{ $ministry->ministry_name }}">
-              @foreach($ministry->children as $sub)
-              <option value="{{ $sub->id }}">{{ $sub->ministry_name }}</option>
+
+      <div id="regTabContent">
+        <!-- Basic Info -->
+        <div class="reg-content" id="tab-personal">
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1" for="reg-nickname">Nickname</label>
+            <input id="reg-nickname" name="nickname" type="text" placeholder="e.g. Chaz" class="w-full border rounded px-3 py-2">
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1" for="reg-dob">Date of Birth</label>
+            <input id="reg-dob" name="dob" type="date" class="w-full border rounded px-3 py-2">
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Sex</label>
+            <div class="flex items-center space-x-6">
+              <label class="inline-flex items-center">
+                <input type="radio" name="sex" value="male" class="form-radio text-blue-600">
+                <span class="ml-2">Male</span>
+              </label>
+              <label class="inline-flex items-center">
+                <input type="radio" name="sex" value="female" class="form-radio text-pink-600">
+                <span class="ml-2">Female</span>
+              </label>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1" for="reg-address">Address</label>
+            <textarea id="reg-address" name="address" placeholder="123 Main St, City, Province" class="w-full border rounded px-3 py-2"></textarea>
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1" for="reg-phone">Mobile Number</label>
+            <input id="reg-phone" name="phone" type="tel" placeholder="+63 912 345 6789" class="w-full border rounded px-3 py-2">
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1" for="reg-email">Email Address</label>
+            <input id="reg-email" name="email" type="email" placeholder="you@example.com" class="w-full border rounded px-3 py-2">
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1" for="reg-occupation">Occupation</label>
+            <input id="reg-occupation" name="occupation" type="text" placeholder="e.g. Software Developer" class="w-full border rounded px-3 py-2">
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Civil Status</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label class="flex items-center">
+                <input type="radio" name="civil_status" value="single" class="form-radio mr-2"> Single
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="civil_status" value="married" class="form-radio mr-2"> Married
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="civil_status" value="widower" class="form-radio mr-2"> Widow(er)
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="civil_status" value="separated" class="form-radio mr-2"> Separated
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="civil_status" value="others" class="form-radio mr-2" id="civilOthers"> Others
+              </label>
+            </div>
+
+            <!-- Custom input for others -->
+            <div id="civilOtherInput" class="mt-2 hidden">
+              <input type="text" name="civil_status_other" placeholder="Specify other civil status" class="w-full border rounded px-3 py-2">
+            </div>
+          </div>
+
+
+          <div class="mb-4">
+            <span class="block text-sm font-medium mb-1">Sacrament/s Received</span>
+            <div class="grid grid-cols-3 gap-2">
+              <label class="flex items-center"><input type="checkbox" name="sacraments[]" value="baptism" class="form-checkbox mr-2"> Baptism</label>
+              <label class="flex items-center"><input type="checkbox" name="sacraments[]" value="first_communion" class="form-checkbox mr-2"> First Communion</label>
+              <label class="flex items-center"><input type="checkbox" name="sacraments[]" value="confirmation" class="form-checkbox mr-2"> Confirmation</label>
+            </div>
+          </div>
+          <div class="mb-4">
+            <span class="block text-sm font-medium mb-1">Formations Received</span>
+            <div class="grid grid-cols-1 gap-2">
+              <label class="flex items-center"><input type="checkbox" name="formations[]" value="BOS" class="form-checkbox mr-2"> Basic Orientation Seminar (BOS)</label>
+              <label class="flex items-center"><input type="checkbox" name="formations[]" value="BFF" class="form-checkbox mr-2"> Basic Faith Formation (BFF)</label>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1" for="reg-others">Others</label>
+            <input id="reg-others" name="others" type="text" placeholder="Anything else?" class="w-full border rounded px-3 py-2">
+          </div>
+        </div>
+
+        <!-- Info Sheet -->
+        <div class="reg-content hidden" id="tab-sheet">
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1" for="reg-ministry">Ministry</label>
+            <select name="ministry_id" id="reg-ministry" class="w-full border rounded px-3 py-2">
+              <option value="">-- Select Ministry --</option>
+              @foreach($ministries as $ministry)
+              <optgroup label="{{ $ministry->ministry_name }}">
+                @foreach($ministry->children as $sub)
+                <option value="{{ $sub->id }}">{{ $sub->ministry_name }}</option>
+                @endforeach
+              </optgroup>
               @endforeach
-            </optgroup>
-            @endforeach
-          </select>
+            </select>
 
-        </div>
-
-        <div class="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label class="block text-sm font-medium mb-1" for="reg-applied-date">Month &amp; Year Applied</label>
-            <input id="reg-applied-date" name="applied_date" type="month" class="w-full border rounded px-3 py-2">
           </div>
-          <div>
-            <label class="block text-sm font-medium mb-1" for="reg-regular-duration">No. of Years as Regular Volunteer</label>
-            <input id="reg-regular-duration" name="regular_duration" type="text" placeholder="e.g. 1 yr 6 mos" class="w-full border rounded px-3 py-2">
-          </div>
-        </div>
 
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1">Name</label>
-          <div class="grid grid-cols-3 gap-2">
-            <input type="text" name="last_name" placeholder="Surname" class="border rounded px-2 py-1">
-            <input type="text" name="first_name" placeholder="First Name" class="border rounded px-2 py-1">
-            <input type="text" name="middle_initial" placeholder="M.I." class="border rounded px-2 py-1">
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-medium mb-1" for="reg-applied-date">Month &amp; Year Applied</label>
+              <input id="reg-applied-date" name="applied_date" type="month" class="w-full border rounded px-3 py-2">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1" for="reg-regular-duration">No. of Years as Regular Volunteer</label>
+              <input id="reg-regular-duration" name="regular_duration" type="text" placeholder="e.g. 1 yr 6 mos" class="w-full border rounded px-3 py-2">
+            </div>
           </div>
-        </div>
 
-        <div class="mb-4">
-          <h3 class="font-semibold mb-2">Volunteer Timeline</h3>
-          <p class="text-sm text-gray-500 mb-2">Please indicate all Organization/Ministry you belong to in the Shrine</p>
-          <table class="w-full table-auto border-collapse mb-4">
-            <thead>
-              <tr class="bg-gray-100">
-                <th class="border px-2 py-1">Organization/Ministry</th>
-                <th class="border px-2 py-1">Year Started–Year Ended</th>
-                <th class="border px-2 py-1">Total Years</th>
-                <th class="border px-2 py-1">Active? Y/N</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for($i=0; $i<3; $i++)
-                <tr>
-                <td class="border p-1">
-                  <input type="text" name="timeline_org[]" class="w-full border rounded px-2 py-1">
-                </td>
-                <td class="border p-1 flex gap-1 items-center">
-                  <select name="timeline_start_year[]" class="border rounded px-2 py-1 year-select" data-row="{{ $i }}">
-                    @for ($y = date('Y'); $y >= 1980; $y--)
-                    <option value="{{ $y }}">{{ $y }}</option>
-                    @endfor
-                  </select>
-                  <span>–</span>
-                  <select name="timeline_end_year[]" class="border rounded px-2 py-1 year-select" data-row="{{ $i }}">
-                    @for ($y = date('Y'); $y >= 1980; $y--)
-                    <option value="{{ $y }}">{{ $y }}</option>
-                    @endfor
-                  </select>
-                </td>
-                <td class="border p-1">
-                  <input type="text" name="timeline_total[]" class="w-full border rounded px-2 py-1 total-years" readonly>
-                </td>
-                <td class="border p-1 text-center">
-                  <select name="timeline_active[]" class="border rounded px-2 py-1 w-full">
-                    <option value="">–</option>
-                    <option value="Y">Y</option>
-                    <option value="N">N</option>
-                  </select>
-                </td>
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Name</label>
+            <div class="grid grid-cols-3 gap-2">
+              <input type="text" name="last_name" placeholder="Surname" class="border rounded px-2 py-1">
+              <input type="text" name="first_name" placeholder="First Name" class="border rounded px-2 py-1">
+              <input type="text" name="middle_initial" placeholder="M.I." class="border rounded px-2 py-1">
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <h3 class="font-semibold mb-2">Volunteer Timeline</h3>
+            <p class="text-sm text-gray-500 mb-2">Please indicate all Organization/Ministry you belong to in the Shrine</p>
+            <table class="w-full table-auto border-collapse mb-4">
+              <thead>
+                <tr class="bg-gray-100">
+                  <th class="border px-2 py-1">Organization/Ministry</th>
+                  <th class="border px-2 py-1">Year Started–Year Ended</th>
+                  <th class="border px-2 py-1">Total Years</th>
+                  <th class="border px-2 py-1">Active? Y/N</th>
                 </tr>
-                @endfor
+              </thead>
+              <tbody>
+                @for($i=0; $i<3; $i++)
+                  <tr>
+                  <td class="border p-1">
+                    <input type="text" name="timeline_org[]" class="w-full border rounded px-2 py-1">
+                  </td>
+                  <td class="border p-1 flex gap-1 items-center">
+                    <select name="timeline_start_year[]" class="border rounded px-2 py-1 year-select" data-row="{{ $i }}">
+                      @for ($y = date('Y'); $y >= 1980; $y--)
+                      <option value="{{ $y }}">{{ $y }}</option>
+                      @endfor
+                    </select>
+                    <span>–</span>
+                    <select name="timeline_end_year[]" class="border rounded px-2 py-1 year-select" data-row="{{ $i }}">
+                      @for ($y = date('Y'); $y >= 1980; $y--)
+                      <option value="{{ $y }}">{{ $y }}</option>
+                      @endfor
+                    </select>
+                  </td>
+                  <td class="border p-1">
+                    <input type="text" name="timeline_total[]" class="w-full border rounded px-2 py-1 total-years" readonly>
+                  </td>
+                  <td class="border p-1 text-center">
+                    <select name="timeline_active[]" class="border rounded px-2 py-1 w-full">
+                      <option value="">–</option>
+                      <option value="Y">Y</option>
+                      <option value="N">N</option>
+                    </select>
+                  </td>
+                  </tr>
+                  @endfor
 
-            </tbody>
-          </table>
-        </div>
+              </tbody>
+            </table>
+          </div>
 
-        <div class="mb-4">
-          <h3 class="font-semibold mb-2">Other Affiliations</h3>
-          <p class="text-sm text-gray-500 mb-2">Please indicate any Organization/Ministry you belong to outside the Shrine</p>
-          <table class="w-full table-auto border-collapse mb-4">
-            <thead>
-              <tr class="bg-gray-100">
-                <th class="border px-2 py-1">Organization/Ministry</th>
-                <th class="border px-2 py-1">Year Started–Year Ended</th>
-                <th class="border px-2 py-1">Active? Y/N</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for($i=0; $i<3; $i++)
-                <tr>
-                <td class="border p-1">
-                  <input type="text" name="affil_org[]" class="w-full border rounded px-2 py-1">
-                </td>
-                <td class="border p-1 flex gap-1 items-center">
-                  <select name="affil_start_year[]" class="border rounded px-2 py-1 year-select" data-row="{{ $i }}">
-                    @for ($y = date('Y'); $y >= 1980; $y--)
-                    <option value="{{ $y }}">{{ $y }}</option>
-                    @endfor
-                  </select>
-                  <span>–</span>
-                  <select name="affil_end_year[]" class="border rounded px-2 py-1 year-select" data-row="{{ $i }}">
-                    @for ($y = date('Y'); $y >= 1980; $y--)
-                    <option value="{{ $y }}">{{ $y }}</option>
-                    @endfor
-                  </select>
-                </td>
-                <td class="border p-1 text-center">
-                  <select name="affil_active[]" class="border rounded px-2 py-1 w-full">
-                    <option value="">–</option>
-                    <option value="Y">Y</option>
-                    <option value="N">N</option>
-                  </select>
-                </td>
+          <div class="mb-4">
+            <h3 class="font-semibold mb-2">Other Affiliations</h3>
+            <p class="text-sm text-gray-500 mb-2">Please indicate any Organization/Ministry you belong to outside the Shrine</p>
+            <table class="w-full table-auto border-collapse mb-4">
+              <thead>
+                <tr class="bg-gray-100">
+                  <th class="border px-2 py-1">Organization/Ministry</th>
+                  <th class="border px-2 py-1">Year Started–Year Ended</th>
+                  <th class="border px-2 py-1">Active? Y/N</th>
                 </tr>
+              </thead>
+              <tbody>
+                @for($i=0; $i<3; $i++)
+                  <tr>
+                  <td class="border p-1">
+                    <input type="text" name="affil_org[]" class="w-full border rounded px-2 py-1">
+                  </td>
+                  <td class="border p-1 flex gap-1 items-center">
+                    <select name="affil_start_year[]" class="border rounded px-2 py-1 year-select" data-row="{{ $i }}">
+                      @for ($y = date('Y'); $y >= 1980; $y--)
+                      <option value="{{ $y }}">{{ $y }}</option>
+                      @endfor
+                    </select>
+                    <span>–</span>
+                    <select name="affil_end_year[]" class="border rounded px-2 py-1 year-select" data-row="{{ $i }}">
+                      @for ($y = date('Y'); $y >= 1980; $y--)
+                      <option value="{{ $y }}">{{ $y }}</option>
+                      @endfor
+                    </select>
+                  </td>
+                  <td class="border p-1 text-center">
+                    <select name="affil_active[]" class="border rounded px-2 py-1 w-full">
+                      <option value="">–</option>
+                      <option value="Y">Y</option>
+                      <option value="N">N</option>
+                    </select>
+                  </td>
+                  </tr>
 
-                @endfor
+                  @endfor
 
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
+
         </div>
-
       </div>
+      <!-- At bottom of modal -->
+      <div class="mt-4 flex justify-end gap-2">
+        <button id="cancelRegistration" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100">Cancel</button>
+        <button id="nextToSheet" class="px-4 py-2 bg-blue-600 text-white rounded">Next</button>
+        <button id="submitRegistration" class="px-4 py-2 bg-green-600 text-white rounded hidden">Register Volunteer</button>
+      </div>
+
     </div>
-    <!-- At bottom of modal -->
-    <div class="mt-4 flex justify-end gap-2">
-      <button id="cancelRegistration" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100">Cancel</button>
-      <button id="nextToSheet" class="px-4 py-2 bg-blue-600 text-white rounded">Next</button>
-      <button id="submitRegistration" class="px-4 py-2 bg-green-600 text-white rounded hidden">Register Volunteer</button>
-    </div>
+
 
   </div>
-
-
-</div>
 </div>
 
 <!-- Profile Modal -->
@@ -542,20 +359,43 @@
 
 @section('scripts')
 <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const storedView = localStorage.getItem('volunteerViewType') || 'grid';
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlView = urlParams.get('view');
+    const initialView = urlView || storedView;
+
+    // ✅ Set correct button styles
+    if (initialView === 'list') {
+      listBtn.classList.add('bg-blue-50', 'border-blue-200');
+      gridBtn.classList.remove('bg-blue-50', 'border-blue-200');
+    } else {
+      gridBtn.classList.add('bg-blue-50', 'border-blue-200');
+      listBtn.classList.remove('bg-blue-50', 'border-blue-200');
+    }
+
+    // ✅ Persist initial view choice
+    localStorage.setItem('volunteerViewType', initialView);
+
+    // ✅ This is the missing piece!
+    switchView(initialView);
+
+    attachVolunteerCardListeners();
+  });
   // Toggle grid/list
   const gridBtn = document.getElementById('gridViewBtn');
   const listBtn = document.getElementById('listViewBtn');
-
+  const contentContainer = document.querySelector('.flex-1.flex.flex-col.overflow-auto.p-6');
   gridBtn.addEventListener('click', () => {
     document.getElementById('gridView').style.display = 'grid';
     document.getElementById('listView').style.display = 'none';
 
     // Toggle button styles
-    gridBtn.classList.add('bg-blue-600', 'text-white');
-    gridBtn.classList.remove('bg-white', 'text-gray-700');
+    // gridBtn.classList.add('bg-blue-600', 'text-white');
+    // gridBtn.classList.remove('bg-white', 'text-gray-700');
 
-    listBtn.classList.remove('bg-blue-600', 'text-white');
-    listBtn.classList.add('bg-white', 'text-gray-700');
+    // listBtn.classList.remove('bg-blue-600', 'text-white');
+    // listBtn.classList.add('bg-white', 'text-gray-700');
   });
 
   listBtn.addEventListener('click', () => {
@@ -563,21 +403,220 @@
     document.getElementById('listView').style.display = 'block';
 
     // Toggle button styles
-    listBtn.classList.add('bg-blue-600', 'text-white');
-    listBtn.classList.remove('bg-white', 'text-gray-700');
+    // listBtn.classList.add('bg-blue-600', 'text-white');
+    // listBtn.classList.remove('bg-white', 'text-gray-700');
 
-    gridBtn.classList.remove('bg-blue-600', 'text-white');
-    gridBtn.classList.add('bg-white', 'text-gray-700');
+    // gridBtn.classList.remove('bg-blue-600', 'text-white');
+    // gridBtn.classList.add('bg-white', 'text-gray-700');
+  });
+
+  // Function to show loading state
+  function showLoadingState() {
+    const loadingHTML = `
+    <div class="flex items-center justify-center py-12">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <span class="ml-2 text-gray-600">Loading...</span>
+    </div>
+  `;
+
+    // Replace current view content with loading
+    const gridView = document.getElementById('gridView');
+    const listView = document.getElementById('listView');
+
+    if (gridView && !gridView.classList.contains('hidden')) {
+      gridView.innerHTML = loadingHTML;
+    }
+    if (listView && !listView.classList.contains('hidden')) {
+      listView.innerHTML = loadingHTML;
+    }
+  }
+
+  // Function to fetch view data
+  async function fetchViewData(viewType, searchQuery = '') {
+    try {
+      // Use the correct URL (matches your route)
+      const url = new URL('/volunteers', window.location.origin);
+      url.searchParams.set('view', viewType);
+      if (searchQuery) {
+        url.searchParams.set('search', searchQuery);
+      }
+
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        credentials: 'include' // This sends cookies/session for auth
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching view data:', error);
+      throw error;
+    }
+  }
+
+  // Function to update view content
+  function updateViewContent(viewType, html) {
+    const gridView = document.getElementById('gridView');
+    const listView = document.getElementById('listView');
+
+    if (viewType === 'grid') {
+      gridView.innerHTML = html;
+      gridView.style.display = 'grid';
+      listView.style.display = 'none';
+
+      // Update button styles
+      gridBtn.classList.add('bg-blue-50', 'border-blue-200');
+      gridBtn.classList.remove('bg-white');
+      listBtn.classList.remove('bg-blue-50', 'border-blue-200');
+      listBtn.classList.add('bg-white');
+    } else {
+      listView.innerHTML = html;
+      listView.style.display = 'block';
+      gridView.style.display = 'none';
+
+      // Update button styles
+      listBtn.classList.add('bg-blue-50', 'border-blue-200');
+      listBtn.classList.remove('bg-white');
+      gridBtn.classList.remove('bg-blue-50', 'border-blue-200');
+      gridBtn.classList.add('bg-white');
+    }
+
+    // Store current view in localStorage for persistence
+    localStorage.setItem('volunteerViewType', viewType);
+  }
+
+  // Function to handle view switching
+  async function switchView(viewType) {
+    try {
+      showLoadingState();
+
+      const searchQuery = document.getElementById('searchInput').value;
+      const data = await fetchViewData(viewType, searchQuery);
+
+      if (data.success) {
+        updateViewContent(viewType, data.html);
+
+        // Update URL without page refresh
+        const url = new URL(window.location.href);
+        url.searchParams.set('view', viewType);
+        window.history.pushState({}, '', url.toString());
+
+        // Re-attach event listeners for new content
+        attachVolunteerCardListeners();
+      } else {
+        throw new Error(data.message || 'Failed to load view');
+      }
+    } catch (error) {
+      console.error('Error switching view:', error);
+
+      // Show error message
+      const errorHTML = `
+      <div class="flex flex-col items-center justify-center py-12 text-red-600">
+        <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <p class="text-lg font-medium">Error loading view</p>
+        <p class="text-sm">Please try again later.</p>
+        <button onclick="location.reload()" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+          Refresh Page
+        </button>
+      </div>
+    `;
+
+      if (viewType === 'grid') {
+        document.getElementById('gridView').innerHTML = errorHTML;
+      } else {
+        document.getElementById('listView').innerHTML = errorHTML;
+      }
+    }
+  }
+
+  // Function to re-attach event listeners after AJAX load
+  function attachVolunteerCardListeners() {
+    // Re-attach click listeners for volunteer cards/rows
+    document.querySelectorAll('.volunteer-card, .volunteer-row td[onclick]').forEach(element => {
+      // The onclick attributes should still work, but you can also add listeners here if needed
+    });
+
+    // Re-attach action button listeners
+    document.querySelectorAll('[onclick^="editVolunteer"]').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const volunteerId = this.getAttribute('onclick').match(/'([^']+)'/)[1];
+        editVolunteer(volunteerId);
+      });
+    });
+
+    document.querySelectorAll('[onclick^="deleteVolunteer"]').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const volunteerId = this.getAttribute('onclick').match(/'([^']+)'/)[1];
+        deleteVolunteer(volunteerId);
+      });
+    });
+  }
+
+  // Event listeners for view toggle buttons
+  gridBtn.addEventListener('click', () => switchView('grid'));
+  listBtn.addEventListener('click', () => switchView('list'));
+
+  // Enhanced search with AJAX
+  /* --- Enhanced search with AJAX (single source of truth) --- */
+  let searchTimeout;
+  document.getElementById('searchInput').addEventListener('input', function() {
+    const searchQuery = this.value.trim();
+    const currentView = localStorage.getItem('volunteerViewType') || 'grid';
+
+    clearTimeout(searchTimeout);
+
+    searchTimeout = setTimeout(async () => {
+      try {
+        showLoadingState();
+
+        /* 👇 Note: pass the query only if it isn’t empty */
+        const data = await fetchViewData(
+          currentView,
+          searchQuery === '' ? '' : searchQuery
+        );
+
+        if (data.success) {
+          updateViewContent(currentView, data.html);
+          attachVolunteerCardListeners();
+
+          /* Update the address bar */
+          const url = new URL(window.location.href);
+          if (searchQuery === '') {
+            url.searchParams.delete('search');
+          } else {
+            url.searchParams.set('search', searchQuery);
+          }
+          window.history.replaceState({}, '', url);
+        }
+      } catch (err) {
+        console.error('Search error:', err);
+      }
+    }, 300); // debounce
   });
 
 
-  // Search filter
-  document.getElementById('searchInput').addEventListener('input', function() {
-    const q = this.value.toLowerCase();
-    document.querySelectorAll('.volunteer-card, .volunteer-row').forEach(el => {
-      const vals = [el.dataset.name, el.dataset.email, el.dataset.skills, el.dataset.ministries].join(' ');
-      el.style.display = vals.includes(q) ? '' : 'none';
-    });
+
+  // Handle browser back/forward buttons
+  window.addEventListener('popstate', function(event) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewType = urlParams.get('view') || 'grid';
+    const searchQuery = urlParams.get('search') || '';
+
+    document.getElementById('searchInput').value = searchQuery;
+    switchView(viewType);
   });
 
   // Registration modal toggle
@@ -655,6 +694,10 @@
         toastr.success(data.message);
         document.getElementById('registrationModal').classList.replace('flex', 'hidden');
         resetVolunteerForm();
+        /* 🔄  refresh the directory so the new volunteer shows up */
+        
+        const currentView = localStorage.getItem('volunteerViewType') || 'grid'; +
+        switchView(currentView); // <- one line does it
       })
       .catch(err => {
         toastr.error('An error occurred while registering the volunteer.');
