@@ -10,7 +10,7 @@ class VolunteerDetail extends Model
      use HasFactory;
     protected $fillable = [
         'volunteer_id', 'ministry_id', 'line_group',
-        'applied_month_year', 'regular_years_month', 'full_name',
+        'applied_month_year', 'regular_years_month', 'full_name','volunteer_status' ,
     ];
 
     public function volunteer(): BelongsTo

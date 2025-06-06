@@ -7,6 +7,16 @@
   .modal-bg {
     background: rgba(0, 0, 0, 0.5);
   }
+
+  /* Make sure the container of the email address is scrollable horizontally */
+  .text-base {
+    white-space: nowrap;
+    /* Prevent text from wrapping */
+    overflow-x: auto;
+    /* Allow horizontal scroll if the text is too long */
+    max-width: 100%;
+    /* Make sure it doesn't overflow the container */
+  }
 </style>
 @endsection
 
@@ -356,9 +366,8 @@
 
 <!-- Profile Modal -->
 <div id="profileModal" class="fixed inset-0 hidden items-center justify-center modal-bg">
-  <div class="bg-white rounded-lg w-full max-w-2xl p-6 relative max-h-[90vh] overflow-y-auto">
-    <button id="closeProfile"
-      class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 focus:outline-none">
+  <div class="bg-white mt-10  rounded-lg w-full max-w-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+    <button id="closeProfile" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 focus:outline-none">
       <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
           d="M6 18L18 6M6 6l12 12" />
@@ -367,7 +376,7 @@
     <div id="profileContent"></div>
     <div class="flex justify-end gap-2 mt-4">
       <button id="editProfile"
-        class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100 flex items-center">
+        class="px-4 py-2 bg-blue-600 border rounded text-white flex items-center">
         <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M11 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-5" />
@@ -375,10 +384,6 @@
             d="M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z" />
         </svg>
         Edit Profile
-      </button>
-      <button id="scheduleVolunteer"
-        class="px-4 py-2 bg-blue-600 text-white rounded flex items-center">
-        Schedule Volunteer
       </button>
     </div>
   </div>
