@@ -1,5 +1,6 @@
 <div class="bg-white shadow rounded-lg overflow-hidden">
-  <table class="min-w-full">
+  <div  class="overflow-x-auto">
+    <table class="min-w-full">
     <thead class="bg-gray-50">
       <tr>
         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
@@ -82,6 +83,7 @@
       @endforelse
     </tbody>
   </table>
+  </div>
 </div>
 @if ($volunteers->hasPages())
   <div class="flex justify-center space-x-2 mt-6">
