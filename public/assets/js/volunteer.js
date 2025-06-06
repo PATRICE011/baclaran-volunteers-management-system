@@ -26,7 +26,106 @@ document.addEventListener("DOMContentLoaded", function () {
     gridBtn.addEventListener("click", () => switchView("grid"));
     listBtn.addEventListener("click", () => switchView("list"));
 });
+// Handle ministry filter changes
+document
+    .getElementById("ministryFilter")
+    .addEventListener("change", function () {
+        applyFilters();
+    });
 
+// Handle status filter changes
+document.getElementById("statusFilter").addEventListener("change", function () {
+    applyFilters();
+});
+
+// Function to apply all active filters
+async function applyFilters() {
+    try {
+        const currentView = localStorage.getItem("volunteerViewType") || "grid";
+        showLoadingState();
+        
+        const searchQuery = document.getElementById("searchInput").value;
+        const ministryFilter = document.getElementById("ministryFilter").value;
+        const statusFilter = document.getElementById("statusFilter").value;
+
+        const data = await fetchFilteredData(currentView, searchQuery, ministryFilter, statusFilter);
+
+        if (data.success) {
+            updateViewContent(currentView, data.html);
+            attachVolunteerCardListeners();
+            attachPaginationListeners();
+            
+            // Update URL without page refresh
+            const url = new URL(window.location.href);
+            url.searchParams.set("view", currentView);
+            url.searchParams.delete("page"); // Reset to page 1 when changing filters
+            
+            if (searchQuery) {
+                url.searchParams.set("search", searchQuery);
+            } else {
+                url.searchParams.delete("search");
+            }
+            
+            if (ministryFilter) {
+                url.searchParams.set("ministry", ministryFilter);
+            } else {
+                url.searchParams.delete("ministry");
+            }
+            
+            if (statusFilter) {
+                url.searchParams.set("status", statusFilter);
+            } else {
+                url.searchParams.delete("status");
+            }
+            
+            window.history.pushState({}, "", url.toString());
+        }
+    } catch (error) {
+        console.error("Error applying filters:", error);
+        const currentView = localStorage.getItem("volunteerViewType") || "grid";
+        showErrorState(currentView);
+    }
+}
+
+// Function to fetch data with filters
+async function fetchFilteredData(viewType, searchQuery = "", ministryFilter = "", statusFilter = "") {
+    try {
+        const url = new URL("/volunteers", window.location.origin);
+        url.searchParams.set("view", viewType);
+        
+        if (searchQuery) {
+            url.searchParams.set("search", searchQuery);
+        }
+        
+        if (ministryFilter) {
+            url.searchParams.set("ministry", ministryFilter);
+        }
+        
+        if (statusFilter) {
+            url.searchParams.set("status", statusFilter);
+        }
+
+        const response = await fetch(url.toString(), {
+            method: "GET",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                Accept: "application/json",
+                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+            },
+            credentials: "include",
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching filtered data:", error);
+        throw error;
+    }
+}
 // Function to show loading state
 function showLoadingState() {
     const loadingHTML = `
@@ -240,11 +339,15 @@ window.addEventListener("popstate", function (event) {
     const urlParams = new URLSearchParams(window.location.search);
     const viewType = urlParams.get("view") || "grid";
     const searchQuery = urlParams.get("search") || "";
+    const ministryFilter = urlParams.get("ministry") || "";
+    const statusFilter = urlParams.get("status") || "";
 
     document.getElementById("searchInput").value = searchQuery;
+    document.getElementById("ministryFilter").value = ministryFilter;
+    document.getElementById("statusFilter").value = statusFilter;
+
     switchView(viewType);
 });
-
 // Registration modal toggle
 document.getElementById("addVolunteerBtn").addEventListener("click", () => {
     document
@@ -253,9 +356,11 @@ document.getElementById("addVolunteerBtn").addEventListener("click", () => {
 });
 ["closeRegistration", "cancelRegistration"].forEach((id) =>
     document.getElementById(id).addEventListener("click", () => {
-        document.getElementById("registrationModal").classList.replace("flex", "hidden");
+        document
+            .getElementById("registrationModal")
+            .classList.replace("flex", "hidden");
         resetVolunteerForm(); // ← Add this line
-        resetModalTabs();     // ← And this if you want to go back to the Basic Info tab
+        resetModalTabs(); // ← And this if you want to go back to the Basic Info tab
     })
 );
 function resetModalTabs() {
@@ -282,25 +387,32 @@ function resetModalTabs() {
     document.getElementById("nextToSheet").classList.remove("hidden");
     document.getElementById("submitRegistration").classList.add("hidden");
 }
-document.getElementById("reg-applied-date").addEventListener("change", function () {
-  const appliedDate = new Date(this.value + "-01");
-  const now = new Date();
+document
+    .getElementById("reg-applied-date")
+    .addEventListener("change", function () {
+        const appliedDate = new Date(this.value + "-01");
+        const now = new Date();
 
-  if (!isNaN(appliedDate)) {
-    const totalMonths =
-      (now.getFullYear() - appliedDate.getFullYear()) * 12 +
-      (now.getMonth() - appliedDate.getMonth());
+        if (!isNaN(appliedDate)) {
+            const totalMonths =
+                (now.getFullYear() - appliedDate.getFullYear()) * 12 +
+                (now.getMonth() - appliedDate.getMonth());
 
-    const years = Math.floor(totalMonths / 12);
-    const months = totalMonths % 12;
+            const years = Math.floor(totalMonths / 12);
+            const months = totalMonths % 12;
 
-    let result = "";
-    if (years > 0) result += `${years} yr${years > 1 ? "s" : ""}`;
-    if (months > 0) result += `${years > 0 ? " " : ""}${months} mo${months > 1 ? "s" : ""}`;
+            let result = "";
+            if (years > 0) result += `${years} yr${years > 1 ? "s" : ""}`;
+            if (months > 0)
+                result += `${years > 0 ? " " : ""}${months} mo${
+                    months > 1 ? "s" : ""
+                }`;
 
-    document.getElementById("reg-regular-duration").value = result || "0";
-  }
-});
+            document.getElementById("reg-regular-duration").value =
+                result || "0";
+        }
+    });
+
 document.getElementById("submitRegistration").addEventListener("click", () => {
     const formData = new FormData();
 
@@ -413,13 +525,11 @@ document.getElementById("submitRegistration").addEventListener("click", () => {
         body: formData,
     })
         .then((res) =>
-            res
-                .json()
-                .then((data) => ({
-                    ok: res.ok,
-                    status: res.status,
-                    body: data,
-                }))
+            res.json().then((data) => ({
+                ok: res.ok,
+                status: res.status,
+                body: data,
+            }))
         )
         .then(({ ok, status, body }) => {
             if (ok) {
@@ -979,8 +1089,21 @@ async function loadPageData(page, viewType, searchQuery = "") {
         const url = new URL("/volunteers", window.location.origin);
         url.searchParams.set("view", viewType);
         url.searchParams.set("page", page);
+
         if (searchQuery) {
             url.searchParams.set("search", searchQuery);
+        }
+
+        // Include active filters
+        const ministryFilter = document.getElementById("ministryFilter").value;
+        const statusFilter = document.getElementById("statusFilter").value;
+
+        if (ministryFilter) {
+            url.searchParams.set("ministry", ministryFilter);
+        }
+
+        if (statusFilter) {
+            url.searchParams.set("status", statusFilter);
         }
 
         const response = await fetch(url.toString(), {
@@ -1004,7 +1127,7 @@ async function loadPageData(page, viewType, searchQuery = "") {
         if (data.success) {
             updateViewContent(viewType, data.html);
             attachVolunteerCardListeners();
-            attachPaginationListeners(); // ← This is crucial!
+            attachPaginationListeners();
         } else {
             throw new Error(data.message || "Failed to load page");
         }

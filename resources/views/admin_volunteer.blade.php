@@ -7,7 +7,6 @@
   .modal-bg {
     background: rgba(0, 0, 0, 0.5);
   }
-  
 </style>
 @endsection
 
@@ -29,6 +28,7 @@
 
   <!-- Search & Controls -->
   <div class="flex flex-col md:flex-row gap-4 mb-6">
+    <!-- Search Input -->
     <div class="relative flex-grow">
       <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,10 +37,12 @@
         </svg>
       </div>
       <input id="searchInput" type="text" placeholder="Search volunteers by name, email, or ministry..."
-        class="pl-10 pr-3 py-2 border rounded w-full focus:outline-none focus:border-blue-500">
+        class="pl-10 pr-3 py-2 border rounded w-full focus:outline-none focus:border-blue-500 h-12">
     </div>
+
+    <!-- View Buttons (Grid & List) -->
     <div class="flex gap-2">
-      <button id="gridViewBtn" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100 bg-white"
+      <button id="gridViewBtn" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100 bg-white h-12"
         data-view="grid">
         <svg class="inline mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -48,7 +50,7 @@
         </svg>
         Grid
       </button>
-      <button id="listViewBtn" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100 bg-white"
+      <button id="listViewBtn" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100 bg-white h-12"
         data-view="list">
         <svg class="inline mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -56,23 +58,45 @@
         </svg>
         List
       </button>
-      <button id="filterBtn" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100 flex items-center">
-        <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M3 4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v2a1 1 0 0 1-.293.707l-6.414 6.414a1 1 0 0 0-.293.707v4.586a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-4.586a1 1 0 0 0-.293-.707L1.293 6.707A1 1 0 0 1 1 6V4z" />
-        </svg>
-        Filter
-      </button>
     </div>
 
-    <div id="viewLoadingOverlay"
-      class="fixed inset-0 bg-black bg-opacity-25 hidden items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
-        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-        <span class="text-gray-700">Loading view...</span>
-      </div>
+    <!-- Ministry Filter -->
+    <div class="relative flex-grow">
+      <select id="ministryFilter" class="pl-10 pr-3 py-2 border rounded w-full h-12">
+        <option value="">-- Select Ministry --</option>
+        @foreach ($ministries as $ministry)
+        <optgroup label="{{ $ministry->ministry_name }}">
+          @foreach ($ministry->children as $sub)
+          <option value="{{ $sub->id }}">{{ $sub->ministry_name }}</option>
+          @endforeach
+        </optgroup>
+        @endforeach
+      </select>
+    </div>
+
+    <!-- Status Filter -->
+    <div class="relative flex-grow">
+      <select id="statusFilter" class="pl-10 pr-3 py-2 border rounded w-full h-12">
+        <option value="">-- Select Status --</option>
+        @foreach ($statuses as $status)
+        <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>
+          {{ $status }}
+        </option>
+        @endforeach
+      </select>
+    </div>
+
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="viewLoadingOverlay"
+    class="fixed inset-0 bg-black bg-opacity-25 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
+      <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+      <span class="text-gray-700">Loading view...</span>
     </div>
   </div>
+
 
   <!-- Grid View Container -->
   <div id="gridView" class="space-y-8" style="display: {{ request('view') === 'list' ? 'none' : 'grid' }};">
