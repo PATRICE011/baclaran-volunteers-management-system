@@ -282,7 +282,25 @@ function resetModalTabs() {
     document.getElementById("nextToSheet").classList.remove("hidden");
     document.getElementById("submitRegistration").classList.add("hidden");
 }
+document.getElementById("reg-applied-date").addEventListener("change", function () {
+  const appliedDate = new Date(this.value + "-01");
+  const now = new Date();
 
+  if (!isNaN(appliedDate)) {
+    const totalMonths =
+      (now.getFullYear() - appliedDate.getFullYear()) * 12 +
+      (now.getMonth() - appliedDate.getMonth());
+
+    const years = Math.floor(totalMonths / 12);
+    const months = totalMonths % 12;
+
+    let result = "";
+    if (years > 0) result += `${years} yr${years > 1 ? "s" : ""}`;
+    if (months > 0) result += `${years > 0 ? " " : ""}${months} mo${months > 1 ? "s" : ""}`;
+
+    document.getElementById("reg-regular-duration").value = result || "0";
+  }
+});
 document.getElementById("submitRegistration").addEventListener("click", () => {
     const formData = new FormData();
 

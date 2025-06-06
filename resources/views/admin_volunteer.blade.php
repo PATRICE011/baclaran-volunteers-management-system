@@ -7,6 +7,7 @@
   .modal-bg {
     background: rgba(0, 0, 0, 0.5);
   }
+  
 </style>
 @endsection
 
@@ -85,306 +86,249 @@
 </div>
 
 <!-- Registration Modal -->
-<div id="registrationModal" class="fixed inset-0 hidden items-center justify-center modal-bg">
-  <div class="bg-white rounded-lg w-full max-w-lg p-6 relative max-h-[80vh] overflow-y-auto min-h-[500px]">
+<div id="registrationModal" class="fixed inset-0 hidden items-center justify-center modal-bg z-50">
+  <div class="bg-white rounded-xl w-full max-w-2xl p-8 relative max-h-[90vh] overflow-y-auto shadow-lg min-h-[500px]">
+
+    <!-- Close Button -->
     <button id="closeRegistration"
-      class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 focus:outline-none">
+      class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">
       <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M6 18L18 6M6 6l12 12" />
       </svg>
     </button>
 
-    <h2 class="text-xl font-bold mb-4">Volunteer Registration</h2>
+    <!-- Title -->
+    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Volunteer Registration</h2>
 
     <!-- Tabs -->
-    <div id="registrationTabs" class="mb-4 flex gap-2">
-      <button class="reg-tab px-4 py-2 border-b-2 border-blue-600" data-tab="personal" data-step="1">Basic
-        Info</button>
-      <button class="reg-tab px-4 py-2 border-b-2 border-transparent tab-locked" data-tab="sheet"
-        data-step="2">Info Sheet</button>
+    <div id="registrationTabs" class="mb-6 flex gap-3 border-b pb-2">
+      <button class="reg-tab text-sm font-medium px-4 py-2 border-b-2 border-blue-600 text-blue-600"
+        data-tab="personal" data-step="1">Basic Info</button>
+      <button class="reg-tab text-sm font-medium px-4 py-2 border-b-2 border-transparent text-gray-500 tab-locked"
+        data-tab="sheet" data-step="2">Info Sheet</button>
     </div>
 
     <div id="regTabContent">
       <!-- Basic Info -->
       <div class="reg-content" id="tab-personal">
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1" for="reg-nickname">Nickname</label>
-          <input id="reg-nickname" name="nickname" type="text" placeholder="e.g. Chaz"
-            class="w-full border rounded px-3 py-2">
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1" for="reg-dob">Date of Birth</label>
-          <input id="reg-dob" name="dob" type="date" class="w-full border rounded px-3 py-2">
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1">Sex</label>
-          <div class="flex items-center space-x-6">
-            <label class="inline-flex items-center">
-              <input type="radio" name="sex" value="male"
-                class="form-radio text-blue-600">
-              <span class="ml-2">Male</span>
-            </label>
-            <label class="inline-flex items-center">
-              <input type="radio" name="sex" value="female"
-                class="form-radio text-pink-600">
-              <span class="ml-2">Female</span>
-            </label>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="col-span-full">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nickname</label>
+            <input name="nickname" type="text" placeholder="e.g. Chaz"
+              class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+            <input name="dob" type="date"
+              class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Sex</label>
+            <div class="flex gap-4 mt-1">
+              <label class="inline-flex items-center text-sm">
+                <input type="radio" name="sex" value="male" class="form-radio text-blue-600">
+                <span class="ml-2">Male</span>
+              </label>
+              <label class="inline-flex items-center text-sm">
+                <input type="radio" name="sex" value="female" class="form-radio text-pink-600">
+                <span class="ml-2">Female</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="col-span-full">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+            <textarea name="address" placeholder="123 Main St, City, Province"
+              class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+            <input name="phone" type="tel" placeholder="+63 912 345 6789"
+              class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+            <input name="email" type="email" placeholder="you@example.com"
+              class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+          </div>
+
+          <div class="col-span-full">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Occupation</label>
+            <input name="occupation" type="text" placeholder="e.g. Software Developer"
+              class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
           </div>
         </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1" for="reg-address">Address</label>
-          <textarea id="reg-address" name="address" placeholder="123 Main St, City, Province"
-            class="w-full border rounded px-3 py-2"></textarea>
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1" for="reg-phone">Mobile Number</label>
-          <input id="reg-phone" name="phone" type="tel" placeholder="+63 912 345 6789"
-            class="w-full border rounded px-3 py-2">
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1" for="reg-email">Email Address</label>
-          <input id="reg-email" name="email" type="email" placeholder="you@example.com"
-            class="w-full border rounded px-3 py-2">
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1" for="reg-occupation">Occupation</label>
-          <input id="reg-occupation" name="occupation" type="text"
-            placeholder="e.g. Software Developer" class="w-full border rounded px-3 py-2">
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1">Civil Status</label>
+
+        <div class="mt-6">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Civil Status</label>
           <div class="grid grid-cols-2 gap-2">
-            <label class="flex items-center">
-              <input type="radio" name="civil_status" value="single" class="form-radio mr-2">
-              Single
+            @foreach(['single', 'married', 'widower', 'separated', 'others'] as $status)
+            <label class="inline-flex items-center text-sm">
+              <input type="radio" name="civil_status" value="{{ $status }}" class="form-radio mr-2">
+              {{ ucfirst($status) }}
             </label>
-            <label class="flex items-center">
-              <input type="radio" name="civil_status" value="married" class="form-radio mr-2">
-              Married
-            </label>
-            <label class="flex items-center">
-              <input type="radio" name="civil_status" value="widower" class="form-radio mr-2">
-              Widow(er)
-            </label>
-            <label class="flex items-center">
-              <input type="radio" name="civil_status" value="separated" class="form-radio mr-2">
-              Separated
-            </label>
-            <label class="flex items-center">
-              <input type="radio" name="civil_status" value="others" class="form-radio mr-2"
-                id="civilOthers"> Others
-            </label>
+            @endforeach
           </div>
-
-          <!-- Custom input for others -->
-          <div id="civilOtherInput" class="mt-2 hidden">
+          <div id="civilOtherInput" class="mt-3 hidden">
             <input type="text" name="civil_status_other" placeholder="Specify other civil status"
-              class="w-full border rounded px-3 py-2">
+              class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
           </div>
         </div>
 
-        <div class="mb-4">
-          <span class="block text-sm font-medium mb-1">Sacrament/s Received</span>
-          <div class="grid grid-cols-3 gap-2">
-            <label class="flex items-center"><input type="checkbox" name="sacraments[]"
-                value="baptism" class="form-checkbox mr-2"> Baptism</label>
-            <label class="flex items-center"><input type="checkbox" name="sacraments[]"
-                value="first_communion" class="form-checkbox mr-2"> First Communion</label>
-            <label class="flex items-center"><input type="checkbox" name="sacraments[]"
-                value="confirmation" class="form-checkbox mr-2"> Confirmation</label>
+        <div class="mt-6">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Sacrament/s Received</label>
+          <div class="grid grid-cols-3 gap-3 text-sm">
+            @foreach(['baptism', 'first_communion', 'confirmation'] as $sacrament)
+            <label class="inline-flex items-center">
+              <input type="checkbox" name="sacraments[]" value="{{ $sacrament }}" class="form-checkbox mr-2">
+              {{ ucwords(str_replace('_', ' ', $sacrament)) }}
+            </label>
+            @endforeach
           </div>
         </div>
-        <div class="mb-4">
-          <span class="block text-sm font-medium mb-1">Formations Received</span>
-          <div class="grid grid-cols-1 gap-2">
-            <label class="flex items-center"><input type="checkbox" name="formations[]"
-                value="BOS" class="form-checkbox mr-2"> Basic Orientation Seminar (BOS)</label>
-            <label class="flex items-center"><input type="checkbox" name="formations[]"
-                value="BFF" class="form-checkbox mr-2"> Basic Faith Formation (BFF)</label>
+
+        <div class="mt-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Formations Received</label>
+          <div class="flex flex-col gap-2 text-sm mt-2">
+            <label class="inline-flex items-center">
+              <input type="checkbox" name="formations[]" value="BOS" class="form-checkbox mr-2">
+              Basic Orientation Seminar (BOS)
+            </label>
+            <label class="inline-flex items-center">
+              <input type="checkbox" name="formations[]" value="BFF" class="form-checkbox mr-2">
+              Basic Faith Formation (BFF)
+            </label>
           </div>
         </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1" for="reg-others">Others</label>
-          <input id="reg-others" name="others" type="text" placeholder="Anything else?"
-            class="w-full border rounded px-3 py-2">
+
+        <div class="mt-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Others</label>
+          <input type="text" name="others" placeholder="Anything else?"
+            class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
         </div>
       </div>
 
+
       <!-- Info Sheet -->
-      <div class="reg-content hidden" id="tab-sheet">
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1" for="reg-ministry">Ministry</label>
-          <select name="ministry_id" id="reg-ministry"
-            class="w-full border rounded px-3 py-2">
+      <div class="reg-content hidden space-y-6" id="tab-sheet">
+        <!-- Ministry Select -->
+        <div>
+          <label for="reg-ministry" class="block text-sm font-medium text-gray-700 mb-1">Ministry</label>
+          <select name="ministry_id" id="reg-ministry" class="w-full border rounded px-3 py-2">
             <option value="">-- Select Ministry --</option>
             @foreach ($ministries as $ministry)
             <optgroup label="{{ $ministry->ministry_name }}">
               @foreach ($ministry->children as $sub)
-              <option value="{{ $sub->id }}">{{ $sub->ministry_name }}
-              </option>
+              <option value="{{ $sub->id }}">{{ $sub->ministry_name }}</option>
               @endforeach
             </optgroup>
             @endforeach
           </select>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mb-4">
+        <!-- Applied & Duration -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium mb-1" for="reg-applied-date">Month
-              &amp; Year
-              Applied</label>
-            <input id="reg-applied-date" name="applied_date" type="month"
-              class="w-full border rounded px-3 py-2">
+            <label for="reg-applied-date" class="block text-sm font-medium text-gray-700 mb-1">Month & Year Applied</label>
+            <input id="reg-applied-date" name="applied_date" type="month" class="w-full border rounded px-3 py-2">
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1" for="reg-regular-duration">No.
-              of Years as
-              Regular Volunteer</label>
-            <input id="reg-regular-duration" name="regular_duration" type="text"
-              placeholder="e.g. 1 yr 6 mos" class="w-full border rounded px-3 py-2">
+            <label for="reg-regular-duration" class="block text-sm font-medium text-gray-700 mb-1">Years as Regular Volunteer</label>
+            <input id="reg-regular-duration" name="regular_duration" type="text" placeholder="e.g. 1 yr 6 mos" class="w-full border rounded px-3 py-2">
           </div>
         </div>
 
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1">Name</label>
-          <div class="grid grid-cols-3 gap-2">
-            <input type="text" name="last_name" placeholder="Surname"
-              class="border rounded px-2 py-1">
-            <input type="text" name="first_name" placeholder="First Name"
-              class="border rounded px-2 py-1">
-            <input type="text" name="middle_initial" placeholder="M.I."
-              class="border rounded px-2 py-1">
+        <!-- Full Name -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <input type="text" name="last_name" placeholder="Last Name" class="w-full border rounded px-3 py-2">
+            <input type="text" name="first_name" placeholder="First Name" class="w-full border rounded px-3 py-2">
+            <input type="text" name="middle_initial" placeholder="M.I." class="w-full border rounded px-3 py-2">
           </div>
         </div>
 
-        <div class="mb-4">
-          <h3 class="font-semibold mb-2">Volunteer Timeline</h3>
-          <p class="text-sm text-gray-500 mb-2">Please indicate all Organization/Ministry you
-            belong to
-            in the Shrine</p>
-          <table class="w-full table-auto border-collapse mb-4">
-            <thead>
-              <tr class="bg-gray-100">
-                <th class="border px-2 py-1">Organization/Ministry</th>
-                <th class="border px-2 py-1">Year Started–Year Ended</th>
-                <th class="border px-2 py-1">Total Years</th>
-                <th class="border px-2 py-1">Active? Y/N</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for ($i = 0; $i < 3; $i++)
-                <tr>
-                <td class="border p-1">
-                  <input type="text" name="timeline_org[]"
-                    class="w-full border rounded px-2 py-1">
-                </td>
-                <td class="border p-1 flex gap-1 items-center">
-                  <select name="timeline_start_year[]"
-                    class="border rounded px-2 py-1 year-select"
-                    data-row="{{ $i }}">
-                    @for ($y = date('Y'); $y >= 1980; $y--)
-                    <option value="{{ $y }}">{{ $y }}
-                    </option>
-                    @endfor
-                  </select>
-                  <span>–</span>
-                  <select name="timeline_end_year[]"
-                    class="border rounded px-2 py-1 year-select"
-                    data-row="{{ $i }}">
-                    @for ($y = date('Y'); $y >= 1980; $y--)
-                    <option value="{{ $y }}">
-                      {{ $y }}
-                    </option>
-                    @endfor
-                  </select>
-                </td>
-                <td class="border p-1">
-                  <input type="text" name="timeline_total[]"
-                    class="w-full border rounded px-2 py-1 total-years"
-                    readonly>
-                </td>
-                <td class="border p-1 text-center">
-                  <select name="timeline_active[]"
-                    class="border rounded px-2 py-1 w-full">
-                    <option value="">–</option>
-                    <option value="Y">Y</option>
-                    <option value="N">N</option>
-                  </select>
-                </td>
-                </tr>
-                @endfor
-            </tbody>
-          </table>
-        </div>
-
-        <div class="mb-4">
-          <h3 class="font-semibold mb-2">Other Affiliations</h3>
-          <p class="text-sm text-gray-500 mb-2">Please indicate any Organization/Ministry you
-            belong to
-            outside the Shrine</p>
-          <table class="w-full table-auto border-collapse mb-4">
-            <thead>
-              <tr class="bg-gray-100">
-                <th class="border px-2 py-1">Organization/Ministry</th>
-                <th class="border px-2 py-1">Year Started–Year Ended</th>
-                <th class="border px-2 py-1">Active? Y/N</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for ($i = 0; $i < 3; $i++)
-                <tr>
-                <td class="border p-1">
-                  <input type="text" name="affil_org[]"
-                    class="w-full border rounded px-2 py-1">
-                </td>
-                <td class="border p-1 flex gap-1 items-center">
-                  <select name="affil_start_year[]"
-                    class="border rounded px-2 py-1 year-select"
-                    data-row="{{ $i }}">
-                    @for ($y = date('Y'); $y >= 1980; $y--)
-                    <option value="{{ $y }}">
-                      {{ $y }}
-                    </option>
-                    @endfor
-                  </select>
-                  <span>–</span>
-                  <select name="affil_end_year[]"
-                    class="border rounded px-2 py-1 year-select"
-                    data-row="{{ $i }}">
-                    @for ($y = date('Y'); $y >= 1980; $y--)
-                    <option value="{{ $y }}">
-                      {{ $y }}
-                    </option>
-                    @endfor
-                  </select>
-                </td>
-                <td class="border p-1 text-center">
-                  <select name="affil_active[]"
-                    class="border rounded px-2 py-1 w-full">
-                    <option value="">–</option>
-                    <option value="Y">Y</option>
-                    <option value="N">N</option>
-                  </select>
-                </td>
-                </tr>
-                @endfor
-            </tbody>
-          </table>
+        <!-- Timeline -->
+        <div>
+          <h3 class="font-semibold text-sm mb-2">Volunteer Timeline</h3>
+          <p class="text-xs text-gray-500 mb-2">Please indicate all Organization/Ministry you belong to in the Shrine</p>
+          <div class="space-y-3">
+            @for ($i = 0; $i < 3; $i++)
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-2 items-center">
+              <input type="text" name="timeline_org[]" placeholder="Organization/Ministry" class="border rounded px-3 py-2 col-span-1 md:col-span-1">
+              <div class="flex gap-2 col-span-1">
+                <select name="timeline_start_year[]" class="border rounded px-2 py-2 w-full year-select" data-row="{{ $i }}">
+                  @for ($y = date('Y'); $y >= 1980; $y--) <option value="{{ $y }}">{{ $y }}</option> @endfor
+                </select>
+                <span class="flex items-center text-sm">–</span>
+                <select name="timeline_end_year[]" class="border rounded px-2 py-2 w-full year-select" data-row="{{ $i }}">
+                  @for ($y = date('Y'); $y >= 1980; $y--) <option value="{{ $y }}">{{ $y }}</option> @endfor
+                </select>
+              </div>
+              <input type="text" name="timeline_total[]" placeholder="Total" class="w-full border rounded px-3 py-2 total-years" readonly>
+              <select name="timeline_active[]" class="border rounded px-3 py-2">
+                <option value="">–</option>
+                <option value="Y">Y</option>
+                <option value="N">N</option>
+              </select>
+          </div>
+          @endfor
         </div>
       </div>
-    </div>
 
-    <!-- Footer buttons -->
-    <div class="mt-4 flex justify-end gap-2">
-      <button id="cancelRegistration"
-        class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100">Cancel</button>
-      <button id="nextToSheet" class="px-4 py-2 bg-blue-600 text-white rounded">Next</button>
-      <button id="submitRegistration"
-        class="px-4 py-2 bg-green-600 text-white rounded hidden">Register
-        Volunteer</button>
+      <!-- Other Affiliations -->
+      <div>
+        <h3 class="font-semibold text-sm mb-2">Other Affiliations</h3>
+        <p class="text-xs text-gray-500 mb-2">Please indicate any Organization/Ministry outside the Shrine</p>
+        <div class="space-y-3">
+          @for ($i = 0; $i < 3; $i++)
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+            <input type="text" name="affil_org[]" placeholder="Organization/Ministry" class="border rounded px-3 py-2">
+            <div class="flex gap-2">
+              <select name="affil_start_year[]" class="border rounded px-2 py-2 w-full year-select" data-row="{{ $i }}">
+                @for ($y = date('Y'); $y >= 1980; $y--) <option value="{{ $y }}">{{ $y }}</option> @endfor
+              </select>
+              <span class="flex items-center text-sm">–</span>
+              <select name="affil_end_year[]" class="border rounded px-2 py-2 w-full year-select" data-row="{{ $i }}">
+                @for ($y = date('Y'); $y >= 1980; $y--) <option value="{{ $y }}">{{ $y }}</option> @endfor
+              </select>
+            </div>
+            <select name="affil_active[]" class="border rounded px-3 py-2">
+              <option value="">–</option>
+              <option value="Y">Y</option>
+              <option value="N">N</option>
+            </select>
+        </div>
+        @endfor
+      </div>
     </div>
   </div>
+
 </div>
+
+<!-- Modal Footer -->
+<div class="mt-8 flex justify-end gap-3">
+  <button id="cancelRegistration"
+    class="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 transition">
+    Cancel
+  </button>
+  <button id="nextToSheet"
+    class="px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 transition">
+    Next
+  </button>
+  <button id="submitRegistration"
+    class="hidden px-4 py-2 text-sm rounded-md bg-green-600 text-white hover:bg-green-700 transition">
+    Register Volunteer
+  </button>
+</div>
+</div>
+</div>
+
 
 <!-- Profile Modal -->
 <div id="profileModal" class="fixed inset-0 hidden items-center justify-center modal-bg">
