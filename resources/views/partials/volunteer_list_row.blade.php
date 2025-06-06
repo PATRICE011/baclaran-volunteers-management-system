@@ -86,7 +86,7 @@
   </div>
 </div>
 @if ($volunteers->hasPages())
-  <div class="flex justify-center space-x-2 mt-6">
-     {{ $volunteers->appends(request()->query())->links() }}
-</div>
+  <div class="mt-10 flex justify-center pagination">
+    {!! $volunteers->appends(request()->query())->links() !!}
+  </div>
 @endif

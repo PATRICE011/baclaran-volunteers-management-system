@@ -9,58 +9,56 @@ use App\Models\Ministry;
 class VolunteersController extends Controller
 {
     public function index(Request $request)
-    {
-        // Build the base query, including eager-loaded relations
-        $query = Volunteer::with(['detail.ministry']);
+{
+    // Build the base query, including eager-loaded relations
+    $query = Volunteer::with(['detail.ministry']);
 
-        /* ---------- Search filter ---------- */
-        if ($request->filled('search')) {
-            $searchTerm = trim($request->input('search'));
+    /* ---------- Search filter ---------- */
+    if ($request->filled('search')) {
+        $searchTerm = trim($request->input('search'));
 
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('nickname',      'like', "%{$searchTerm}%")
-                    ->orWhere('email_address', 'like', "%{$searchTerm}%")
+        $query->where(function ($q) use ($searchTerm) {
+            $q->where('nickname',      'like', "%{$searchTerm}%")
+                ->orWhere('email_address', 'like', "%{$searchTerm}%")
 
-                    // full_name lives on the related detail model
-                    ->orWhereHas('detail', function ($q) use ($searchTerm) {
-                        $q->where('full_name', 'like', "%{$searchTerm}%");
-                    })
+                // full_name lives on the related detail model
+                ->orWhereHas('detail', function ($q) use ($searchTerm) {
+                    $q->where('full_name', 'like', "%{$searchTerm}%");
+                })
 
-                    // ministry_name lives on the grand-child relation
-                    ->orWhereHas('detail.ministry', function ($q) use ($searchTerm) {
-                        $q->where('ministry_name', 'like', "%{$searchTerm}%");
-                    });
-            });
-        }
-
-        /* ---------- Run the query, newest first ---------- */
-        $volunteers = $query->latest()          // 👈 newest at the top
-            ->paginate(12)
-            ->appends($request->only(['search', 'view']));
-
-
-        /* ---------- AJAX or full page ---------- */
-        if ($request->ajax() || $request->wantsJson()) {
-            $viewType = $request->get('view', 'grid');
-            $viewName = $viewType === 'list'
-                ? 'partials.volunteer_list_row'
-                : 'partials.volunteer_card';
-
-            return response()->json([
-                'success' => true,
-                'html'    => view($viewName, compact('volunteers'))->render(),
-                'view'    => $viewType,
-            ]);
-        }
-
-        // Full page load
-        $ministries = Ministry::whereNull('parent_id')
-            ->with('children')
-            ->get();
-
-        return view('admin_volunteer', compact('volunteers', 'ministries'));
+                // ministry_name lives on the grand-child relation
+                ->orWhereHas('detail.ministry', function ($q) use ($searchTerm) {
+                    $q->where('ministry_name', 'like', "%{$searchTerm}%");
+                });
+        });
     }
 
+    /* ---------- Run the query, newest first ---------- */
+    $volunteers = $query->latest()
+        ->paginate(12)
+        ->appends($request->only(['search', 'view']));
+
+    /* ---------- AJAX or full page ---------- */
+    if ($request->ajax() || $request->wantsJson()) {
+        $viewType = $request->get('view', 'grid');
+        $viewName = $viewType === 'list'
+            ? 'partials.volunteer_list_row'  // Changed to include pagination
+            : 'partials.volunteer_card';  // Changed to include pagination
+
+        return response()->json([
+            'success' => true,
+            'html'    => view($viewName, compact('volunteers'))->render(),
+            'view'    => $viewType,
+        ]);
+    }
+
+    // Full page load
+    $ministries = Ministry::whereNull('parent_id')
+        ->with('children')
+        ->get();
+
+    return view('admin_volunteer', compact('volunteers', 'ministries'));
+}
 
     public function store(Request $request)
     {
