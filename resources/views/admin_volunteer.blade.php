@@ -70,7 +70,7 @@
   </div>
 
   <!-- Grid View Container -->
-  <div id="gridView" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" style="display: {{ request('view') === 'list' ? 'none' : 'grid' }};">
+  <div id="gridView" class="space-y-8" style="display: {{ request('view') === 'list' ? 'none' : 'grid' }};">
     {{-- This will be dynamically replaced by AJAX --}}
   </div>
   <!-- List View -->
