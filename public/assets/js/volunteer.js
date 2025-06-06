@@ -1,32 +1,31 @@
 let gridBtn;
 let listBtn;
 
-document.addEventListener('DOMContentLoaded', function () {
-  gridBtn = document.getElementById('gridViewBtn');
-  listBtn = document.getElementById('listViewBtn');
+document.addEventListener("DOMContentLoaded", function () {
+    gridBtn = document.getElementById("gridViewBtn");
+    listBtn = document.getElementById("listViewBtn");
 
-  const storedView = localStorage.getItem('volunteerViewType') || 'grid';
-  const urlParams = new URLSearchParams(window.location.search);
-  const urlView = urlParams.get('view');
-  const initialView = urlView || storedView;
+    const storedView = localStorage.getItem("volunteerViewType") || "grid";
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlView = urlParams.get("view");
+    const initialView = urlView || storedView;
 
-  if (initialView === 'list') {
-    listBtn.classList.add('bg-blue-50', 'border-blue-200');
-    gridBtn.classList.remove('bg-blue-50', 'border-blue-200');
-  } else {
-    gridBtn.classList.add('bg-blue-50', 'border-blue-200');
-    listBtn.classList.remove('bg-blue-50', 'border-blue-200');
-  }
+    if (initialView === "list") {
+        listBtn.classList.add("bg-blue-50", "border-blue-200");
+        gridBtn.classList.remove("bg-blue-50", "border-blue-200");
+    } else {
+        gridBtn.classList.add("bg-blue-50", "border-blue-200");
+        listBtn.classList.remove("bg-blue-50", "border-blue-200");
+    }
 
-  localStorage.setItem('volunteerViewType', initialView);
-  switchView(initialView);
-  attachVolunteerCardListeners();
+    localStorage.setItem("volunteerViewType", initialView);
+    switchView(initialView);
+    attachVolunteerCardListeners();
 
-  // Attach click listeners
-  gridBtn.addEventListener('click', () => switchView('grid'));
-  listBtn.addEventListener('click', () => switchView('list'));
+    // Attach click listeners
+    gridBtn.addEventListener("click", () => switchView("grid"));
+    listBtn.addEventListener("click", () => switchView("list"));
 });
-
 
 // Function to show loading state
 function showLoadingState() {
@@ -254,11 +253,36 @@ document.getElementById("addVolunteerBtn").addEventListener("click", () => {
 });
 ["closeRegistration", "cancelRegistration"].forEach((id) =>
     document.getElementById(id).addEventListener("click", () => {
-        document
-            .getElementById("registrationModal")
-            .classList.replace("flex", "hidden");
+        document.getElementById("registrationModal").classList.replace("flex", "hidden");
+        resetVolunteerForm(); // ← Add this line
+        resetModalTabs();     // ← And this if you want to go back to the Basic Info tab
     })
 );
+function resetModalTabs() {
+    // Reset tab view
+    document.querySelectorAll(".reg-tab").forEach((tab) => {
+        tab.classList.remove("border-blue-600");
+        tab.classList.add("border-transparent");
+
+        if (tab.dataset.tab === "personal") {
+            tab.classList.add("border-blue-600");
+            tab.classList.remove("tab-locked");
+        } else {
+            tab.classList.add("tab-locked");
+        }
+    });
+
+    // Reset tab content
+    document.querySelectorAll(".reg-content").forEach((content) => {
+        content.classList.add("hidden");
+    });
+    document.getElementById("tab-personal").classList.remove("hidden");
+
+    // Show "Next", hide "Register" button
+    document.getElementById("nextToSheet").classList.remove("hidden");
+    document.getElementById("submitRegistration").classList.add("hidden");
+}
+
 document.getElementById("submitRegistration").addEventListener("click", () => {
     const formData = new FormData();
 
@@ -370,18 +394,36 @@ document.getElementById("submitRegistration").addEventListener("click", () => {
         },
         body: formData,
     })
-        .then((res) => res.json())
-        .then((data) => {
-            toastr.success(data.message);
-            document
-                .getElementById("registrationModal")
-                .classList.replace("flex", "hidden");
-            resetVolunteerForm();
-            /* 🔄  refresh the directory so the new volunteer shows up */
-
-            const currentView =
-                localStorage.getItem("volunteerViewType") || "grid";
-            +switchView(currentView); // <- one line does it
+        .then((res) =>
+            res
+                .json()
+                .then((data) => ({
+                    ok: res.ok,
+                    status: res.status,
+                    body: data,
+                }))
+        )
+        .then(({ ok, status, body }) => {
+            if (ok) {
+                toastr.success(body.message);
+                document
+                    .getElementById("registrationModal")
+                    .classList.replace("flex", "hidden");
+                resetVolunteerForm();
+                const currentView =
+                    localStorage.getItem("volunteerViewType") || "grid";
+                switchView(currentView);
+            } else {
+                if (status === 409) {
+                    toastr.warning(
+                        body.message || "Duplicate volunteer found."
+                    );
+                } else {
+                    toastr.error(
+                        body.message || "An error occurred during registration."
+                    );
+                }
+            }
         })
         .catch((err) => {
             toastr.error("An error occurred while registering the volunteer.");
@@ -390,29 +432,56 @@ document.getElementById("submitRegistration").addEventListener("click", () => {
 });
 
 function resetVolunteerForm() {
-    // Text, email, date, and number fields
+    // Reset text, email, date, number, textarea, select
     document
         .querySelectorAll(
-            '#registrationModal input[type="text"], #registrationModal input[type="email"], #registrationModal input[type="tel"], #registrationModal input[type="date"], #registrationModal input[type="month"]'
+            '#registrationModal input[type="text"], ' +
+                '#registrationModal input[type="email"], ' +
+                '#registrationModal input[type="tel"], ' +
+                '#registrationModal input[type="date"], ' +
+                '#registrationModal input[type="month"], ' +
+                "#registrationModal textarea, " +
+                "#registrationModal select"
         )
         .forEach((el) => (el.value = ""));
 
-    // Textareas
-    document
-        .querySelectorAll("#registrationModal textarea")
-        .forEach((el) => (el.value = ""));
-
-    // Selects
-    document
-        .querySelectorAll("#registrationModal select")
-        .forEach((el) => (el.selectedIndex = 0));
-
-    // Checkboxes & radios
+    // Reset radio and checkboxes
     document
         .querySelectorAll(
             '#registrationModal input[type="checkbox"], #registrationModal input[type="radio"]'
         )
         .forEach((el) => (el.checked = false));
+
+    // Reset dynamic "civil status other" field visibility
+    const otherInput = document.getElementById("civilOtherInput");
+    if (otherInput) otherInput.classList.add("hidden");
+
+    // Reset tab view to Basic Info
+    document.querySelectorAll(".reg-tab").forEach((tab, i) => {
+        if (i === 0) {
+            tab.classList.replace("border-transparent", "border-blue-600");
+        } else {
+            tab.classList.replace("border-blue-600", "border-transparent");
+            tab.classList.add("tab-locked");
+        }
+    });
+
+    document.querySelectorAll(".reg-content").forEach((content, i) => {
+        if (i === 0) {
+            content.classList.remove("hidden");
+        } else {
+            content.classList.add("hidden");
+        }
+    });
+
+    // Reset visibility of buttons
+    document.getElementById("nextToSheet")?.classList.remove("hidden");
+    document.getElementById("submitRegistration")?.classList.add("hidden");
+
+    // Scroll modal to top
+    document
+        .querySelector("#registrationModal .overflow-y-auto")
+        ?.scrollTo(0, 0);
 }
 
 document.querySelectorAll(".year-select").forEach((select) => {
@@ -557,7 +626,11 @@ function openProfile(id) {
           </div>
           <div>
             <p class="text-sm font-medium text-gray-500">Date of Birth</p>
-            <p class="text-sm">${volunteer.date_of_birth ? new Date(volunteer.date_of_birth).toLocaleDateString() : "Not provided"}
+            <p class="text-sm">${
+                volunteer.date_of_birth
+                    ? new Date(volunteer.date_of_birth).toLocaleDateString()
+                    : "Not provided"
+            }
 </p>
           </div>
           <div>
