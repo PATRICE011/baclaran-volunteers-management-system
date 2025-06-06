@@ -19,11 +19,21 @@
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+
     <!-- Additional Styles -->
     @yield('styles')
 </head>
 
 <body>
+    <style>
+        body {
+            font-family: "Montserrat", sans-serif;
+        }
+    </style>
     <!-- Page Content -->
     @yield('content')
 
@@ -35,20 +45,23 @@
 
     <!-- Toastr Notifications for Session -->
     <script>
-        @if(session('success'))
+        @if (session('success'))
             toastr.success('{{ session('success') }}', 'Success', {
                 positionClass: 'toast-top-center',
                 timeOut: 3000
             });
         @endif
 
-        @if(session('error'))
+        @if (session('error'))
             toastr.error('{{ session('error') }}', 'Error', {
                 positionClass: 'toast-top-center',
                 timeOut: 3000
             });
         @endif
     </script>
+
+    {{-- Alpine.js CDN --}}
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </body>
 
 </html>
