@@ -738,7 +738,10 @@ function openProfile(id) {
             const displayName =
                 volunteer.nickname || volunteer.detail?.full_name || "No Name";
             const avatarSeed = displayName.replace(/\s/g, "").toLowerCase();
-            const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`;
+            const imageUrl = volunteer.profile_picture
+                ? `/storage/${volunteer.profile_picture}`
+                : `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`;
+
 
             // Format join date
             const joinDateStr = volunteer.detail?.applied_month_year;
@@ -796,7 +799,7 @@ function openProfile(id) {
        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 -m-6 mb-8 p-8 rounded-t-lg border-b border-gray-100">
     <div class="flex items-start gap-6">
       <div class="relative">
-    <img src="${avatarUrl}" alt="${displayName}" class="w-24 h-24 rounded-full shadow-lg ring-4 ring-white">
+    <img src="${imageUrl}" alt="${displayName}" class="w-24 h-24 rounded-full shadow-lg ring-4 ring-white object-cover">
     ${
         volunteerStatus === "Active"
             ? `
@@ -897,7 +900,11 @@ function openProfile(id) {
         </div>
 
         <!-- Personal Information Card -->
-        ${volunteer.sex || volunteer.civil_status || volunteer.detail?.full_name ? `
+        ${
+            volunteer.sex ||
+            volunteer.civil_status ||
+            volunteer.detail?.full_name
+                ? `
         <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
         <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
             <svg class="w-5 h-5 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
@@ -906,27 +913,41 @@ function openProfile(id) {
             Personal Information
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            ${volunteer.detail?.full_name ? `
+            ${
+                volunteer.detail?.full_name
+                    ? `
             <div class="space-y-1">
             <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Full Name</label>
             <p class="text-base text-gray-900">${volunteer.detail.full_name}</p>
             </div>
-            ` : ""}
-            ${volunteer.sex ? `
+            `
+                    : ""
+            }
+            ${
+                volunteer.sex
+                    ? `
             <div class="space-y-1">
             <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Gender</label>
             <p class="text-base text-gray-900 capitalize">${volunteer.sex}</p>
             </div>
-            ` : ""}
-            ${volunteer.civil_status ? `
+            `
+                    : ""
+            }
+            ${
+                volunteer.civil_status
+                    ? `
             <div class="space-y-1">
             <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Civil Status</label>
             <p class="text-base text-gray-900 capitalize">${volunteer.civil_status}</p>
             </div>
-            ` : ""}
+            `
+                    : ""
+            }
         </div>
         </div>
-        ` : ""}
+        `
+                : ""
+        }
 
 
         <!-- Sacraments Card -->
