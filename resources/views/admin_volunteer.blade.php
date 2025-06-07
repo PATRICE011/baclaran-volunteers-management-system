@@ -17,6 +17,20 @@
     max-width: 100%;
     /* Make sure it doesn't overflow the container */
   }
+
+  .profile-tab.active-tab {
+    border-bottom-color: #3b82f6 !important;
+    color: #2563eb !important;
+  }
+
+  .profile-tab:hover {
+    border-bottom-color: #d1d5db;
+    color: #374151;
+  }
+
+  .tab-content {
+    transition: opacity 0.2s ease-in-out;
+  }
 </style>
 @endsection
 
@@ -152,22 +166,22 @@
             <label class="block text-sm font-medium text-gray-700 mb-2">Profile Picture</label>
             <div class="flex items-center space-x-4">
               <div class="flex-shrink-0">
-                <img id="profilePreview" class="h-20 w-20 rounded-full object-cover border-2 border-gray-300" 
-                     src="data:image/svg+xml,%3csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100' height='100' fill='%23f3f4f6'/%3e%3ctext x='50%25' y='50%25' font-size='14' text-anchor='middle' alignment-baseline='middle' fill='%23374151'%3eNo Image%3c/text%3e%3c/svg%3e" 
-                     alt="Profile preview">
+                <img id="profilePreview" class="h-20 w-20 rounded-full object-cover border-2 border-gray-300"
+                  src="data:image/svg+xml,%3csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100' height='100' fill='%23f3f4f6'/%3e%3ctext x='50%25' y='50%25' font-size='14' text-anchor='middle' alignment-baseline='middle' fill='%23374151'%3eNo Image%3c/text%3e%3c/svg%3e"
+                  alt="Profile preview">
               </div>
               <div class="flex-1">
                 <input name="profile_picture" type="file" accept="image/*" id="profilePictureInput"
-                       class="hidden">
-                <label for="profilePictureInput" 
-                       class="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                  class="hidden">
+                <label for="profilePictureInput"
+                  class="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                   <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                   </svg>
                   Choose Photo
                 </label>
-                <button type="button" id="removeProfilePicture" 
-                        class="ml-2 inline-flex items-center px-3 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 hidden">
+                <button type="button" id="removeProfilePicture"
+                  class="ml-2 inline-flex items-center px-3 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 hidden">
                   <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                   </svg>

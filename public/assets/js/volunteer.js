@@ -792,8 +792,9 @@ function openProfile(id) {
                       .map((f) => f.trim())
                       .filter((f) => f)
                 : [];
+            
 
-            // Build the profile HTML with improved design
+            // Build the profile HTML with tabs
             const html = `
       <!-- Header Section -->
        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 -m-6 mb-8 p-8 rounded-t-lg border-b border-gray-100">
@@ -845,232 +846,276 @@ function openProfile(id) {
     </div>
   </div>
 
-      <!-- Content Sections -->
-      <div class="space-y-8">
-        <!-- Contact Information Card -->
-        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-          <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-            <svg class="w-5 h-5 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+      <!-- Tab Navigation -->
+      <div class="mb-6">
+        <nav class="flex space-x-8 border-b border-gray-200">
+          <button onclick="switchTab(event, 'contact-tab')" class="profile-tab active-tab py-2 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600 whitespace-nowrap">
+            <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
               <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
             </svg>
             Contact Information
-          </h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-1">
-                <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Email Address</label>
-                <div class="text-base text-gray-900 overflow-x-auto max-w-full">
-                    <p class="truncate">${
-                        volunteer.email_address || "Not provided"
-                    }</p>
-                </div>
-            </div>
+          </button>
+          <button onclick="switchTab(event, 'personal-tab')" class="profile-tab py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
+            <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+            </svg>
+            Personal Information
+          </button>
+          ${sacraments.length > 0 || formations.length > 0 ? `
+          <button onclick="switchTab(event, 'spiritual-tab')" class="profile-tab py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
+            <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Spiritual Journey
+          </button>
+          ` : ''}
+          ${volunteer.detail?.applied_date || volunteer.detail?.regular_duration || volunteer.others ? `
+          <button onclick="switchTab(event, 'additional-tab')" class="profile-tab py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
+            <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"></path>
+            </svg>
+            Additional Info
+          </button>
+          ` : ''}
+        </nav>
+      </div>
 
-            <div class="space-y-1">
-              <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Phone Number</label>
-              <p class="text-base text-gray-900">${
-                  volunteer.mobile_number || "Not provided"
-              }</p>
+      <!-- Tab Content -->
+      <div class="space-y-8">
+        <!-- Contact Information Tab -->
+        <div id="contact-tab" class="tab-content">
+          <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-1">
+                  <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Email Address</label>
+                  <div class="text-base text-gray-900 overflow-x-auto max-w-full">
+                      <p class="truncate">${
+                          volunteer.email_address || "Not provided"
+                      }</p>
+                  </div>
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Phone Number</label>
+                <p class="text-base text-gray-900">${
+                    volunteer.mobile_number || "Not provided"
+                }</p>
+              </div>
+              <div class="space-y-1">
+                <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Date of Birth</label>
+                <p class="text-base text-gray-900">${
+                    volunteer.date_of_birth
+                        ? new Date(volunteer.date_of_birth).toLocaleDateString()
+                        : "Not provided"
+                }</p>
+              </div>
+              <div class="space-y-1">
+                <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Occupation</label>
+                <p class="text-base text-gray-900">${
+                    volunteer.occupation || "Not provided"
+                }</p>
+              </div>
             </div>
-            <div class="space-y-1">
-              <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Date of Birth</label>
-              <p class="text-base text-gray-900">${
-                  volunteer.date_of_birth
-                      ? new Date(volunteer.date_of_birth).toLocaleDateString()
-                      : "Not provided"
-              }</p>
-            </div>
-            <div class="space-y-1">
-              <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Occupation</label>
-              <p class="text-base text-gray-900">${
-                  volunteer.occupation || "Not provided"
-              }</p>
+            ${
+                volunteer.address
+                    ? `
+              <div class="mt-6 pt-6 border-t border-gray-100">
+                <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Address</label>
+                <p class="text-base text-gray-900 mt-1">${volunteer.address}</p>
+              </div>
+            `
+                    : ""
+            }
+          </div>
+        </div>
+
+        <!-- Personal Information Tab -->
+        <div id="personal-tab" class="tab-content hidden">
+          ${
+              volunteer.sex ||
+              volunteer.civil_status ||
+              volunteer.detail?.full_name
+                  ? `
+          <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              ${
+                  volunteer.detail?.full_name
+                      ? `
+              <div class="space-y-1">
+              <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Full Name</label>
+              <p class="text-base text-gray-900">${volunteer.detail.full_name}</p>
+              </div>
+              `
+                      : ""
+              }
+              ${
+                  volunteer.sex
+                      ? `
+              <div class="space-y-1">
+              <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Gender</label>
+              <p class="text-base text-gray-900 capitalize">${volunteer.sex}</p>
+              </div>
+              `
+                      : ""
+              }
+              ${
+                  volunteer.civil_status
+                      ? `
+              <div class="space-y-1">
+              <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Civil Status</label>
+              <p class="text-base text-gray-900 capitalize">${volunteer.civil_status}</p>
+              </div>
+              `
+                      : ""
+              }
+          </div>
+          </div>
+          `
+                  : `
+          <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <div class="text-center py-8">
+              <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+              <p class="text-gray-500">No personal information available</p>
             </div>
           </div>
-          ${
-              volunteer.address
-                  ? `
-            <div class="mt-6 pt-6 border-t border-gray-100">
-              <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Address</label>
-              <p class="text-base text-gray-900 mt-1">${volunteer.address}</p>
-            </div>
           `
-                  : ""
           }
         </div>
 
-        <!-- Personal Information Card -->
-        ${
-            volunteer.sex ||
-            volunteer.civil_status ||
-            volunteer.detail?.full_name
-                ? `
-        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-        <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-            <svg class="w-5 h-5 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-            </svg>
-            Personal Information
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Spiritual Journey Tab -->
+        ${sacraments.length > 0 || formations.length > 0 ? `
+        <div id="spiritual-tab" class="tab-content hidden">
+          <div class="space-y-6">
             ${
-                volunteer.detail?.full_name
+                sacraments.length > 0
                     ? `
-            <div class="space-y-1">
-            <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Full Name</label>
-            <p class="text-base text-gray-900">${volunteer.detail.full_name}</p>
-            </div>
-            `
-                    : ""
-            }
-            ${
-                volunteer.sex
-                    ? `
-            <div class="space-y-1">
-            <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Gender</label>
-            <p class="text-base text-gray-900 capitalize">${volunteer.sex}</p>
-            </div>
-            `
-                    : ""
-            }
-            ${
-                volunteer.civil_status
-                    ? `
-            <div class="space-y-1">
-            <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Civil Status</label>
-            <p class="text-base text-gray-900 capitalize">${volunteer.civil_status}</p>
-            </div>
-            `
-                    : ""
-            }
-        </div>
-        </div>
-        `
-                : ""
-        }
-
-
-        <!-- Sacraments Card -->
-        ${
-            sacraments.length > 0
-                ? `
-        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-          <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-            <svg class="w-5 h-5 mr-2 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            Sacraments Received
-          </h3>
-          <div class="flex flex-wrap gap-3">
-            ${sacraments
-                .map(
-                    (sacrament) => `
-              <span class="inline-flex items-center px-4 py-2 text-sm font-medium bg-purple-50 text-purple-800 rounded-lg border border-purple-200">
-                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                ${sacrament}
-              </span>
+                Sacraments Received
+              </h3>
+              <div class="flex flex-wrap gap-3">
+                ${sacraments
+                    .map(
+                        (sacrament) => `
+                  <span class="inline-flex items-center px-4 py-2 text-sm font-medium bg-purple-50 text-purple-800 rounded-lg border border-purple-200">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    ${sacrament}
+                  </span>
+                `
+                    )
+                    .join("")}
+              </div>
+            </div>
             `
-                )
-                .join("")}
-          </div>
-        </div>
-        `
-                : ""
-        }
+                    : ""
+            }
 
-        <!-- Formations Card -->
-        ${
-            formations.length > 0
-                ? `
-        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-          <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-            <svg class="w-5 h-5 mr-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"></path>
-            </svg>
-            Formations Received
-          </h3>
-          <div class="flex flex-wrap gap-3">
-            ${formations
-                .map(
-                    (formation) => `
-              <span class="inline-flex items-center px-4 py-2 text-sm font-medium bg-indigo-50 text-indigo-800 rounded-lg border border-indigo-200">
-                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+            ${
+                formations.length > 0
+                    ? `
+            <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"></path>
                 </svg>
-                ${formation}
-              </span>
-            `
-                )
-                .join("")}
-          </div>
-        </div>
-        `
-                : ""
-        }
-
-        <!-- Volunteer Timeline Card -->
-        ${
-            volunteer.detail?.applied_date || volunteer.detail?.regular_duration
-                ? `
-        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-          <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-            <svg class="w-5 h-5 mr-2 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
-            </svg>
-            Volunteer Timeline
-          </h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            ${
-                volunteer.detail?.applied_date
-                    ? `
-            <div class="space-y-1">
-              <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Month & Year Applied</label>
-              <p class="text-base text-gray-900">${new Date(
-                  volunteer.detail.applied_date + "-01"
-              ).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-              })}</p>
-            </div>
-            `
-                    : ""
-            }
-            ${
-                volunteer.detail?.regular_duration
-                    ? `
-            <div class="space-y-1">
-              <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Years as Regular Volunteer</label>
-              <p class="text-base text-gray-900">${volunteer.detail.regular_duration}</p>
+                Formations Received
+              </h3>
+              <div class="flex flex-wrap gap-3">
+                ${formations
+                    .map(
+                        (formation) => `
+                  <span class="inline-flex items-center px-4 py-2 text-sm font-medium bg-indigo-50 text-indigo-800 rounded-lg border border-indigo-200">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    ${formation}
+                  </span>
+                `
+                    )
+                    .join("")}
+              </div>
             </div>
             `
                     : ""
             }
           </div>
         </div>
-        `
-                : ""
-        }
+        ` : ''}
 
-        <!-- Additional Notes Card -->
-        ${
-            volunteer.others
-                ? `
-        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <svg class="w-5 h-5 mr-2 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
-            </svg>
-            Additional Notes
-          </h3>
-          <div class="bg-gray-50 rounded-lg p-4">
-            <p class="text-base text-gray-700 leading-relaxed">${volunteer.others}</p>
+        <!-- Additional Information Tab -->
+        ${volunteer.detail?.applied_date || volunteer.detail?.regular_duration || volunteer.others ? `
+        <div id="additional-tab" class="tab-content hidden">
+          <div class="space-y-6">
+            ${
+                volunteer.detail?.applied_date || volunteer.detail?.regular_duration
+                    ? `
+            <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                </svg>
+                Volunteer Timeline
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                ${
+                    volunteer.detail?.applied_date
+                        ? `
+                <div class="space-y-1">
+                  <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Month & Year Applied</label>
+                  <p class="text-base text-gray-900">${new Date(
+                      volunteer.detail.applied_date + "-01"
+                  ).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                  })}</p>
+                </div>
+                `
+                        : ""
+                }
+                ${
+                    volunteer.detail?.regular_duration
+                        ? `
+                <div class="space-y-1">
+                  <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Years as Regular Volunteer</label>
+                  <p class="text-base text-gray-900">${volunteer.detail.regular_duration}</p>
+                </div>
+                `
+                        : ""
+                }
+              </div>
+            </div>
+            `
+                    : ""
+            }
+
+            ${
+                volunteer.others
+                    ? `
+            <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
+                </svg>
+                Additional Notes
+              </h3>
+              <div class="bg-gray-50 rounded-lg p-4">
+                <p class="text-base text-gray-700 leading-relaxed">${volunteer.others}</p>
+              </div>
+            </div>
+            `
+                    : ""
+            }
           </div>
         </div>
-        `
-                : ""
-        }
+        ` : ''}
       </div>
     `;
 
@@ -1100,6 +1145,29 @@ function openProfile(id) {
       </div>
     `;
         });
+}
+
+// Tab switching function
+function switchTab(event, tabId) {
+    // Remove active class from all tabs
+    const tabs = document.querySelectorAll('.profile-tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabs.forEach(tab => {
+        tab.classList.remove('active-tab', 'border-blue-500', 'text-blue-600');
+        tab.classList.add('border-transparent', 'text-gray-500');
+    });
+    
+    tabContents.forEach(content => {
+        content.classList.add('hidden');
+    });
+    
+    // Add active class to clicked tab
+    event.target.classList.add('active-tab', 'border-blue-500', 'text-blue-600');
+    event.target.classList.remove('border-transparent', 'text-gray-500');
+    
+    // Show selected tab content
+    document.getElementById(tabId).classList.remove('hidden');
 }
 
 // Update the edit profile button functionality

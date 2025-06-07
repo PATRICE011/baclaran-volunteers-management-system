@@ -15,7 +15,8 @@ class VolunteersController extends Controller
     {
         try {
             // Build the base query, including eager-loaded relations
-            $query = Volunteer::with(['detail.ministry']);
+            $query = Volunteer::with(['detail.ministry', 'timelines', 'affiliations']);
+
 
             // Search filter
             if ($request->filled('search')) {
@@ -56,6 +57,36 @@ class VolunteersController extends Controller
             $volunteers = $query->latest()
                 ->paginate(12)
                 ->appends($request->only(['search', 'ministry', 'status', 'view']));
+
+            foreach ($volunteers as $volunteer) {
+                $applied = $volunteer->detail?->applied_month_year;
+
+                if ($applied) {
+                    try {
+                        $start = \Carbon\Carbon::createFromFormat('Y-m', $applied);
+                        $now = now();
+
+                        $totalMonths = $start->diffInMonths($now);
+                        $years = floor($totalMonths / 12);
+                        $months = $totalMonths % 12;
+
+                        $parts = [];
+                        if ($years) {
+                            $parts[] = "$years year" . ($years > 1 ? 's' : '');
+                        }
+                        if ($months) {
+                            $parts[] = "$months month" . ($months > 1 ? 's' : '');
+                        }
+
+                        $volunteer->active_for = count($parts) > 0 ? implode(' ', $parts) : 'Less than a month';
+                    } catch (\Exception $e) {
+                        $volunteer->active_for = 'Invalid date';
+                    }
+                } else {
+                    $volunteer->active_for = 'Duration unknown';
+                }
+            }
+
 
             // Fetch ministries and statuses
             $ministries = Ministry::whereNull('parent_id')->with('children')->get();
@@ -207,6 +238,7 @@ class VolunteersController extends Controller
                 }
             }
 
+
             return response()->json(['message' => 'Volunteer registered successfully.']);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
@@ -223,8 +255,12 @@ class VolunteersController extends Controller
     public function show($id)
     {
         try {
-            $volunteer = Volunteer::with(['detail.ministry'])
-                ->findOrFail($id);
+            $volunteer = Volunteer::with([
+                'detail.ministry',
+                'timelines',
+                'affiliations'
+            ])->findOrFail($id);
+
 
             // Add computed properties for the frontend
             $volunteer->has_complete_profile = $volunteer->hasCompleteProfile();
