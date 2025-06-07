@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+
 use Illuminate\Http\Request;
 use App\Models\Volunteer;
 use App\Models\Ministry;
@@ -64,9 +66,11 @@ class VolunteersController extends Controller
                 if ($applied) {
                     try {
                         $start = \Carbon\Carbon::createFromFormat('Y-m', $applied);
-                        $now = now();
+                        $endDate = ($volunteer->detail?->volunteer_status === 'Inactive' && $volunteer->detail?->updated_at)
+                            ? Carbon::parse($volunteer->detail->updated_at)
+                            : now();
 
-                        $totalMonths = $start->diffInMonths($now);
+                        $totalMonths = $start->diffInMonths($endDate);
                         $years = floor($totalMonths / 12);
                         $months = $totalMonths % 12;
 

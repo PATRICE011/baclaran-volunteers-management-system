@@ -760,7 +760,12 @@ function openProfile(id) {
                   )
                 : new Date();
 
-            const currentDate = new Date();
+            const status = volunteer.detail?.volunteer_status;
+            const statusUpdated = volunteer.detail?.updated_at;
+            const currentDate =
+                status === "Inactive" && statusUpdated
+                    ? new Date(statusUpdated)
+                    : new Date();
 
             // Calculate the number of years and months active
             const diffInYears =
