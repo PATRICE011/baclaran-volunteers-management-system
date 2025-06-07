@@ -774,9 +774,8 @@ function openProfile(id) {
             const activeYears = diffInYears - (diffInMonths < 0 ? 1 : 0);
             const activeMonths = (diffInMonths + 12) % 12;
 
-            const activeTime = `${activeYears} year${
-                activeYears !== 1 ? "s" : ""
-            } ${activeMonths} month${activeMonths !== 1 ? "s" : ""}`;
+            const activeTime = volunteer.active_for || "Duration unknown";
+
 
             // Get ministry information
             const ministryName =

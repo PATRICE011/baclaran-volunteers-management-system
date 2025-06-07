@@ -277,15 +277,35 @@ class VolunteersController extends Controller
     public function show($id)
     {
         try {
-            $volunteer = Volunteer::with([
-                'detail.ministry',
-                'timelines',
-                'affiliations'
-            ])->findOrFail($id);
+            $volunteer = Volunteer::with(['detail.ministry', 'timelines', 'affiliations'])
+                ->findOrFail($id);
 
-
-            // Add computed properties for the frontend
             $volunteer->has_complete_profile = $volunteer->hasCompleteProfile();
+
+            // Add active_for like in index()
+            $applied = $volunteer->detail?->applied_month_year;
+
+            if ($applied) {
+                try {
+                    $start = \Carbon\Carbon::createFromFormat('Y-m', $applied);
+                    $now = $volunteer->detail?->volunteer_status === 'Inactive' && $volunteer->detail?->updated_at
+                        ? \Carbon\Carbon::parse($volunteer->detail->updated_at)
+                        : now();
+
+                    $months = $start->diffInMonths($now);
+                    $years = floor($months / 12);
+                    $remainingMonths = $months % 12;
+
+                    $parts = [];
+                    if ($years) $parts[] = "$years year" . ($years > 1 ? 's' : '');
+                    if ($remainingMonths) $parts[] = "$remainingMonths month" . ($remainingMonths > 1 ? 's' : '');
+                    $volunteer->active_for = $parts ? implode(' ', $parts) : 'Less than a month';
+                } catch (\Exception) {
+                    $volunteer->active_for = 'Invalid date';
+                }
+            } else {
+                $volunteer->active_for = 'Duration unknown';
+            }
 
             return response()->json($volunteer);
         } catch (\Exception $e) {
