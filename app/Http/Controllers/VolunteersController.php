@@ -167,11 +167,7 @@ class VolunteersController extends Controller
             $profilePicturePath = null;
             if ($request->hasFile('profile_picture')) {
                 $file = $request->file('profile_picture');
-
-                // Generate unique filename
                 $filename = time() . '_' . $file->getClientOriginalName();
-
-                // Store in public/storage/profile_pictures directory
                 $profilePicturePath = $file->storeAs('profile_pictures', $filename, 'public');
             }
 
@@ -195,7 +191,7 @@ class VolunteersController extends Controller
                 'civil_status' => $civilStatus,
                 'sacraments_received' => $request->sacraments ?? [],
                 'formations_received' => $request->formations ?? [],
-                'profile_picture' => $profilePicturePath, // Add profile picture path
+                'profile_picture' => $profilePicturePath,
             ]);
 
             // Create detail
@@ -208,36 +204,53 @@ class VolunteersController extends Controller
                 'volunteer_status' => 'Active',
             ]);
 
-            // Timeline entries
-            foreach ($request->timeline_org ?? [] as $i => $org) {
-                if (!empty($org)) {
+            // Timeline entries - FIXED VERSION
+            $timelineOrgs = $request->timeline_org ?? [];
+            $timelineStartYears = $request->timeline_start_year ?? [];
+            $timelineEndYears = $request->timeline_end_year ?? [];
+            $timelineTotals = $request->timeline_total ?? [];
+            $timelineActives = $request->timeline_active ?? [];
+
+            foreach ($timelineOrgs as $i => $org) {
+                if (!empty(trim($org))) {
                     $orgName = Str::title(trim($org));
-                    $total = $request->timeline_total[$i] ?? '';
-                    $totalYears = (int) filter_var($total, FILTER_SANITIZE_NUMBER_INT);
+                    $startYear = !empty($timelineStartYears[$i]) ? (int) $timelineStartYears[$i] : null;
+                    $endYear = !empty($timelineEndYears[$i]) ? (int) $timelineEndYears[$i] : null;
+                    $total = isset($timelineTotals[$i]) ? trim($timelineTotals[$i]) : '';
+                    $totalYears = !empty($total) ? (int) filter_var($total, FILTER_SANITIZE_NUMBER_INT) : null;
+                    $isActive = isset($timelineActives[$i]) && $timelineActives[$i] === 'Y';
 
                     $volunteer->timelines()->create([
                         'organization_name' => $orgName,
-                        'year_started' => $request->timeline_start_year[$i] ?? null,
-                        'year_ended' => $request->timeline_end_year[$i] ?? null,
-                        'total_years' => $totalYears ?: null,
-                        'is_active' => ($request->timeline_active[$i] ?? '') === 'Y',
+                        'year_started' => $startYear,
+                        'year_ended' => $endYear,
+                        'total_years' => $totalYears,
+                        'is_active' => $isActive,
                     ]);
                 }
             }
 
-            // Affiliations
-            foreach ($request->affil_org ?? [] as $i => $org) {
-                if (!empty($org)) {
+            // Affiliations - FIXED VERSION
+            $affilOrgs = $request->affil_org ?? [];
+            $affilStartYears = $request->affil_start_year ?? [];
+            $affilEndYears = $request->affil_end_year ?? [];
+            $affilActives = $request->affil_active ?? [];
+
+            foreach ($affilOrgs as $i => $org) {
+                if (!empty(trim($org))) {
                     $orgName = Str::title(trim($org));
+                    $startYear = !empty($affilStartYears[$i]) ? (int) $affilStartYears[$i] : null;
+                    $endYear = !empty($affilEndYears[$i]) ? (int) $affilEndYears[$i] : null;
+                    $isActive = isset($affilActives[$i]) && $affilActives[$i] === 'Y';
+
                     $volunteer->affiliations()->create([
                         'organization_name' => $orgName,
-                        'year_started' => $request->affil_start_year[$i] ?? null,
-                        'year_ended' => $request->affil_end_year[$i] ?? null,
-                        'is_active' => ($request->affil_active[$i] ?? '') === 'Y',
+                        'year_started' => $startYear,
+                        'year_ended' => $endYear,
+                        'is_active' => $isActive,
                     ]);
                 }
             }
-
 
             return response()->json(['message' => 'Volunteer registered successfully.']);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -246,6 +259,11 @@ class VolunteersController extends Controller
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Throwable $e) {
+            Log::error('Volunteer registration error: ' . $e->getMessage(), [
+                'request_data' => $request->all(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
                 'message' => 'Error registering volunteer',
                 'error' => $e->getMessage(),
