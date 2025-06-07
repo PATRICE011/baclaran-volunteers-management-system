@@ -742,7 +742,6 @@ function openProfile(id) {
                 ? `/storage/${volunteer.profile_picture}`
                 : `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`;
 
-
             // Format join date
             const joinDateStr = volunteer.detail?.applied_month_year;
             const joinDate = joinDateStr
@@ -792,7 +791,10 @@ function openProfile(id) {
                       .map((f) => f.trim())
                       .filter((f) => f)
                 : [];
-            
+
+            // Get timelines and affiliations
+            const timelines = volunteer.timelines || [];
+            const affiliations = volunteer.affiliations || [];
 
             // Build the profile HTML with tabs
             const html = `
@@ -833,7 +835,6 @@ function openProfile(id) {
                 year: "numeric",
                 month: "long",
             })}
-
           </div>
           <div class="flex items-center">
             <svg class="w-4 h-4 mr-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
@@ -848,26 +849,42 @@ function openProfile(id) {
 
       <!-- Tab Navigation -->
       <div class="mb-6">
-        <nav class="flex space-x-8 border-b border-gray-200">
+        <nav class="flex space-x-8 border-b border-gray-200 overflow-x-auto">
           <button onclick="switchTab(event, 'contact-tab')" class="profile-tab active-tab py-2 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600 whitespace-nowrap">
             <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
               <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
             </svg>
-            Contact Information
+            Contact
           </button>
           <button onclick="switchTab(event, 'personal-tab')" class="profile-tab py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
             <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
             </svg>
-            Personal Information
+            Personal
           </button>
           ${sacraments.length > 0 || formations.length > 0 ? `
           <button onclick="switchTab(event, 'spiritual-tab')" class="profile-tab py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
             <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
-            Spiritual Journey
+            Spiritual
+          </button>
+          ` : ''}
+          ${timelines.length > 0 ? `
+          <button onclick="switchTab(event, 'timeline-tab')" class="profile-tab py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
+            <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+            </svg>
+            Timeline
+          </button>
+          ` : ''}
+          ${affiliations.length > 0 ? `
+          <button onclick="switchTab(event, 'affiliations-tab')" class="profile-tab py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
+            <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M17 2a2 2 0 00-2-2H5a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2L17 18V2zM9 12a1 1 0 100-2 1 1 0 000 2zm4-3a1 1 0 11-2 0 1 1 0 012 0z" clip-rule="evenodd"></path>
+            </svg>
+            Affiliations
           </button>
           ` : ''}
           ${volunteer.detail?.applied_date || volunteer.detail?.regular_duration || volunteer.others ? `
@@ -875,7 +892,7 @@ function openProfile(id) {
             <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"></path>
             </svg>
-            Additional Info
+            Additional
           </button>
           ` : ''}
         </nav>
@@ -1046,6 +1063,86 @@ function openProfile(id) {
             `
                     : ""
             }
+          </div>
+        </div>
+        ` : ''}
+
+        <!-- Timeline Tab -->
+        ${timelines.length > 0 ? `
+        <div id="timeline-tab" class="tab-content hidden">
+          <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+              <svg class="w-5 h-5 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+              </svg>
+              Organization Timeline
+            </h3>
+            <div class="space-y-4">
+              ${timelines.map((timeline, index) => `
+                <div class="relative pl-8 pb-6 ${index < timelines.length - 1 ? 'border-l-2 border-gray-200' : ''}">
+                  <div class="absolute -left-2 top-0 w-4 h-4 rounded-full ${timeline.is_active ? 'bg-green-500' : 'bg-gray-400'} border-2 border-white shadow"></div>
+                  <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex justify-between items-start mb-2">
+                      <h4 class="font-semibold text-gray-900">${timeline.organization_name}</h4>
+                      ${timeline.is_active ? 
+                        '<span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Active</span>' : 
+                        '<span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">Inactive</span>'
+                      }
+                    </div>
+                    <div class="text-sm text-gray-600">
+                      <p class="mb-1">
+                        <span class="font-medium">Period:</span> 
+                        ${timeline.year_started || 'Unknown'} - ${timeline.year_ended || 'Present'}
+                      </p>
+                      ${timeline.total_years ? `<p><span class="font-medium">Duration:</span> ${timeline.total_years} year${timeline.total_years !== 1 ? 's' : ''}</p>` : ''}
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+        ` : ''}
+
+        <!-- Other Affiliations Tab -->
+        ${affiliations.length > 0 ? `
+        <div id="affiliations-tab" class="tab-content hidden">
+          <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+              <svg class="w-5 h-5 mr-2 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M17 2a2 2 0 00-2-2H5a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2L17 18V2zM9 12a1 1 0 100-2 1 1 0 000 2zm4-3a1 1 0 11-2 0 1 1 0 012 0z" clip-rule="evenodd"></path>
+              </svg>
+              Other Affiliations
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              ${affiliations.map(affiliation => `
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div class="flex justify-between items-start mb-3">
+                    <h4 class="font-semibold text-gray-900">${affiliation.organization_name}</h4>
+                    ${affiliation.is_active ? 
+                      '<span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Active</span>' : 
+                      '<span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">Inactive</span>'
+                    }
+                  </div>
+                  <div class="text-sm text-gray-600">
+                    <p class="flex items-center mb-1">
+                      <svg class="w-4 h-4 mr-1 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+                      </svg>
+                      <span class="font-medium">Started:</span> ${affiliation.year_started || 'Unknown'}
+                    </p>
+                    ${!affiliation.is_active && affiliation.year_ended ? `
+                    <p class="flex items-center">
+                      <svg class="w-4 h-4 mr-1 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+                      </svg>
+                      <span class="font-medium">Ended:</span> ${affiliation.year_ended}
+                    </p>
+                    ` : ''}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
           </div>
         </div>
         ` : ''}
