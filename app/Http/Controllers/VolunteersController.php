@@ -99,13 +99,20 @@ class VolunteersController extends Controller
     public function store(Request $request)
     {
         try {
+            // Validate the profile picture if uploaded
+            if ($request->hasFile('profile_picture')) {
+                $request->validate([
+                    'profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // 2MB max
+                ]);
+            }
+
             // Normalize inputs
             $firstName = Str::title(trim($request->first_name));
             $lastName = Str::title(trim($request->last_name));
             $middleInitial = strtoupper(trim($request->middle_initial));
             $nickname = Str::title(trim($request->nickname));
             $email = strtolower(trim($request->email));
-            $fullName = "{$lastName} {$firstName} {$middleInitial}";
+            $fullName = "{$firstName} {$middleInitial} {$lastName}";
             $birthDate = $request->dob;
 
             // Check for existing volunteer by name + birthdate OR email
@@ -123,6 +130,18 @@ class VolunteersController extends Controller
                 return response()->json([
                     'message' => 'Volunteer already exists with the same name and birthdate or email.',
                 ], 409);
+            }
+
+            // Handle profile picture upload
+            $profilePicturePath = null;
+            if ($request->hasFile('profile_picture')) {
+                $file = $request->file('profile_picture');
+
+                // Generate unique filename
+                $filename = time() . '_' . $file->getClientOriginalName();
+
+                // Store in public/storage/profile_pictures directory
+                $profilePicturePath = $file->storeAs('profile_pictures', $filename, 'public');
             }
 
             // Normalize other fields
@@ -145,6 +164,7 @@ class VolunteersController extends Controller
                 'civil_status' => $civilStatus,
                 'sacraments_received' => $request->sacraments ?? [],
                 'formations_received' => $request->formations ?? [],
+                'profile_picture' => $profilePicturePath, // Add profile picture path
             ]);
 
             // Create detail
@@ -157,10 +177,42 @@ class VolunteersController extends Controller
                 'volunteer_status' => 'Active',
             ]);
 
-            // [Timeline and Affiliation saving remains same...]
-            // You can keep those sections as-is
+            // Timeline entries
+            foreach ($request->timeline_org ?? [] as $i => $org) {
+                if (!empty($org)) {
+                    $orgName = Str::title(trim($org));
+                    $total = $request->timeline_total[$i] ?? '';
+                    $totalYears = (int) filter_var($total, FILTER_SANITIZE_NUMBER_INT);
+
+                    $volunteer->timelines()->create([
+                        'organization_name' => $orgName,
+                        'year_started' => $request->timeline_start_year[$i] ?? null,
+                        'year_ended' => $request->timeline_end_year[$i] ?? null,
+                        'total_years' => $totalYears ?: null,
+                        'is_active' => ($request->timeline_active[$i] ?? '') === 'Y',
+                    ]);
+                }
+            }
+
+            // Affiliations
+            foreach ($request->affil_org ?? [] as $i => $org) {
+                if (!empty($org)) {
+                    $orgName = Str::title(trim($org));
+                    $volunteer->affiliations()->create([
+                        'organization_name' => $orgName,
+                        'year_started' => $request->affil_start_year[$i] ?? null,
+                        'year_ended' => $request->affil_end_year[$i] ?? null,
+                        'is_active' => ($request->affil_active[$i] ?? '') === 'Y',
+                    ]);
+                }
+            }
 
             return response()->json(['message' => 'Volunteer registered successfully.']);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Throwable $e) {
             return response()->json([
                 'message' => 'Error registering volunteer',

@@ -43,41 +43,46 @@ async function applyFilters() {
     try {
         const currentView = localStorage.getItem("volunteerViewType") || "grid";
         showLoadingState();
-        
+
         const searchQuery = document.getElementById("searchInput").value;
         const ministryFilter = document.getElementById("ministryFilter").value;
         const statusFilter = document.getElementById("statusFilter").value;
 
-        const data = await fetchFilteredData(currentView, searchQuery, ministryFilter, statusFilter);
+        const data = await fetchFilteredData(
+            currentView,
+            searchQuery,
+            ministryFilter,
+            statusFilter
+        );
 
         if (data.success) {
             updateViewContent(currentView, data.html);
             attachVolunteerCardListeners();
             attachPaginationListeners();
-            
+
             // Update URL without page refresh
             const url = new URL(window.location.href);
             url.searchParams.set("view", currentView);
             url.searchParams.delete("page"); // Reset to page 1 when changing filters
-            
+
             if (searchQuery) {
                 url.searchParams.set("search", searchQuery);
             } else {
                 url.searchParams.delete("search");
             }
-            
+
             if (ministryFilter) {
                 url.searchParams.set("ministry", ministryFilter);
             } else {
                 url.searchParams.delete("ministry");
             }
-            
+
             if (statusFilter) {
                 url.searchParams.set("status", statusFilter);
             } else {
                 url.searchParams.delete("status");
             }
-            
+
             window.history.pushState({}, "", url.toString());
         }
     } catch (error) {
@@ -88,19 +93,24 @@ async function applyFilters() {
 }
 
 // Function to fetch data with filters
-async function fetchFilteredData(viewType, searchQuery = "", ministryFilter = "", statusFilter = "") {
+async function fetchFilteredData(
+    viewType,
+    searchQuery = "",
+    ministryFilter = "",
+    statusFilter = ""
+) {
     try {
         const url = new URL("/volunteers", window.location.origin);
         url.searchParams.set("view", viewType);
-        
+
         if (searchQuery) {
             url.searchParams.set("search", searchQuery);
         }
-        
+
         if (ministryFilter) {
             url.searchParams.set("ministry", ministryFilter);
         }
-        
+
         if (statusFilter) {
             url.searchParams.set("status", statusFilter);
         }
@@ -110,14 +120,18 @@ async function fetchFilteredData(viewType, searchQuery = "", ministryFilter = ""
             headers: {
                 "X-Requested-With": "XMLHttpRequest",
                 Accept: "application/json",
-                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+                "X-CSRF-TOKEN": document.querySelector(
+                    'meta[name="csrf-token"]'
+                ).content,
             },
             credentials: "include",
         });
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+            throw new Error(
+                errorData.message || `HTTP error! status: ${response.status}`
+            );
         }
 
         return await response.json();
@@ -416,6 +430,14 @@ document
 document.getElementById("submitRegistration").addEventListener("click", () => {
     const formData = new FormData();
 
+    // Profile Picture
+    const profilePictureInput = document.querySelector(
+        '[name="profile_picture"]'
+    );
+    if (profilePictureInput.files[0]) {
+        formData.append("profile_picture", profilePictureInput.files[0]);
+    }
+
     // Basic Info
     formData.append(
         "nickname",
@@ -546,6 +568,15 @@ document.getElementById("submitRegistration").addEventListener("click", () => {
                     toastr.warning(
                         body.message || "Duplicate volunteer found."
                     );
+                } else if (status === 422) {
+                    // Handle validation errors
+                    if (body.errors && body.errors.profile_picture) {
+                        toastr.error(body.errors.profile_picture[0]);
+                    } else {
+                        toastr.error(
+                            body.message || "Validation error occurred."
+                        );
+                    }
                 } else {
                     toastr.error(
                         body.message || "An error occurred during registration."
@@ -568,6 +599,7 @@ function resetVolunteerForm() {
                 '#registrationModal input[type="tel"], ' +
                 '#registrationModal input[type="date"], ' +
                 '#registrationModal input[type="month"], ' +
+                '#registrationModal input[type="file"], ' +
                 "#registrationModal textarea, " +
                 "#registrationModal select"
         )
@@ -579,6 +611,17 @@ function resetVolunteerForm() {
             '#registrationModal input[type="checkbox"], #registrationModal input[type="radio"]'
         )
         .forEach((el) => (el.checked = false));
+
+    // Reset profile picture preview
+    const profilePreview = document.getElementById("profilePreview");
+    const removeBtn = document.getElementById("removeProfilePicture");
+    if (profilePreview) {
+        profilePreview.src =
+            "data:image/svg+xml,%3csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100' height='100' fill='%23f3f4f6'/%3e%3ctext x='50%25' y='50%25' font-size='14' text-anchor='middle' alignment-baseline='middle' fill='%23374151'%3eNo Image%3c/text%3e%3c/svg%3e";
+    }
+    if (removeBtn) {
+        removeBtn.classList.add("hidden");
+    }
 
     // Reset dynamic "civil status other" field visibility
     const otherInput = document.getElementById("civilOtherInput");
@@ -611,7 +654,6 @@ function resetVolunteerForm() {
         .querySelector("#registrationModal .overflow-y-auto")
         ?.scrollTo(0, 0);
 }
-
 document.querySelectorAll(".year-select").forEach((select) => {
     select.addEventListener("change", function () {
         const row = this.dataset.row;
@@ -699,20 +741,25 @@ function openProfile(id) {
             const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`;
 
             // Format join date
-            const joinDate = volunteer.created_at
-                ? new Date(volunteer.created_at)
+            const joinDateStr = volunteer.detail?.applied_month_year;
+            const joinDate = joinDateStr
+                ? new Date(
+                      joinDateStr + (joinDateStr.length === 7 ? "-01" : "")
+                  )
                 : new Date();
+
             const currentDate = new Date();
 
             // Calculate the number of years and months active
-            const diffInYears = currentDate.getFullYear() - joinDate.getFullYear();
+            const diffInYears =
+                currentDate.getFullYear() - joinDate.getFullYear();
             const diffInMonths = currentDate.getMonth() - joinDate.getMonth();
             const activeYears = diffInYears - (diffInMonths < 0 ? 1 : 0);
             const activeMonths = (diffInMonths + 12) % 12;
 
-            const activeTime = `${activeYears} year${activeYears !== 1 ? "s" : ""} ${activeMonths} month${
-                activeMonths !== 1 ? "s" : ""
-            }`;
+            const activeTime = `${activeYears} year${
+                activeYears !== 1 ? "s" : ""
+            } ${activeMonths} month${activeMonths !== 1 ? "s" : ""}`;
 
             // Get ministry information
             const ministryName =
@@ -720,10 +767,12 @@ function openProfile(id) {
                 "No Ministry Assigned";
 
             // Get profile completion status
-            const volunteerStatus = volunteer.detail?.volunteer_status || "No Status";
-            const statusClass = volunteerStatus === "Active"
-                ? "bg-emerald-100 text-emerald-800 border-emerald-200" 
-                : "bg-red-100 text-red-800 border-red-200"; 
+            const volunteerStatus =
+                volunteer.detail?.volunteer_status || "No Status";
+            const statusClass =
+                volunteerStatus === "Active"
+                    ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                    : "bg-red-100 text-red-800 border-red-200";
 
             // Format sacraments
             const sacraments = volunteer.detail?.sacraments
@@ -748,13 +797,17 @@ function openProfile(id) {
     <div class="flex items-start gap-6">
       <div class="relative">
     <img src="${avatarUrl}" alt="${displayName}" class="w-24 h-24 rounded-full shadow-lg ring-4 ring-white">
-    ${volunteerStatus === "Active" ? `
+    ${
+        volunteerStatus === "Active"
+            ? `
         <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
         <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
         </svg>
         </div>
-    ` : ''}
+    `
+            : ""
+    }
     </div>
       <div class="flex-1">
         <h2 class="text-2xl font-bold text-gray-900 mb-2">${displayName}</h2>
@@ -772,7 +825,11 @@ function openProfile(id) {
             <svg class="w-4 h-4 mr-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
             </svg>
-            Joined ${joinDate.toLocaleDateString()}
+            Joined  ${joinDate.toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+            })}
+
           </div>
           <div class="flex items-center">
             <svg class="w-4 h-4 mr-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
@@ -800,61 +857,82 @@ function openProfile(id) {
             <div class="space-y-1">
                 <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Email Address</label>
                 <div class="text-base text-gray-900 overflow-x-auto max-w-full">
-                    <p class="truncate">${volunteer.email_address || "Not provided"}</p>
+                    <p class="truncate">${
+                        volunteer.email_address || "Not provided"
+                    }</p>
                 </div>
             </div>
 
             <div class="space-y-1">
               <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Phone Number</label>
-              <p class="text-base text-gray-900">${volunteer.mobile_number || "Not provided"}</p>
+              <p class="text-base text-gray-900">${
+                  volunteer.mobile_number || "Not provided"
+              }</p>
             </div>
             <div class="space-y-1">
               <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Date of Birth</label>
-              <p class="text-base text-gray-900">${volunteer.date_of_birth
-                ? new Date(volunteer.date_of_birth).toLocaleDateString()
-                : "Not provided"}</p>
+              <p class="text-base text-gray-900">${
+                  volunteer.date_of_birth
+                      ? new Date(volunteer.date_of_birth).toLocaleDateString()
+                      : "Not provided"
+              }</p>
             </div>
             <div class="space-y-1">
               <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Occupation</label>
-              <p class="text-base text-gray-900">${volunteer.occupation || "Not provided"}</p>
+              <p class="text-base text-gray-900">${
+                  volunteer.occupation || "Not provided"
+              }</p>
             </div>
           </div>
-          ${volunteer.address ? `
+          ${
+              volunteer.address
+                  ? `
             <div class="mt-6 pt-6 border-t border-gray-100">
               <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Address</label>
               <p class="text-base text-gray-900 mt-1">${volunteer.address}</p>
             </div>
-          ` : ""}
+          `
+                  : ""
+          }
         </div>
 
         <!-- Personal Information Card -->
-        ${volunteer.sex || volunteer.civil_status ? `
+        ${volunteer.sex || volunteer.civil_status || volunteer.detail?.full_name ? `
         <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-          <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+        <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
             <svg class="w-5 h-5 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
             </svg>
             Personal Information
-          </h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            ${volunteer.detail?.full_name ? `
+            <div class="space-y-1">
+            <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Full Name</label>
+            <p class="text-base text-gray-900">${volunteer.detail.full_name}</p>
+            </div>
+            ` : ""}
             ${volunteer.sex ? `
             <div class="space-y-1">
-              <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Gender</label>
-              <p class="text-base text-gray-900 capitalize">${volunteer.sex}</p>
+            <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Gender</label>
+            <p class="text-base text-gray-900 capitalize">${volunteer.sex}</p>
             </div>
             ` : ""}
             ${volunteer.civil_status ? `
             <div class="space-y-1">
-              <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Civil Status</label>
-              <p class="text-base text-gray-900 capitalize">${volunteer.civil_status}</p>
+            <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Civil Status</label>
+            <p class="text-base text-gray-900 capitalize">${volunteer.civil_status}</p>
             </div>
             ` : ""}
-          </div>
+        </div>
         </div>
         ` : ""}
 
+
         <!-- Sacraments Card -->
-        ${sacraments.length > 0 ? `
+        ${
+            sacraments.length > 0
+                ? `
         <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
           <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
             <svg class="w-5 h-5 mr-2 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
@@ -863,20 +941,28 @@ function openProfile(id) {
             Sacraments Received
           </h3>
           <div class="flex flex-wrap gap-3">
-            ${sacraments.map(sacrament => `
+            ${sacraments
+                .map(
+                    (sacrament) => `
               <span class="inline-flex items-center px-4 py-2 text-sm font-medium bg-purple-50 text-purple-800 rounded-lg border border-purple-200">
                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                 </svg>
                 ${sacrament}
               </span>
-            `).join("")}
+            `
+                )
+                .join("")}
           </div>
         </div>
-        ` : ""}
+        `
+                : ""
+        }
 
         <!-- Formations Card -->
-        ${formations.length > 0 ? `
+        ${
+            formations.length > 0
+                ? `
         <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
           <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
             <svg class="w-5 h-5 mr-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
@@ -885,20 +971,28 @@ function openProfile(id) {
             Formations Received
           </h3>
           <div class="flex flex-wrap gap-3">
-            ${formations.map(formation => `
+            ${formations
+                .map(
+                    (formation) => `
               <span class="inline-flex items-center px-4 py-2 text-sm font-medium bg-indigo-50 text-indigo-800 rounded-lg border border-indigo-200">
                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                 </svg>
                 ${formation}
               </span>
-            `).join("")}
+            `
+                )
+                .join("")}
           </div>
         </div>
-        ` : ""}
+        `
+                : ""
+        }
 
         <!-- Volunteer Timeline Card -->
-        ${volunteer.detail?.applied_date || volunteer.detail?.regular_duration ? `
+        ${
+            volunteer.detail?.applied_date || volunteer.detail?.regular_duration
+                ? `
         <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
           <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
             <svg class="w-5 h-5 mr-2 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
@@ -907,27 +1001,41 @@ function openProfile(id) {
             Volunteer Timeline
           </h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            ${volunteer.detail?.applied_date ? `
+            ${
+                volunteer.detail?.applied_date
+                    ? `
             <div class="space-y-1">
               <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Month & Year Applied</label>
-              <p class="text-base text-gray-900">${new Date(volunteer.detail.applied_date + "-01").toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
+              <p class="text-base text-gray-900">${new Date(
+                  volunteer.detail.applied_date + "-01"
+              ).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
               })}</p>
             </div>
-            ` : ""}
-            ${volunteer.detail?.regular_duration ? `
+            `
+                    : ""
+            }
+            ${
+                volunteer.detail?.regular_duration
+                    ? `
             <div class="space-y-1">
               <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Years as Regular Volunteer</label>
               <p class="text-base text-gray-900">${volunteer.detail.regular_duration}</p>
             </div>
-            ` : ""}
+            `
+                    : ""
+            }
           </div>
         </div>
-        ` : ""}
+        `
+                : ""
+        }
 
         <!-- Additional Notes Card -->
-        ${volunteer.others ? `
+        ${
+            volunteer.others
+                ? `
         <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
           <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
             <svg class="w-5 h-5 mr-2 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
@@ -939,14 +1047,18 @@ function openProfile(id) {
             <p class="text-base text-gray-700 leading-relaxed">${volunteer.others}</p>
           </div>
         </div>
-        ` : ""}
+        `
+                : ""
+        }
       </div>
     `;
 
             profileContent.innerHTML = html;
 
             // Store volunteer ID for edit functionality
-            document.getElementById("editProfile").setAttribute("data-volunteer-id", id);
+            document
+                .getElementById("editProfile")
+                .setAttribute("data-volunteer-id", id);
         })
         .catch((error) => {
             console.error("Error fetching volunteer data:", error);
@@ -969,7 +1081,6 @@ function openProfile(id) {
         });
 }
 
-
 // Update the edit profile button functionality
 document.getElementById("editProfile").addEventListener("click", function () {
     const volunteerId = this.getAttribute("data-volunteer-id");
@@ -984,9 +1095,9 @@ document.getElementById("editProfile").addEventListener("click", function () {
 //     .addEventListener("click", function () {
 //         const volunteerId = this.getAttribute("data-volunteer-id");
 //         if (volunteerId) {
-          
+
 //             alert(`Scheduling volunteer with ID: ${volunteerId}`);
-        
+
 //         }
 //     });
 
@@ -998,40 +1109,42 @@ function editVolunteer(id) {
     // window.location.href = `/volunteers/${id}/edit`;
 }
 
-function deleteVolunteer(id) {
-    if (confirm("Are you sure you want to delete this volunteer?")) {
-        fetch(`/volunteers/${id}`, {
-            method: "DELETE",
-            headers: {
-                "X-CSRF-TOKEN": document.querySelector(
-                    'meta[name="csrf-token"]'
-                ).content,
-                Accept: "application/json",
-            },
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.success) {
-                    toastr.success("Volunteer deleted successfully");
-                    location.reload(); // Refresh the page to update the list
-                } else {
-                    toastr.error("Failed to delete volunteer");
-                }
-            })
-            .catch((error) => {
-                console.error("Error:", error);
-                toastr.error("An error occurred while deleting the volunteer");
-            });
-    }
-}
-document.addEventListener("DOMContentLoaded", function() {
-   const closeProfileButton = document.getElementById("closeProfile");
+// function deleteVolunteer(id) {
+//     if (confirm("Are you sure you want to delete this volunteer?")) {
+//         fetch(`/volunteers/${id}`, {
+//             method: "DELETE",
+//             headers: {
+//                 "X-CSRF-TOKEN": document.querySelector(
+//                     'meta[name="csrf-token"]'
+//                 ).content,
+//                 Accept: "application/json",
+//             },
+//         })
+//             .then((response) => response.json())
+//             .then((data) => {
+//                 if (data.success) {
+//                     toastr.success("Volunteer deleted successfully");
+//                     location.reload();
+//                 } else {
+//                     toastr.error("Failed to delete volunteer");
+//                 }
+//             })
+//             .catch((error) => {
+//                 console.error("Error:", error);
+//                 toastr.error("An error occurred while deleting the volunteer");
+//             });
+//     }
+// }
+document.addEventListener("DOMContentLoaded", function () {
+    const closeProfileButton = document.getElementById("closeProfile");
 
-   if (closeProfileButton) {
-       closeProfileButton.addEventListener("click", () => {
-           document.getElementById("profileModal").classList.replace("flex", "hidden");
-       });
-   }
+    if (closeProfileButton) {
+        closeProfileButton.addEventListener("click", () => {
+            document
+                .getElementById("profileModal")
+                .classList.replace("flex", "hidden");
+        });
+    }
 });
 
 // document.getElementById("scheduleVolunteer").addEventListener("click", () => {
@@ -1178,3 +1291,48 @@ async function loadPageData(page, viewType, searchQuery = "") {
         showErrorState(viewType);
     }
 }
+// Profile picture preview functionality
+document
+    .getElementById("profilePictureInput")
+    .addEventListener("change", function (e) {
+        const file = e.target.files[0];
+        const preview = document.getElementById("profilePreview");
+        const removeBtn = document.getElementById("removeProfilePicture");
+
+        if (file) {
+            // Validate file size (2MB limit)
+            if (file.size > 2 * 1024 * 1024) {
+                alert("File size must be less than 2MB");
+                e.target.value = "";
+                return;
+            }
+
+            // Validate file type
+            if (!file.type.startsWith("image/")) {
+                alert("Please select a valid image file");
+                e.target.value = "";
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+                removeBtn.classList.remove("hidden");
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+// Remove profile picture
+document
+    .getElementById("removeProfilePicture")
+    .addEventListener("click", function () {
+        const input = document.getElementById("profilePictureInput");
+        const preview = document.getElementById("profilePreview");
+        const removeBtn = document.getElementById("removeProfilePicture");
+
+        input.value = "";
+        preview.src =
+            "data:image/svg+xml,%3csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100' height='100' fill='%23f3f4f6'/%3e%3ctext x='50%25' y='50%25' font-size='14' text-anchor='middle' alignment-baseline='middle' fill='%23374151'%3eNo Image%3c/text%3e%3c/svg%3e";
+        removeBtn.classList.add("hidden");
+    });
