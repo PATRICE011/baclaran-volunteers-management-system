@@ -21,6 +21,7 @@ class Volunteer extends Model
         'civil_status',
         'sacraments_received',
         'formations_received',
+        'profile_picture',
     ];
 
     protected $casts = [

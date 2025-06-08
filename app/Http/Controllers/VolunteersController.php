@@ -2,6 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+
 use Illuminate\Http\Request;
 use App\Models\Volunteer;
 use App\Models\Ministry;
@@ -10,135 +15,297 @@ class VolunteersController extends Controller
 {
     public function index(Request $request)
     {
-        // Build the base query, including eager-loaded relations
-        $query = Volunteer::with(['detail.ministry']);
+        try {
+            // Build the base query, including eager-loaded relations
+            $query = Volunteer::with(['detail.ministry', 'timelines', 'affiliations']);
 
-        /* ---------- Search filter ---------- */
-        if ($request->filled('search')) {
-            $searchTerm = trim($request->input('search'));
 
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('nickname',      'like', "%{$searchTerm}%")
-                    ->orWhere('email_address', 'like', "%{$searchTerm}%")
+            // Search filter
+            if ($request->filled('search')) {
+                $searchTerm = trim($request->input('search'));
+                $query->where(function ($q) use ($searchTerm) {
+                    $q->where('nickname', 'like', "%{$searchTerm}%")
+                        ->orWhere('email_address', 'like', "%{$searchTerm}%")
+                        ->orWhereHas('detail', function ($q) use ($searchTerm) {
+                            $q->where('full_name', 'like', "%{$searchTerm}%");
+                        })
+                        ->orWhereHas('detail.ministry', function ($q) use ($searchTerm) {
+                            $q->where('ministry_name', 'like', "%{$searchTerm}%");
+                        });
+                });
+            }
 
-                    // full_name lives on the related detail model
-                    ->orWhereHas('detail', function ($q) use ($searchTerm) {
-                        $q->where('full_name', 'like', "%{$searchTerm}%");
-                    })
-
-                    // ministry_name lives on the grand-child relation
-                    ->orWhereHas('detail.ministry', function ($q) use ($searchTerm) {
-                        $q->where('ministry_name', 'like', "%{$searchTerm}%");
+            // Ministry filter
+            if ($request->filled('ministry')) {
+                $ministryId = $request->ministry;
+                if (is_numeric($ministryId)) {
+                    $query->whereHas('detail.ministry', function ($q) use ($ministryId) {
+                        $q->where('id', $ministryId);
                     });
-            });
+                }
+            }
+
+            // Status filter
+            if ($request->filled('status')) {
+                $status = $request->status;
+                if (in_array($status, ['Active', 'Inactive'])) {
+                    $query->whereHas('detail', function ($q) use ($status) {
+                        $q->where('volunteer_status', $status);
+                    });
+                }
+            }
+
+            // Run the query, newest first
+            $volunteers = $query->latest()
+                ->paginate(12)
+                ->appends($request->only(['search', 'ministry', 'status', 'view']));
+
+            foreach ($volunteers as $volunteer) {
+                $applied = $volunteer->detail?->applied_month_year;
+
+                if ($applied) {
+                    try {
+                        $start = \Carbon\Carbon::createFromFormat('Y-m', $applied);
+                        $endDate = ($volunteer->detail?->volunteer_status === 'Inactive' && $volunteer->detail?->updated_at)
+                            ? Carbon::parse($volunteer->detail->updated_at)
+                            : now();
+
+                        $totalMonths = $start->diffInMonths($endDate);
+                        $years = floor($totalMonths / 12);
+                        $months = $totalMonths % 12;
+
+                        $parts = [];
+                        if ($years) {
+                            $parts[] = "$years year" . ($years > 1 ? 's' : '');
+                        }
+                        if ($months) {
+                            $parts[] = "$months month" . ($months > 1 ? 's' : '');
+                        }
+
+                        $volunteer->active_for = count($parts) > 0 ? implode(' ', $parts) : 'Less than a month';
+                    } catch (\Exception $e) {
+                        $volunteer->active_for = 'Invalid date';
+                    }
+                } else {
+                    $volunteer->active_for = 'Duration unknown';
+                }
+            }
+
+
+            // Fetch ministries and statuses
+            $ministries = Ministry::whereNull('parent_id')->with('children')->get();
+
+            // Fetch distinct statuses from the volunteer_details table
+            $statuses = \App\Models\VolunteerDetail::select('volunteer_status')
+                ->distinct()
+                ->pluck('volunteer_status');
+
+            // Handle AJAX or full page load
+            if ($request->ajax() || $request->wantsJson()) {
+                $viewType = $request->get('view', 'grid');
+                $viewName = $viewType === 'list'
+                    ? 'partials.volunteer_list_row'
+                    : 'partials.volunteer_card';
+
+                return response()->json([
+                    'success' => true,
+                    'html' => view($viewName, compact('volunteers'))->render(),
+                    'view' => $viewType,
+                ]);
+            }
+
+            // Full page load
+            return view('admin_volunteer', compact('volunteers', 'ministries', 'statuses'));
+        } catch (\Exception $e) {
+            Log::error('Volunteer filter error: ' . $e->getMessage());
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'An error occurred while filtering volunteers',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+
+            return back()->withError('An error occurred while filtering volunteers');
         }
-
-        /* ---------- Run the query, newest first ---------- */
-        $volunteers = $query->latest()          // 👈 newest at the top
-            ->paginate(12)
-            ->appends($request->only(['search', 'view']));
-
-
-        /* ---------- AJAX or full page ---------- */
-        if ($request->ajax() || $request->wantsJson()) {
-            $viewType = $request->get('view', 'grid');
-            $viewName = $viewType === 'list'
-                ? 'partials.volunteer_list_row'
-                : 'partials.volunteer_card';
-
-            return response()->json([
-                'success' => true,
-                'html'    => view($viewName, compact('volunteers'))->render(),
-                'view'    => $viewType,
-            ]);
-        }
-
-        // Full page load
-        $ministries = Ministry::whereNull('parent_id')
-            ->with('children')
-            ->get();
-
-        return view('admin_volunteer', compact('volunteers', 'ministries'));
     }
-
 
     public function store(Request $request)
     {
         try {
-            // Normalize civil status
+            // Validate the profile picture if uploaded
+            if ($request->hasFile('profile_picture')) {
+                $request->validate([
+                    'profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // 2MB max
+                ]);
+            }
+
+            // Normalize inputs
+            $firstName = Str::title(trim($request->first_name));
+            $lastName = Str::title(trim($request->last_name));
+            $middleInitial = strtoupper(trim($request->middle_initial));
+            $nickname = Str::title(trim($request->nickname));
+            $email = strtolower(trim($request->email));
+            $fullName = "{$firstName} {$middleInitial} {$lastName}";
+            $birthDate = $request->dob;
+
+            // Check for existing volunteer by name + birthdate OR email
+            $duplicate = Volunteer::where(function ($query) use ($email, $fullName, $birthDate) {
+                $query->where('email_address', $email)
+                    ->orWhereHas('detail', function ($q) use ($fullName, $birthDate) {
+                        $q->where('full_name', $fullName)
+                            ->whereHas('volunteer', function ($subQ) use ($birthDate) {
+                                $subQ->whereDate('date_of_birth', $birthDate);
+                            });
+                    });
+            })->exists();
+
+            if ($duplicate) {
+                return response()->json([
+                    'message' => 'Volunteer already exists with the same name and birthdate or email.',
+                ], 409);
+            }
+
+            // Handle profile picture upload
+            $profilePicturePath = null;
+            if ($request->hasFile('profile_picture')) {
+                $file = $request->file('profile_picture');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $profilePicturePath = $file->storeAs('profile_pictures', $filename, 'public');
+            }
+
+            // Normalize other fields
+            $address = Str::title(trim($request->address));
+            $occupation = Str::title(trim($request->occupation));
             $civilStatus = $request->civil_status === 'others'
                 ? ($request->civil_status_other ?: 'Others')
                 : $request->civil_status;
+            $civilStatus = Str::title($civilStatus);
 
-            // Create main volunteer
+            // Create volunteer
             $volunteer = Volunteer::create([
-                'nickname' => $request->nickname,
-                'date_of_birth' => $request->dob,
-                'sex' => $request->sex,
-                'address' => $request->address,
+                'nickname' => $nickname,
+                'date_of_birth' => $birthDate,
+                'sex' => strtolower($request->sex),
+                'address' => $address,
                 'mobile_number' => $request->phone,
-                'email_address' => $request->email,
-                'occupation' => $request->occupation,
+                'email_address' => $email,
+                'occupation' => $occupation,
                 'civil_status' => $civilStatus,
                 'sacraments_received' => $request->sacraments ?? [],
                 'formations_received' => $request->formations ?? [],
+                'profile_picture' => $profilePicturePath,
             ]);
 
             // Create detail
             $volunteer->detail()->create([
-                'ministry_id' => $request->ministry_id ?: null,
+                'ministry_id' => $request->ministry_id,
                 'line_group' => $request->ministry_id,
                 'applied_month_year' => $request->applied_date,
                 'regular_years_month' => $request->regular_duration,
-                'full_name' => trim("{$request->last_name} {$request->first_name} {$request->middle_initial}"),
+                'full_name' => $fullName,
                 'volunteer_status' => 'Active',
             ]);
 
-            // Timeline entries
-            foreach ($request->timeline_org ?? [] as $i => $org) {
-                if (!empty($org)) {
-                    $total = $request->timeline_total[$i] ?? '';
-                    $totalYears = (int) filter_var($total, FILTER_SANITIZE_NUMBER_INT);
+            // Timeline entries - FIXED VERSION
+            $timelineOrgs = $request->timeline_org ?? [];
+            $timelineStartYears = $request->timeline_start_year ?? [];
+            $timelineEndYears = $request->timeline_end_year ?? [];
+            $timelineTotals = $request->timeline_total ?? [];
+            $timelineActives = $request->timeline_active ?? [];
+
+            foreach ($timelineOrgs as $i => $org) {
+                if (!empty(trim($org))) {
+                    $orgName = Str::title(trim($org));
+                    $startYear = !empty($timelineStartYears[$i]) ? (int) $timelineStartYears[$i] : null;
+                    $endYear = !empty($timelineEndYears[$i]) ? (int) $timelineEndYears[$i] : null;
+                    $total = isset($timelineTotals[$i]) ? trim($timelineTotals[$i]) : '';
+                    $totalYears = !empty($total) ? (int) filter_var($total, FILTER_SANITIZE_NUMBER_INT) : null;
+                    $isActive = isset($timelineActives[$i]) && $timelineActives[$i] === 'Y';
 
                     $volunteer->timelines()->create([
-                        'organization_name' => $org,
-                        'year_started' => $request->timeline_start_year[$i] ?? null,
-                        'year_ended' => $request->timeline_end_year[$i] ?? null,
-                        'total_years' => $totalYears ?: null,
-                        'is_active' => ($request->timeline_active[$i] ?? '') === 'Y',
+                        'organization_name' => $orgName,
+                        'year_started' => $startYear,
+                        'year_ended' => $endYear,
+                        'total_years' => $totalYears,
+                        'is_active' => $isActive,
                     ]);
                 }
             }
 
-            // Affiliations
-            foreach ($request->affil_org ?? [] as $i => $org) {
-                if (!empty($org)) {
+            // Affiliations - FIXED VERSION
+            $affilOrgs = $request->affil_org ?? [];
+            $affilStartYears = $request->affil_start_year ?? [];
+            $affilEndYears = $request->affil_end_year ?? [];
+            $affilActives = $request->affil_active ?? [];
+
+            foreach ($affilOrgs as $i => $org) {
+                if (!empty(trim($org))) {
+                    $orgName = Str::title(trim($org));
+                    $startYear = !empty($affilStartYears[$i]) ? (int) $affilStartYears[$i] : null;
+                    $endYear = !empty($affilEndYears[$i]) ? (int) $affilEndYears[$i] : null;
+                    $isActive = isset($affilActives[$i]) && $affilActives[$i] === 'Y';
+
                     $volunteer->affiliations()->create([
-                        'organization_name' => $org,
-                        'year_started' => $request->affil_start_year[$i] ?? null,
-                        'year_ended' => $request->affil_end_year[$i] ?? null,
-                        'is_active' => ($request->affil_active[$i] ?? '') === 'Y',
+                        'organization_name' => $orgName,
+                        'year_started' => $startYear,
+                        'year_ended' => $endYear,
+                        'is_active' => $isActive,
                     ]);
                 }
             }
 
             return response()->json(['message' => 'Volunteer registered successfully.']);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Throwable $e) {
+            Log::error('Volunteer registration error: ' . $e->getMessage(), [
+                'request_data' => $request->all(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
                 'message' => 'Error registering volunteer',
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
-
     public function show($id)
     {
         try {
-            $volunteer = Volunteer::with(['detail.ministry'])
+            $volunteer = Volunteer::with(['detail.ministry', 'timelines', 'affiliations'])
                 ->findOrFail($id);
 
-            // Add computed properties for the frontend
             $volunteer->has_complete_profile = $volunteer->hasCompleteProfile();
+
+            // Add active_for like in index()
+            $applied = $volunteer->detail?->applied_month_year;
+
+            if ($applied) {
+                try {
+                    $start = \Carbon\Carbon::createFromFormat('Y-m', $applied);
+                    $now = $volunteer->detail?->volunteer_status === 'Inactive' && $volunteer->detail?->updated_at
+                        ? \Carbon\Carbon::parse($volunteer->detail->updated_at)
+                        : now();
+
+                    $months = $start->diffInMonths($now);
+                    $years = floor($months / 12);
+                    $remainingMonths = $months % 12;
+
+                    $parts = [];
+                    if ($years) $parts[] = "$years year" . ($years > 1 ? 's' : '');
+                    if ($remainingMonths) $parts[] = "$remainingMonths month" . ($remainingMonths > 1 ? 's' : '');
+                    $volunteer->active_for = $parts ? implode(' ', $parts) : 'Less than a month';
+                } catch (\Exception) {
+                    $volunteer->active_for = 'Invalid date';
+                }
+            } else {
+                $volunteer->active_for = 'Duration unknown';
+            }
 
             return response()->json($volunteer);
         } catch (\Exception $e) {

@@ -19,7 +19,7 @@ class VolunteerDetailFactory extends Factory
             'volunteer_id' => null,
             'ministry_id' => Ministry::whereNotNull('parent_id')->inRandomOrder()->value('id'),
             'line_group' => Arr::random(['RMM', 'RYM', 'RCCOM']),
-            'applied_month_year' => $this->faker->date('F Y'),
+            'applied_month_year' => $this->faker->date('Y-m'),
             'regular_years_month' => $this->faker->date('F Y'),
             'full_name' => $this->faker->name,
             'volunteer_status' => Arr::random(['Active', 'Inactive']),

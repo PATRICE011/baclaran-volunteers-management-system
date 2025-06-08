@@ -24,6 +24,7 @@ return new class extends Migration
             $table->enum('civil_status', ['Single', 'Married', 'Widow/er', 'Separated', 'Church', 'Civil', 'Others'])->nullable();
             $table->json('sacraments_received')->nullable(); // e.g. ["Baptism", "First Communion"]
             $table->json('formations_received')->nullable(); // e.g. ["BOS", "BFF"]
+            $table->string('profile_picture')->nullable();
             $table->timestamps();
         });
     }
