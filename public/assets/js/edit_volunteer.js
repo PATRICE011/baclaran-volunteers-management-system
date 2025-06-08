@@ -1,5 +1,7 @@
+
+// Handles modal display and fetches volunteer profile from backend.
 function openProfile(id) {
-    // Show loading state
+    
     const profileContent = document.getElementById("profileContent");
     profileContent.innerHTML = `
         <div class="flex items-center justify-center py-16">
@@ -10,10 +12,8 @@ function openProfile(id) {
         </div>
     `;
 
-    // Show modal immediately with loading state
     document.getElementById("profileModal").classList.replace("hidden", "flex");
 
-    // Fetch volunteer data from backend
     fetch(`/volunteers/${id}`, {
         method: "GET",
         headers: {
@@ -36,11 +36,10 @@ function openProfile(id) {
             showProfileError(id);
         });
 }
-
+// Renders profile details including editable and read-only sections.
 function renderEditableProfile(volunteer, id) {
     const profileContent = document.getElementById("profileContent");
 
-    // Generate avatar seed from name
     const displayName =
         volunteer.nickname || volunteer.detail?.full_name || "No Name";
     const avatarSeed = displayName.replace(/\s/g, "").toLowerCase();
@@ -48,7 +47,6 @@ function renderEditableProfile(volunteer, id) {
         ? `/storage/${volunteer.profile_picture}`
         : `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`;
 
-    // Format join date
     const joinDateStr = volunteer.detail?.applied_month_year;
     const joinDate = joinDateStr
         ? new Date(joinDateStr + (joinDateStr.length === 7 ? "-01" : ""))
@@ -57,18 +55,16 @@ function renderEditableProfile(volunteer, id) {
     const status = volunteer.detail?.volunteer_status;
     const activeTime = volunteer.active_for || "Duration unknown";
 
-    // Get ministry information
     const ministryName =
         volunteer.detail?.ministry?.ministry_name || "No Ministry Assigned";
 
-    // Get profile completion status
     const volunteerStatus = volunteer.detail?.volunteer_status || "No Status";
     const statusClass =
         volunteerStatus === "Active"
             ? "bg-emerald-100 text-emerald-800 border-emerald-200"
             : "bg-red-100 text-red-800 border-red-200";
 
-    // Format sacraments and formations
+   
     const sacraments = Array.isArray(volunteer.sacraments_received)
         ? volunteer.sacraments_received
         : volunteer.sacraments_received
@@ -87,11 +83,10 @@ function renderEditableProfile(volunteer, id) {
               .filter((f) => f)
         : [];
 
-    // Get timelines and affiliations
+
     const timelines = volunteer.timelines || [];
     const affiliations = volunteer.affiliations || [];
 
-    // Build the profile HTML with inline editing
     const html = `
         <!-- Header Section -->
         <div class="bg-gradient-to-r from-blue-50 to-indigo-50 -m-6 mb-8 p-8 rounded-t-lg border-b border-gray-100">
@@ -319,16 +314,7 @@ function renderEditableProfile(volunteer, id) {
                                 </svg>
                                 Sacraments Received
                             </h3>
-                            <button onclick="editSacraments(${id}, ${JSON.stringify(
-                                  sacraments
-                              ).replace(
-                                  /"/g,
-                                  "&quot;"
-                              )})" class="text-gray-400 hover:text-blue-600 transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
-                            </button>
+                           
                         </div>
                         <div class="flex flex-wrap gap-3" id="sacraments-display">
                             ${sacraments
@@ -405,11 +391,6 @@ function renderEditableProfile(volunteer, id) {
                     </svg>
                     Organization Timeline
                 </h3>
-                <button onclick="editTimelines(${id}, ${JSON.stringify(timelines).replace(/"/g, '&quot;')})" class="text-gray-400 hover:text-blue-600 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
-                </button>
                 </div>
                 <div class="space-y-4" id="timelines-display">
                 ${timelines.length > 0 ? generateTimelinesDisplay(timelines) : `<p class="text-gray-500">No timeline entries added yet.</p>`}
@@ -429,11 +410,6 @@ function renderEditableProfile(volunteer, id) {
                             </svg>
                             Other Affiliations
                         </h3>
-                        <button onclick="editAffiliations(${id}, ${JSON.stringify(affiliations).replace(/"/g, '&quot;')})" class="text-gray-400 hover:text-blue-600 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                            </svg>
-                        </button>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="affiliations-display">
                         ${affiliations.length > 0 
@@ -448,7 +424,6 @@ function renderEditableProfile(volunteer, id) {
 
     profileContent.innerHTML = html;
 
-    // Update the modal footer button
     const editButton = document.getElementById("editProfile");
     if (editButton) {
         editButton.innerHTML = `
@@ -461,7 +436,7 @@ function renderEditableProfile(volunteer, id) {
         editButton.onclick = () => saveAllChanges(id);
     }
 }
-// Helper function to generate editable fields
+// Creates form fields for contact/personal tab with edit toggle support.
 function generateEditableField(
     label,
     fieldName,
@@ -476,7 +451,8 @@ function generateEditableField(
     const inputHtml = (() => {
         if (options && Array.isArray(options)) {
             return `
-                <select id="${fieldId}-input" class="form-input hidden w-full mt-1 border-gray-300 rounded-md shadow-sm">
+                <select id="${fieldId}-input"  class="form-input editable-input hidden w-full mt-1 border-gray-300 rounded-md shadow-sm">
+
                     ${options
                         .map(
                             (opt) =>
@@ -500,9 +476,9 @@ function generateEditableField(
         }
 
         return `
-            <input type="${inputType}" id="${fieldId}-input" value="${
-            value || ""
-        }" class="form-input hidden w-full mt-1 border-gray-300 rounded-md shadow-sm" />
+            <input type="${inputType}" id="${fieldId}-input" value="${value || ''}" 
+            class="form-input editable-input hidden w-full mt-1 border-gray-300 rounded-md shadow-sm" />
+
         `;
     })();
 
@@ -512,17 +488,20 @@ function generateEditableField(
             <div class="relative group">
                 <div id="${fieldId}-display" class="text-gray-800">${displayValue}</div>
                 ${inputHtml}
-                <button onclick="toggleEditField('${fieldId}')" class="absolute top-0 right-0 mt-1 text-gray-400 hover:text-blue-600 transition-colors">
+                <button onclick="toggleEditField('${fieldId}')" 
+                        class="absolute top-2 right-2 text-gray-400 hover:text-blue-600 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
                 </button>
+
             </div>
         </div>
     `;
 }
 
-// Toggle visibility of display/input fields
+// Toggles visibility between display and input mode for a specific field.
 function toggleEditField(fieldId) {
     const displayEl = document.getElementById(`${fieldId}-display`);
     const inputEl = document.getElementById(`${fieldId}-input`);
@@ -531,82 +510,8 @@ function toggleEditField(fieldId) {
         inputEl.classList.toggle("hidden");
     }
 }
-function editAffiliations(id, affiliations = []) {
-    const container = document.getElementById("affiliations-display");
-    if (!affiliations.length) {
-        affiliations.push({ organization_name: "", year_started: "", year_ended: "", is_active: false });
-    }
 
-    container.innerHTML = affiliations.map((a, index) => `
-        <div class="affiliation-entry mb-4 space-y-2" data-index="${index}">
-            <!-- Your input fields -->
-            <input type="text" class="form-input w-full" placeholder="Organization" value="${a.organization_name || ''}" data-field="organization_name" data-index="${index}">
-            <input type="text" class="form-input w-full" placeholder="Start Year" value="${a.year_started || ''}" data-field="year_started" data-index="${index}">
-            <input type="text" class="form-input w-full" placeholder="End Year" value="${a.year_ended || ''}" data-field="year_ended" data-index="${index}">
-            <label class="flex items-center gap-2 text-sm">
-                <input type="checkbox" data-field="is_active" data-index="${index}" ${a.is_active ? 'checked' : ''}>
-                Active
-            </label>
-
-            <!-- ⛔ Add this button -->
-            <button type="button" onclick="deleteEntry(this)" class="text-red-600 text-sm hover:underline">Remove</button>
-        </div>
-
-    `).join('') + `
-        <div class="pt-4">
-            <button onclick="addAffiliation(${id})" class="w-full px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700">Add Affiliation</button>
-        </div>
-    `;
-}
-
-
-function editTimelines(id, timelines = []) {
-    const container = document.getElementById("timelines-display");
-    if (!timelines.length) {
-        timelines.push({ organization_name: "", year_started: "", year_ended: "", total_years: "", is_active: false });
-    }
-
-    container.innerHTML = timelines.map((t, index) => `
-        <div class="timeline-entry mb-4 space-y-2" data-index="${index}">
-            <!-- Your input fields -->
-            <input type="text" class="form-input w-full" placeholder="Organization" value="${t.organization_name || ''}" data-field="organization_name" data-index="${index}">
-            <input type="text" class="form-input w-full" placeholder="Start Year" value="${t.year_started || ''}" data-field="year_started" data-index="${index}">
-            <input type="text" class="form-input w-full" placeholder="End Year" value="${t.year_ended || ''}" data-field="year_ended" data-index="${index}">
-            <input type="text" class="form-input w-full" placeholder="Total Years" value="${t.total_years || ''}" data-field="total_years" data-index="${index}">
-            <label class="flex items-center gap-2 text-sm">
-                <input type="checkbox" data-field="is_active" data-index="${index}" ${t.is_active ? 'checked' : ''}>
-                Active
-            </label>
-
-            <!-- ⛔ Add this button -->
-            <button type="button" onclick="deleteEntry(this)" class="text-red-600 text-sm hover:underline">Remove</button>
-        </div>
-
-    `).join('') + `
-        <div class="pt-4">
-            <button onclick="addTimeline(${id})" class="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Add Timeline</button>
-        </div>
-    `;
-}
-
-function addAffiliation(id) {
-    const container = document.getElementById("affiliations-display");
-    const index = container.querySelectorAll("[data-index]").length / 4;
-    container.insertAdjacentHTML("beforeend", `
-        <div class="mb-4 space-y-2 border p-4 rounded-lg bg-gray-50">
-            <input type="text" class="form-input w-full" placeholder="Organization" data-field="organization_name" data-index="${index}">
-            <input type="text" class="form-input w-full" placeholder="Start Year" data-field="year_started" data-index="${index}">
-            <input type="text" class="form-input w-full" placeholder="End Year" data-field="year_ended" data-index="${index}">
-            <label class="inline-flex items-center space-x-2">
-                <input type="checkbox" class="form-checkbox" data-field="is_active" data-index="${index}">
-                <span>Active</span>
-            </label>
-        </div>
-    `);
-}
-
-
-
+// Renders the timeline data in read-only format.
 function generateTimelinesDisplay(timelines) {
     return timelines.map((t, index) => `
         <div class="timeline-entry border-l-2 border-blue-200 pl-4 relative group space-y-2" data-index="${index}">
@@ -638,6 +543,7 @@ function generateTimelinesDisplay(timelines) {
 }
 
 
+// Renders the affiliation data in read-only format.
 function generateAffiliationsDisplay(affiliations) {
     return affiliations.map((a, index) => `
         <div class="affiliation-entry bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm relative space-y-2" data-index="${index}">
@@ -667,42 +573,9 @@ function generateAffiliationsDisplay(affiliations) {
     `).join('');
 }
 
-function addTimeline(id) {
-    const container = document.getElementById("timelines-display");
-    const index = container.querySelectorAll("[data-index]").length / 5;
-    container.insertAdjacentHTML("beforeend", `
-        <div class="mb-4 space-y-2 border p-4 rounded-lg bg-gray-50">
-            <input type="text" class="form-input w-full" placeholder="Organization" data-field="organization_name" data-index="${index}">
-            <input type="text" class="form-input w-full" placeholder="Start Year" data-field="year_started" data-index="${index}">
-            <input type="text" class="form-input w-full" placeholder="End Year" data-field="year_ended" data-index="${index}">
-            <input type="text" class="form-input w-full" placeholder="Total Years" data-field="total_years" data-index="${index}">
-            <label class="inline-flex items-center space-x-2">
-                <input type="checkbox" class="form-checkbox" data-field="is_active" data-index="${index}">
-                <span>Active</span>
-            </label>
-        </div>
-    `);
-}
-function deleteEntry(button) {
-    const wrapper = button.closest('.timeline-entry, .affiliation-entry');
-    if (wrapper) wrapper.remove();
-}
-document.querySelectorAll(".affiliation-entry").forEach(entry => {
-    entry.querySelectorAll("input, div.flex, div.hidden").forEach(el => el.classList.remove("hidden"));
-    if (!entry.querySelector('.remove-button')) {
-        const btn = document.createElement("button");
-        btn.textContent = "Remove";
-        btn.className = "remove-button text-red-600 text-sm hover:underline";
-        btn.onclick = () => entry.remove();
-        entry.appendChild(btn);
-    }
-});
-
-// Function to collect all edited fields and send update request
+// Collects updated field values and submits them to the backend API.
 function saveAllChanges(volunteerId) {
     const data = {};
-
-    // Collect standard editable fields
     const fields = document.querySelectorAll("[id^='field-']");
     fields.forEach((container) => {
         const input = container.querySelector("input, select, textarea");
@@ -711,8 +584,6 @@ function saveAllChanges(volunteerId) {
             data[field] = input.value;
         }
     });
-
-    // Collect current timelines
     const timelineBlocks = document.querySelectorAll(".timeline-entry");
     const timelines = [];
     timelineBlocks.forEach((block) => {
@@ -728,7 +599,7 @@ function saveAllChanges(volunteerId) {
     });
     data.timelines = timelines;
 
-    // Collect current affiliations
+
     const affiliationBlocks = document.querySelectorAll(".affiliation-entry");
     const affiliations = [];
     affiliationBlocks.forEach((block) => {
@@ -743,7 +614,7 @@ function saveAllChanges(volunteerId) {
     });
     data.affiliations = affiliations;
 
-    // Submit to backend
+
     fetch(`/volunteers/${volunteerId}`, {
         method: "PUT",
         headers: {
@@ -762,7 +633,7 @@ function saveAllChanges(volunteerId) {
             alert("There was an error saving the profile.");
         });
 }
-
+// Displays a fallback UI if volunteer data fetch fails.
 function showProfileError(id) {
     const profileContent = document.getElementById("profileContent");
     profileContent.innerHTML = `
@@ -775,8 +646,9 @@ function showProfileError(id) {
         </div>
     `;
 }
+// Switches between profile tabs on the modal view.
 function switchTab(event, tabId) {
-    // Remove active class from all tabs
+ 
     const tabs = document.querySelectorAll(".profile-tab");
     const tabContents = document.querySelectorAll(".tab-content");
 
@@ -789,7 +661,7 @@ function switchTab(event, tabId) {
         content.classList.add("hidden");
     });
 
-    // Add active class to clicked tab
+ 
     event.target.classList.add(
         "active-tab",
         "border-blue-500",
@@ -797,9 +669,11 @@ function switchTab(event, tabId) {
     );
     event.target.classList.remove("border-transparent", "text-gray-500");
 
-    // Show selected tab content
+
     document.getElementById(tabId).classList.remove("hidden");
 }
+
+// Attaches close modal event handler on DOM ready.
 document.addEventListener("DOMContentLoaded", function () {
     const closeProfileButton = document.getElementById("closeProfile");
 

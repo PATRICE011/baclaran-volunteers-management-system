@@ -31,6 +31,23 @@
     .tab-content {
         transition: opacity 0.2s ease-in-out;
     }
+
+    /* Add to your CSS */
+    .editable-input {
+        padding-right: 2.5rem;
+        /* Prevent pen icon overlap */
+    }
+
+    /* Optional: remove default arrow in select (optional) */
+    select::-ms-expand {
+        display: none;
+    }
+
+    select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
 </style>
 @endsection
 
