@@ -277,10 +277,6 @@
                         </label>
                         @endforeach
                     </div>
-                    <div id="civilOtherInput" class="mt-3 hidden">
-                        <input type="text" name="civil_status_other" placeholder="Specify other civil status"
-                            class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
-                    </div>
                 </div>
 
                 <div class="mt-6">
@@ -308,12 +304,6 @@
                             Basic Faith Formation (BFF)
                         </label>
                     </div>
-                </div>
-
-                <div class="mt-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Others</label>
-                    <input type="text" name="others" placeholder="Anything else?"
-                        class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
                 </div>
             </div>
             <!-- Info Sheet -->
@@ -389,10 +379,9 @@
                                     @endfor
                                 </select>
                             </div>
-                            <input type="text" name="timeline_total[]" placeholder="Total"
-                                class="w-full border rounded px-3 py-2 total-years" readonly>
+                            <input type="number" name="timeline_total[]" min="0" class="w-full border rounded px-3 py-2 total-years" readonly>
                             <select name="timeline_active[]" class="border rounded px-3 py-2">
-                                <option value="">–</option>
+                                <option value="">is active?</option>
                                 <option value="Y">Y</option>
                                 <option value="N">N</option>
                             </select>
@@ -408,28 +397,37 @@
                 </p>
                 <div class="space-y-3">
                     @for ($i = 0; $i < 3; $i++)
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-2 items-center">
                         <input type="text" name="affil_org[]" placeholder="Organization/Ministry"
-                            class="border rounded px-3 py-2">
-                        <div class="flex gap-2">
+                            class="border rounded px-3 py-2 col-span-1 md:col-span-1">
+
+                        <div class="flex gap-2 col-span-1">
                             <select name="affil_start_year[]"
                                 class="border rounded px-2 py-2 w-full year-select"
                                 data-row="{{ $i }}">
+                                <option value="">Start Year</option>
                                 @for ($y = date('Y'); $y >= 1980; $y--)
                                 <option value="{{ $y }}">{{ $y }}</option>
                                 @endfor
                             </select>
+
                             <span class="flex items-center text-sm">–</span>
+
                             <select name="affil_end_year[]"
                                 class="border rounded px-2 py-2 w-full year-select"
                                 data-row="{{ $i }}">
+                                <option value="">End Year</option>
                                 @for ($y = date('Y'); $y >= 1980; $y--)
                                 <option value="{{ $y }}">{{ $y }}</option>
                                 @endfor
                             </select>
                         </div>
+
+                        <input type="number" name="affil_total[]" min="0" placeholder="Total"
+                            class="w-full border rounded px-3 py-2 total-years" readonly>
+
                         <select name="affil_active[]" class="border rounded px-3 py-2">
-                            <option value="">–</option>
+                            <option value="">is active?</option>
                             <option value="Y">Y</option>
                             <option value="N">N</option>
                         </select>

@@ -194,6 +194,7 @@ class VolunteersController extends Controller
                 'sacraments_received' => $request->sacraments ?? [],
                 'formations_received' => $request->formations ?? [],
                 'profile_picture' => $profilePicturePath,
+              
             ]);
 
             // Create detail
