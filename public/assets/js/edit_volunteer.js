@@ -467,8 +467,7 @@ function generateEditableField(
 
         return `
             <input type="${inputType}" id="${fieldId}-input" value="${value || ''}" 
-            class="form-input editable-input hidden w-full mt-1 border-gray-300 rounded-md shadow-sm" />
-
+         class="form-input editable-input hidden w-full max-w-xs sm:max-w-sm md:max-w-md mt-1 border-gray-300 rounded-md shadow-sm" />  
         `;
     })();
 
