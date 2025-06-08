@@ -194,7 +194,7 @@ class VolunteersController extends Controller
                 'sacraments_received' => $request->sacraments ?? [],
                 'formations_received' => $request->formations ?? [],
                 'profile_picture' => $profilePicturePath,
-              
+
             ]);
 
             // Create detail
@@ -322,8 +322,58 @@ class VolunteersController extends Controller
         return view('admin_edit_profile', compact('volunteer', 'ministries'));
     }
 
-    public function update(Request $request, $id) {}
+    public function update(Request $request, $id)
+{
+    try {
+        $volunteer = Volunteer::findOrFail($id);
 
+        // Convert empty strings to null
+        $request->merge(array_map(function ($value) {
+            return $value === '' ? null : $value;
+        }, $request->all()));
+
+        $validated = $request->validate([
+            'nickname' => 'sometimes|string|max:255',
+            'date_of_birth' => 'sometimes|date',
+            'sex' => 'sometimes|in:male,female,Male,Female',
+            'address' => 'sometimes|string|max:255',
+            'mobile_number' => 'sometimes|string|max:20',
+            'email_address' => 'sometimes|email|max:255',
+            'occupation' => 'sometimes|string|max:255',
+            'civil_status' => 'sometimes|string|max:255',
+            'full_name' => 'sometimes|string|max:255',
+            'timelines' => 'sometimes|array',
+            'affiliations' => 'sometimes|array',
+        ]);
+
+        // Capitalize selected fields
+        foreach (['nickname', 'full_name', 'occupation', 'address', 'civil_status'] as $field) {
+            if (isset($validated[$field])) {
+                $validated[$field] = Str::title(strtolower($validated[$field]));
+            }
+        }
+
+        // Normalize sex field
+        if (isset($validated['sex'])) {
+            $validated['sex'] = ucfirst(strtolower($validated['sex']));
+        }
+
+        // Update main volunteer fields
+        $volunteer->fill($validated);
+        $volunteer->save();
+
+        // Update related volunteer detail if included
+        if (isset($validated['full_name']) && $volunteer->detail) {
+            $volunteer->detail->full_name = $validated['full_name'];
+            $volunteer->detail->save();
+        }
+
+        return response()->json(['message' => 'Profile updated successfully.']);
+    } catch (\Throwable $e) {
+        Log::error('Update error: ' . $e->getMessage());
+        return response()->json(['error' => 'Failed to update volunteer.'], 500);
+    }
+}
 
     // You might also want to add a destroy method for the delete functionality
     public function destroy($id)

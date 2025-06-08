@@ -1,6 +1,6 @@
 
 // Handles modal display and fetches volunteer profile from backend.
-function openProfile(id) {
+function openProfile(id, activeTabId = "contact-tab") {
     
     const profileContent = document.getElementById("profileContent");
     profileContent.innerHTML = `
@@ -29,15 +29,16 @@ function openProfile(id) {
             return response.json();
         })
         .then((volunteer) => {
-            renderEditableProfile(volunteer, id);
+            renderEditableProfile(volunteer, id, activeTabId);
         })
+
         .catch((error) => {
             console.error("Error fetching volunteer data:", error);
             showProfileError(id);
         });
 }
 // Renders profile details including editable and read-only sections.
-function renderEditableProfile(volunteer, id) {
+function renderEditableProfile(volunteer, id, activeTabId = "contact-tab") {
     const profileContent = document.getElementById("profileContent");
 
     const displayName =
@@ -276,7 +277,8 @@ function renderEditableProfile(volunteer, id) {
                             id,
                             "select",
                             false,
-                            ["male", "female"]
+                            ["Male", "Female"]
+
                         )}
                         ${generateEditableField(
                             "Civil Status",
@@ -425,6 +427,14 @@ function renderEditableProfile(volunteer, id) {
         editButton.setAttribute("data-volunteer-id", id);
         editButton.onclick = () => saveAllChanges(id);
     }
+    // Activate the correct tab after content is rendered
+    setTimeout(() => {
+        const activeTabBtn = document.querySelector(`button[onclick*='${activeTabId}']`);
+        if (activeTabBtn) {
+            activeTabBtn.click();
+        }
+    }, 50);
+
 }
 // Creates form fields for contact/personal tab with edit toggle support.
 function generateEditableField(
@@ -437,70 +447,110 @@ function generateEditableField(
     options = null
 ) {
     const displayValue = value || "Not provided";
-    const fieldId = `field-${fieldName}`;
+    const sanitizedFieldName = fieldName.replace(/\s+/g, '_').toLowerCase();
+    const fieldId = `field-${sanitizedFieldName}`;
+
     const inputHtml = (() => {
         if (options && Array.isArray(options)) {
+            const normalizedValue = (value || '').toLowerCase();
             return `
-                <select id="${fieldId}-input"  class="form-input editable-input hidden w-full mt-1 border-gray-300 rounded-md shadow-sm">
-
-                    ${options
-                        .map(
-                            (opt) =>
-                                `<option value="${opt}" ${
-                                    opt === value ? "selected" : ""
-                                }>${
-                                    opt.charAt(0).toUpperCase() + opt.slice(1)
-                                }</option>`
-                        )
-                        .join("")}
+                <select id="${fieldId}-input" data-field="${fieldName}" data-original="${normalizedValue}" 
+                        class="form-input editable-input hidden w-full mt-1 border-gray-300 rounded-md shadow-sm">
+                    ${options.map(opt => {
+                        const optLower = opt.toLowerCase();
+                        return `<option value="${optLower}" ${optLower === normalizedValue ? 'selected' : ''}>
+                            ${opt.charAt(0).toUpperCase() + opt.slice(1)}
+                        </option>`;
+                    }).join('')}
                 </select>
             `;
         }
 
         if (inputType === "textarea") {
             return `
-                <textarea id="${fieldId}-input" class="form-textarea hidden w-full mt-1 border-gray-300 rounded-md shadow-sm" rows="3">${
-                value || ""
+                <textarea id="${fieldId}-input" data-field="${fieldName}" data-original="${value || ''}" 
+                          class="form-textarea editable-input hidden w-full mt-1 border-gray-300 rounded-md shadow-sm" rows="3">${
+                value || ''
             }</textarea>
             `;
         }
 
+        if (inputType === "date") {
+            let formatted = "";
+            if (value) {
+                const dateObj = new Date(value);
+                if (!isNaN(dateObj)) {
+                    const yyyy = dateObj.getFullYear();
+                    const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+                    const dd = String(dateObj.getDate()).padStart(2, "0");
+                    formatted = `${yyyy}-${mm}-${dd}`;
+                }
+            }
+            return `
+                <input type="date" id="${fieldId}-input" data-field="${fieldName}" data-original="${formatted}" 
+                       value="${formatted}" class="form-input editable-input hidden w-full max-w-xs sm:max-w-sm md:max-w-md mt-1 border-gray-300 rounded-md shadow-sm" />
+            `;
+        }
+
         return `
-            <input type="${inputType}" id="${fieldId}-input" value="${value || ''}" 
-         class="form-input editable-input hidden w-full max-w-xs sm:max-w-sm md:max-w-md mt-1 border-gray-300 rounded-md shadow-sm" />  
+            <input type="${inputType}" id="${fieldId}-input" data-field="${fieldName}" data-original="${value || ''}" 
+                   value="${value || ''}" class="form-input editable-input hidden w-full max-w-xs sm:max-w-sm md:max-w-md mt-1 border-gray-300 rounded-md shadow-sm" />
         `;
     })();
 
     const isEmail = fieldName === "email_address";
     const displayDivClass = isEmail
-    ? "text-gray-800 max-w-[220px] overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-gray-300 px-1 rounded bg-white border border-gray-100"
-    : "text-gray-800";
+        ? "text-gray-800 max-w-[220px] overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-gray-300 px-1 rounded bg-white border border-gray-100"
+        : "text-gray-800";
 
     return `
     <div class="${fullWidth ? "col-span-full" : ""} space-y-1">
         <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">${label}</label>
         <div class="relative group">
-        <div id="${fieldId}-display" class="${displayDivClass}">${displayValue}</div>
-        ${inputHtml}
-        <button onclick="toggleEditField('${fieldId}')" class="absolute top-2 right-2 text-gray-400 hover:text-blue-600 transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-            </svg>
-        </button>
+            <div id="${fieldId}-display" class="${displayDivClass}">${displayValue}</div>
+            ${inputHtml}
+            <button onclick="toggleEditField('${fieldId}', event)" class="absolute top-2 right-2 text-gray-400 hover:text-blue-600 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+            </button>
         </div>
     </div>
     `;
-
 }
 
 // Toggles visibility between display and input mode for a specific field.
-function toggleEditField(fieldId) {
+function toggleEditField(fieldId, event) {
+    // Prevent event bubbling
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+
     const displayEl = document.getElementById(`${fieldId}-display`);
     const inputEl = document.getElementById(`${fieldId}-input`);
+    
     if (displayEl && inputEl) {
+        // Hide all other editable inputs first
+        document.querySelectorAll('.editable-input').forEach(el => {
+            if (el.id !== `${fieldId}-input`) {
+                el.classList.add('hidden');
+                const correspondingDisplay = document.getElementById(el.id.replace('-input', '-display'));
+                if (correspondingDisplay) {
+                    correspondingDisplay.classList.remove('hidden');
+                }
+            }
+        });
+
+        // Toggle current field
         displayEl.classList.toggle("hidden");
         inputEl.classList.toggle("hidden");
+        
+        // Focus only if showing the input
+        if (!inputEl.classList.contains("hidden")) {
+            setTimeout(() => inputEl.focus(), 50);
+        }
     }
 }
 
@@ -566,66 +616,6 @@ function generateAffiliationsDisplay(affiliations) {
     `).join('');
 }
 
-// Collects updated field values and submits them to the backend API.
-function saveAllChanges(volunteerId) {
-    const data = {};
-    const fields = document.querySelectorAll("[id^='field-']");
-    fields.forEach((container) => {
-        const input = container.querySelector("input, select, textarea");
-        if (input && !input.classList.contains("hidden")) {
-            const field = input.id.replace("field-", "").replace("-input", "");
-            data[field] = input.value;
-        }
-    });
-    const timelineBlocks = document.querySelectorAll(".timeline-entry");
-    const timelines = [];
-    timelineBlocks.forEach((block) => {
-        const index = block.dataset.index;
-        const entry = {
-            organization_name: block.querySelector(`[data-field="organization_name"]`)?.value || '',
-            year_started: block.querySelector(`[data-field="year_started"]`)?.value || '',
-            year_ended: block.querySelector(`[data-field="year_ended"]`)?.value || '',
-            total_years: block.querySelector(`[data-field="total_years"]`)?.value || '',
-            is_active: block.querySelector(`[data-field="is_active"]`)?.checked || false,
-        };
-        timelines.push(entry);
-    });
-    data.timelines = timelines;
-
-
-    const affiliationBlocks = document.querySelectorAll(".affiliation-entry");
-    const affiliations = [];
-    affiliationBlocks.forEach((block) => {
-        const index = block.dataset.index;
-        const entry = {
-            organization_name: block.querySelector(`[data-field="organization_name"]`)?.value || '',
-            year_started: block.querySelector(`[data-field="year_started"]`)?.value || '',
-            year_ended: block.querySelector(`[data-field="year_ended"]`)?.value || '',
-            is_active: block.querySelector(`[data-field="is_active"]`)?.checked || false,
-        };
-        affiliations.push(entry);
-    });
-    data.affiliations = affiliations;
-
-
-    fetch(`/volunteers/${volunteerId}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
-        },
-        body: JSON.stringify(data),
-    })
-        .then((response) => {
-            if (!response.ok) throw new Error("Failed to save changes");
-            return response.json();
-        })
-        .then(() => openProfile(volunteerId))
-        .catch((err) => {
-            console.error("Save failed:", err);
-            alert("There was an error saving the profile.");
-        });
-}
 // Displays a fallback UI if volunteer data fetch fails.
 function showProfileError(id) {
     const profileContent = document.getElementById("profileContent");
@@ -640,8 +630,11 @@ function showProfileError(id) {
     `;
 }
 // Switches between profile tabs on the modal view.
+let currentActiveTabId = "contact-tab"; // default
+
 function switchTab(event, tabId) {
- 
+    currentActiveTabId = tabId; // Save active tab ID
+
     const tabs = document.querySelectorAll(".profile-tab");
     const tabContents = document.querySelectorAll(".tab-content");
 
@@ -654,14 +647,12 @@ function switchTab(event, tabId) {
         content.classList.add("hidden");
     });
 
- 
     event.target.classList.add(
         "active-tab",
         "border-blue-500",
         "text-blue-600"
     );
     event.target.classList.remove("border-transparent", "text-gray-500");
-
 
     document.getElementById(tabId).classList.remove("hidden");
 }
@@ -678,3 +669,76 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+// Collects updated field values and submits them to the backend API.
+function saveAllChanges(volunteerId) {
+    const data = {};
+    const editableInputs = document.querySelectorAll(".editable-input");
+
+    editableInputs.forEach((input) => {
+        const field = input.dataset.field;
+        if (!field) return;
+
+        const original = (input.dataset.original || "").trim();
+        const current = (input.value || "").trim();
+
+        if (current !== original) {
+            data[field] = current;
+        }
+    });
+
+    console.log("Data to be sent:", data);
+
+    if (Object.keys(data).length === 0) {
+        toastr.info("No changes to save.");
+        return;
+    }
+
+    fetch(`/volunteers/${volunteerId}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+        },
+        body: JSON.stringify(data),
+    })
+    .then((res) => {
+        if (!res.ok) throw new Error("Update failed");
+        return res.json();
+    })
+    .then(() => {
+        const fieldLabels = {
+            email_address: "Email Address",
+            mobile_number: "Mobile Number",
+            date_of_birth: "Date of Birth",
+            occupation: "Occupation",
+            address: "Address",
+            sex: "Gender",
+            civil_status: "Civil Status",
+            full_name: "Full Name",
+            nickname: "Nickname",
+        };
+
+        const updatedFields = Object.keys(data)
+            .map((key) => fieldLabels[key] || key.replace(/_/g, ' '))
+            .join(", ");
+
+        toastr.success("Updated: " + updatedFields);
+
+        // Reload profile content
+        openProfile(volunteerId, currentActiveTabId);
+
+
+        // After reload, wait briefly then switch to the "personal" tab
+        setTimeout(() => {
+            const activeTabBtn = document.querySelector(`button[onclick*='${currentActiveTabId}']`);
+            if (activeTabBtn) activeTabBtn.click();
+        }, 100);
+
+    })
+
+    .catch((err) => {
+        console.error("Save failed:", err);
+        toastr.error("There was an error saving the profile.");
+    });
+}
+
