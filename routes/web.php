@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ArchivesController;
 use App\Http\Controllers\AttendanceController;
 use Illuminate\Support\Facades\Route;
 
@@ -7,7 +8,9 @@ use App\Http\Controllers\DashboardController;
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MinistryController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SchedulesController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TasksController;
 use App\Http\Controllers\VolunteersController;
 use Illuminate\Support\Facades\Auth;
@@ -25,6 +28,9 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::get('/ministries', [MinistryController::class, 'index']);
     Route::get('/attendance', [AttendanceController::class, 'index']);
     Route::get('/tasks', [TasksController::class, 'index']);
+    Route::get('/settings', [SettingsController::class, 'index']);
+    Route::get('/role', [RoleController::class, 'index']);
+    Route::get('/archives', [ArchivesController::class, 'index']);
     
     // volunteers page
     Route::prefix('volunteers')->group(function(){

@@ -120,12 +120,11 @@
                      class="absolute right-0 mt-60 w-48 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden z-50"
                      style="display: none;">
                      <div class="py-1 divide-y divide-gray-100">
-                         <a href="{{ url('/account/settings') }}"
+                         <a href="{{ url('/settings') }}"
                              class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                              Account Settings
                          </a>
-                         <a href="{{ url('/role-management') }}"
-                             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                         <a href="{{ url('/role') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                              Role Management
                          </a>
                          <a href="{{ url('/archives') }}"
