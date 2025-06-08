@@ -1123,11 +1123,11 @@
         
         <!-- Address -->
         ${volunteer.address ? `
-                                        <div>
-                                          <p class="text-sm font-medium text-gray-500">Address</p>
-                                          <p class="text-sm">${volunteer.address}</p>
-                                        </div>
-                                        ` : ''}
+                                                                        <div>
+                                                                          <p class="text-sm font-medium text-gray-500">Address</p>
+                                                                          <p class="text-sm">${volunteer.address}</p>
+                                                                        </div>
+                                                                        ` : ''}
         
         <!-- Ministry -->
         <div>
@@ -1139,74 +1139,74 @@
         
         <!-- Personal Information -->
         ${volunteer.sex || volunteer.civil_status ? `
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                          ${volunteer.sex ? `
+                                                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                          ${volunteer.sex ? `
           <div>
             <p class="text-sm font-medium text-gray-500">Gender</p>
             <p class="text-sm capitalize">${volunteer.sex}</p>
           </div>
           ` : ''}
-                                          ${volunteer.civil_status ? `
+                                                                          ${volunteer.civil_status ? `
           <div>
             <p class="text-sm font-medium text-gray-500">Civil Status</p>
             <p class="text-sm capitalize">${volunteer.civil_status}</p>
           </div>
           ` : ''}
-                                        </div>
-                                        ` : ''}
+                                                                        </div>
+                                                                        ` : ''}
         
         <!-- Sacraments -->
         ${sacraments.length > 0 ? `
-                                        <div>
-                                          <p class="text-sm font-medium text-gray-500 mb-2">Sacraments Received</p>
-                                          <div class="flex flex-wrap gap-1">
-                                            ${sacraments.map(sacrament => 
-                                              `<span class="px-2 py-1 text-xs bg-purple-50 text-purple-700 rounded border border-purple-200">${sacrament}</span>`
-                                            ).join('')}
-                                          </div>
-                                        </div>
-                                        ` : ''}
+                                                                        <div>
+                                                                          <p class="text-sm font-medium text-gray-500 mb-2">Sacraments Received</p>
+                                                                          <div class="flex flex-wrap gap-1">
+                                                                            ${sacraments.map(sacrament => 
+                                                                              `<span class="px-2 py-1 text-xs bg-purple-50 text-purple-700 rounded border border-purple-200">${sacrament}</span>`
+                                                                            ).join('')}
+                                                                          </div>
+                                                                        </div>
+                                                                        ` : ''}
         
         <!-- Formations -->
         ${formations.length > 0 ? `
-                                        <div>
-                                          <p class="text-sm font-medium text-gray-500 mb-2">Formations Received</p>
-                                          <div class="flex flex-wrap gap-1">
-                                            ${formations.map(formation => 
-                                              `<span class="px-2 py-1 text-xs bg-green-50 text-green-700 rounded border border-green-200">${formation}</span>`
-                                            ).join('')}
-                                          </div>
-                                        </div>
-                                        ` : ''}
+                                                                        <div>
+                                                                          <p class="text-sm font-medium text-gray-500 mb-2">Formations Received</p>
+                                                                          <div class="flex flex-wrap gap-1">
+                                                                            ${formations.map(formation => 
+                                                                              `<span class="px-2 py-1 text-xs bg-green-50 text-green-700 rounded border border-green-200">${formation}</span>`
+                                                                            ).join('')}
+                                                                          </div>
+                                                                        </div>
+                                                                        ` : ''}
         
         <!-- Volunteer Timeline -->
         ${volunteer.detail?.applied_date || volunteer.detail?.regular_duration ? `
-                                        <div>
-                                          <p class="text-sm font-medium text-gray-500 mb-2">Volunteer Information</p>
-                                          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            ${volunteer.detail?.applied_date ? `
+                                                                        <div>
+                                                                          <p class="text-sm font-medium text-gray-500 mb-2">Volunteer Information</p>
+                                                                          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                            ${volunteer.detail?.applied_date ? `
             <div>
               <p class="text-xs text-gray-400">Month & Year Applied</p>
               <p class="text-sm">${new Date(volunteer.detail.applied_date + '-01').toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</p>
             </div>
             ` : ''}
-                                            ${volunteer.detail?.regular_duration ? `
+                                                                            ${volunteer.detail?.regular_duration ? `
             <div>
               <p class="text-xs text-gray-400">Years as Regular Volunteer</p>
               <p class="text-sm">${volunteer.detail.regular_duration}</p>
             </div>
             ` : ''}
-                                          </div>
-                                        </div>
-                                        ` : ''}
+                                                                          </div>
+                                                                        </div>
+                                                                        ` : ''}
         
         <!-- Additional Notes -->
         ${volunteer.others ? `
-                                        <div>
-                                          <p class="text-sm font-medium text-gray-500">Additional Notes</p>
-                                          <p class="text-sm">${volunteer.others}</p>
-                                        </div>
-                                        ` : ''}
+                                                                        <div>
+                                                                          <p class="text-sm font-medium text-gray-500">Additional Notes</p>
+                                                                          <p class="text-sm">${volunteer.others}</p>
+                                                                        </div>
+                                                                        ` : ''}
       </div>
     `;
 
