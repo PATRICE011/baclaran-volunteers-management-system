@@ -151,15 +151,13 @@ class VolunteersController extends Controller
             $birthDate = $request->dob;
 
             // Check for existing volunteer by name + birthdate OR email
-            $duplicate = Volunteer::where(function ($query) use ($email, $fullName, $birthDate) {
-                $query->where('email_address', $email)
-                    ->orWhereHas('detail', function ($q) use ($fullName, $birthDate) {
-                        $q->where('full_name', $fullName)
-                            ->whereHas('volunteer', function ($subQ) use ($birthDate) {
-                                $subQ->whereDate('date_of_birth', $birthDate);
-                            });
-                    });
-            })->exists();
+            $duplicate = Volunteer::where('email_address', $email)
+                ->whereHas('detail', function ($q) use ($fullName) {
+                    $q->where('full_name', $fullName);
+                })
+                ->whereDate('date_of_birth', $birthDate)
+                ->exists();
+
 
             if ($duplicate) {
                 return response()->json([
@@ -314,6 +312,17 @@ class VolunteersController extends Controller
             ], 404);
         }
     }
+
+
+    public function edit($id)
+    {
+        $volunteer = Volunteer::with(['detail.ministry', 'timelines', 'affiliations'])->findOrFail($id);
+        $ministries = Ministry::whereNull('parent_id')->with('children')->get();
+        return view('admin_edit_profile', compact('volunteer', 'ministries'));
+    }
+
+    public function update(Request $request, $id) {}
+
 
     // You might also want to add a destroy method for the delete functionality
     public function destroy($id)
