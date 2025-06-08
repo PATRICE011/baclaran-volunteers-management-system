@@ -472,23 +472,27 @@ function generateEditableField(
         `;
     })();
 
-    return `
-        <div class="${fullWidth ? "col-span-full" : ""} space-y-1">
-            <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">${label}</label>
-            <div class="relative group">
-                <div id="${fieldId}-display" class="text-gray-800">${displayValue}</div>
-                ${inputHtml}
-                <button onclick="toggleEditField('${fieldId}')" 
-                        class="absolute top-2 right-2 text-gray-400 hover:text-blue-600 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                    </svg>
-                </button>
+    const isEmail = fieldName === "email_address";
+    const displayDivClass = isEmail
+    ? "text-gray-800 max-w-[220px] overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-gray-300 px-1 rounded bg-white border border-gray-100"
+    : "text-gray-800";
 
-            </div>
+    return `
+    <div class="${fullWidth ? "col-span-full" : ""} space-y-1">
+        <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">${label}</label>
+        <div class="relative group">
+        <div id="${fieldId}-display" class="${displayDivClass}">${displayValue}</div>
+        ${inputHtml}
+        <button onclick="toggleEditField('${fieldId}')" class="absolute top-2 right-2 text-gray-400 hover:text-blue-600 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            </svg>
+        </button>
         </div>
+    </div>
     `;
+
 }
 
 // Toggles visibility between display and input mode for a specific field.
