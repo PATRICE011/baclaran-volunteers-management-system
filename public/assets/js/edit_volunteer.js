@@ -1,5 +1,4 @@
 
-// Handles modal display and fetches volunteer profile from backend.
 function openProfile(id, activeTabId = "contact-tab") {
     
     const profileContent = document.getElementById("profileContent");
@@ -28,22 +27,49 @@ function openProfile(id, activeTabId = "contact-tab") {
             }
             return response.json();
         })
-        .then((volunteer) => {
-            renderEditableProfile(volunteer, id, activeTabId);
+       .then((data) => {
+            renderEditableProfile(data.volunteer, id, activeTabId, data.ministries);
         })
-
         .catch((error) => {
             console.error("Error fetching volunteer data:", error);
             showProfileError(id);
         });
 }
+
+function uploadProfilePicture(event, volunteerId) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("profile_picture", file);
+
+    fetch(`/volunteers/${volunteerId}/picture`, {
+        method: "POST",
+        headers: {
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+        },
+        body: formData,
+    })
+    .then((res) => {
+        if (!res.ok) throw new Error("Upload failed");
+        return res.json();
+    })
+    .then(() => {
+        toastr.success("Profile picture updated");
+        openProfile(volunteerId, currentActiveTabId); // Refresh
+    })
+    .catch(() => toastr.error("Failed to update profile picture."));
+}
+
 // Renders profile details including editable and read-only sections.
-function renderEditableProfile(volunteer, id, activeTabId = "contact-tab") {
+function renderEditableProfile(volunteer, id, activeTabId = "contact-tab", ministriesList = [])
+ {
     const profileContent = document.getElementById("profileContent");
 
     const displayName =
         volunteer.nickname || volunteer.detail?.full_name || "No Name";
-    const avatarSeed = displayName.replace(/\s/g, "").toLowerCase();
+    const avatarSeed = displayName.split(" ")[0].toLowerCase();
+
     const imageUrl = volunteer.profile_picture
         ? `/storage/${volunteer.profile_picture}`
         : `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`;
@@ -84,7 +110,6 @@ function renderEditableProfile(volunteer, id, activeTabId = "contact-tab") {
               .filter((f) => f)
         : [];
 
-
     const timelines = volunteer.timelines || [];
     const affiliations = volunteer.affiliations || [];
 
@@ -94,12 +119,20 @@ function renderEditableProfile(volunteer, id, activeTabId = "contact-tab") {
             <div class="flex items-start gap-6">
                 <div class="relative group">
                     <img src="${imageUrl}" alt="${displayName}" class="w-24 h-24 rounded-full shadow-lg ring-4 ring-white object-cover">
-                    <button onclick="editProfilePicture(${id})" class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <!-- Hidden file input to upload new picture -->
+                    <input type="file" id="profilePictureInput-${id}" class="hidden" accept="image/*" onchange="uploadProfilePicture(event, ${id})" />
+
+                    <!-- Avatar overlay button triggers file input -->
+                    <button type="button" onclick="document.getElementById('profilePictureInput-${id}').click()" 
+                        class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                     </button>
+
                     ${
                         volunteerStatus === "Active"
                             ? `
@@ -114,30 +147,57 @@ function renderEditableProfile(volunteer, id, activeTabId = "contact-tab") {
                 </div>
                 <div class="flex-1">
                     <div class="flex items-center gap-2 mb-2">
-                        <h2 class="text-2xl font-bold text-gray-900">${displayName}</h2>
-                        <button onclick="editField('nickname', '${
-                            volunteer.nickname || ""
-                        }', ${id})" class="text-gray-400 hover:text-blue-600 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                            </svg>
-                        </button>
+                        <div class="relative group flex items-center">
+                            <h2 id="display-name-display" class="text-2xl font-bold text-gray-900">${displayName}</h2>
+                            <input type="text" id="display-name-input" data-field="nickname" data-original="${volunteer.nickname || ''}" 
+                                   value="${volunteer.nickname || ''}" 
+                                   class="editable-input hidden text-2xl font-bold text-gray-900 bg-transparent border-b-2 border-blue-500 focus:outline-none focus:border-blue-700" 
+                                   placeholder="Enter display name" />
+                            <button onclick="toggleEditField('display-name', event)" class="ml-2 text-gray-400 hover:text-blue-600 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-3 mb-3">
                         <div class="flex items-center gap-1">
-                            <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${statusClass}">
-                                <span class="w-2 h-2 bg-current rounded-full mr-2"></span>
-                                ${volunteerStatus}
+                            <div class="relative group flex items-center">
+                                <span id="volunteer-status-display" class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${statusClass}">
+                                    <span class="w-2 h-2 bg-current rounded-full mr-2"></span>
+                                    ${volunteerStatus}
+                                </span>
+                                <select id="volunteer-status-input" data-field="volunteer_status" data-original="${volunteerStatus}" 
+                                        class="editable-input hidden px-3 py-1 text-sm font-medium rounded-full border border-gray-300 bg-white">
+                                    <option value="Active" ${volunteerStatus === 'Active' ? 'selected' : ''}>Active</option>
+                                    <option value="Inactive" ${volunteerStatus === 'Inactive' ? 'selected' : ''}>Inactive</option>
+                                </select>
+                                <button onclick="toggleEditField('volunteer-status', event)" class="ml-2 text-gray-400 hover:text-blue-600 transition-colors">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="relative group flex items-center">
+                            <span id="ministry-display" class="inline-flex items-center px-3 py-1 text-sm bg-blue-50 text-blue-700 rounded-full border border-blue-200">
+                                ${ministryName}
                             </span>
-                            <button onclick="editStatus(${id}, '${volunteerStatus}')" class="text-gray-400 hover:text-blue-600 transition-colors">
+                            <select id="ministry-input" data-field="ministry_id" data-original="${volunteer.detail?.ministry?.id || ''}" 
+                                    class="editable-input hidden px-3 py-1 text-sm bg-blue-50 text-blue-700 rounded-full border border-blue-200">
+                                <option value="">No Ministry Assigned</option>
+                                ${Array.isArray(ministriesList) ? ministriesList.map(ministry => 
+                                    ministry ? `<option value="${ministry.id}" ${ministry.id == volunteer.detail?.ministry?.id ? 'selected' : ''}>
+                                        ${ministry.ministry_name}
+                                    </option>` : ''
+                                ).join('') : ''}
+                            </select>
+                            <button onclick="toggleEditField('ministry', event)" class="ml-2 text-gray-400 hover:text-blue-600 transition-colors">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                 </svg>
                             </button>
                         </div>
-                        <span class="inline-flex items-center px-3 py-1 text-sm bg-blue-50 text-blue-700 rounded-full border border-blue-200">
-                            ${ministryName}
-                        </span>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600">
                         <div class="flex items-center">
@@ -415,7 +475,6 @@ function renderEditableProfile(volunteer, id, activeTabId = "contact-tab") {
     `;
 
     profileContent.innerHTML = html;
-
     const editButton = document.getElementById("editProfile");
     if (editButton) {
         editButton.innerHTML = `
@@ -452,7 +511,8 @@ function generateEditableField(
 
     const inputHtml = (() => {
         if (options && Array.isArray(options)) {
-            const normalizedValue = (value || '').toLowerCase();
+            const normalizedValue = String(value || '').toLowerCase();
+
             return `
                 <select id="${fieldId}-input" data-field="${fieldName}" data-original="${normalizedValue}" 
                         class="form-input editable-input hidden w-full mt-1 border-gray-300 rounded-md shadow-sm">
@@ -549,7 +609,13 @@ function toggleEditField(fieldId, event) {
         
         // Focus only if showing the input
         if (!inputEl.classList.contains("hidden")) {
-            setTimeout(() => inputEl.focus(), 50);
+            setTimeout(() => {
+                inputEl.focus();
+                // For text inputs, select all text for easier editing
+                if (inputEl.type === 'text') {
+                    inputEl.select();
+                }
+            }, 50);
         }
     }
 }
@@ -679,7 +745,19 @@ function saveAllChanges(volunteerId) {
         if (!field) return;
 
         const original = (input.dataset.original || "").trim();
-        const current = (input.value || "").trim();
+        let current = (input.value || "").trim();
+
+        // Special handling for ministry - convert ministry_id to ministry_name
+        if (field === 'ministry_id' && current && current !== original) {
+            const ministrySelect = document.getElementById('ministry-input');
+            const selectedOption = ministrySelect.querySelector(`option[value="${current}"]`);
+            if (selectedOption && selectedOption.textContent.trim() !== 'No Ministry Assigned') {
+                data['ministry_name'] = selectedOption.textContent.trim();
+            } else if (current === '') {
+                data['ministry_name'] = null;
+            }
+            return; // Don't add ministry_id to data
+        }
 
         if (current !== original) {
             data[field] = current;
@@ -715,7 +793,9 @@ function saveAllChanges(volunteerId) {
             sex: "Gender",
             civil_status: "Civil Status",
             full_name: "Full Name",
-            nickname: "Nickname",
+            nickname: "Display Name",
+            volunteer_status: "Volunteer Status",
+            ministry_name: "Ministry"
         };
 
         const updatedFields = Object.keys(data)
@@ -727,18 +807,73 @@ function saveAllChanges(volunteerId) {
         // Reload profile content
         openProfile(volunteerId, currentActiveTabId);
 
-
-        // After reload, wait briefly then switch to the "personal" tab
+        // After reload, wait briefly then switch to the correct tab
         setTimeout(() => {
             const activeTabBtn = document.querySelector(`button[onclick*='${currentActiveTabId}']`);
             if (activeTabBtn) activeTabBtn.click();
         }, 100);
 
     })
-
     .catch((err) => {
         console.error("Save failed:", err);
         toastr.error("There was an error saving the profile.");
     });
 }
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        const activeInput = document.querySelector('.editable-input:not(.hidden)');
+        if (activeInput) {
+            event.preventDefault();
+            // Hide the input and show the display
+            activeInput.classList.add('hidden');
+            const correspondingDisplay = document.getElementById(activeInput.id.replace('-input', '-display'));
+            if (correspondingDisplay) {
+                correspondingDisplay.classList.remove('hidden');
+                // Update the display value immediately
+                updateDisplayValue(activeInput);
+            }
+        }
+    } else if (event.key === 'Escape') {
+        const activeInput = document.querySelector('.editable-input:not(.hidden)');
+        if (activeInput) {
+            event.preventDefault();
+            // Reset to original value
+            activeInput.value = activeInput.dataset.original || '';
+            // Hide the input and show the display
+            activeInput.classList.add('hidden');
+            const correspondingDisplay = document.getElementById(activeInput.id.replace('-input', '-display'));
+            if (correspondingDisplay) {
+                correspondingDisplay.classList.remove('hidden');
+            }
+        }
+    }
+});
+function updateDisplayValue(inputEl) {
+    const displayEl = document.getElementById(inputEl.id.replace('-input', '-display'));
+    if (!displayEl) return;
 
+    const field = inputEl.dataset.field;
+    let newValue = inputEl.value || '';
+
+    // Special handling for different field types
+    if (field === 'volunteer_status') {
+        // Update the status badge
+        const statusClass = newValue === 'Active' 
+            ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+            : "bg-red-100 text-red-800 border-red-200";
+        
+        displayEl.className = `inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${statusClass}`;
+        displayEl.innerHTML = `
+            <span class="w-2 h-2 bg-current rounded-full mr-2"></span>
+            ${newValue}
+        `;
+    } else if (field === 'ministry_id') {
+        // Update ministry display
+        const selectedOption = inputEl.querySelector(`option[value="${newValue}"]`);
+        const ministryName = selectedOption ? selectedOption.textContent.trim() : 'No Ministry Assigned';
+        displayEl.textContent = ministryName;
+    } else {
+        // Regular text fields
+        displayEl.textContent = newValue || 'Not provided';
+    }
+}
