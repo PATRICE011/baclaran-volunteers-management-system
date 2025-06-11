@@ -23,13 +23,31 @@
 
         {{-- User header --}}
         <div class="flex items-center gap-4 mb-8">
-            <span class="relative flex shrink-0 overflow-hidden rounded-full h-16 w-16 border-4 border-primary/10">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=admin" alt="Admin User"
-                    class="h-full w-full object-cover">
-            </span>
+            <div class="relative">
+                <span class="relative flex shrink-0 overflow-hidden rounded-full h-16 w-16 border-4 border-primary/10">
+                    <img id="profile_picture_display"
+                        src="https://api.dicebear.com/7.x/avataaars/svg?seed=admin"
+                        alt="Profile Picture"
+                        class="h-full w-full object-cover">
+                </span>
+                <!-- Edit overlay -->
+                <button type="button"
+                    class="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-1.5 shadow-lg hover:bg-primary/90 transition-colors"
+                    onclick="document.getElementById('profile_picture_input').click()">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                    </svg>
+                </button>
+                <!-- Hidden file input -->
+                <input type="file"
+                    id="profile_picture_input"
+                    accept="image/*"
+                    style="display: none;"
+                    onchange="handleProfilePictureChange(this)">
+            </div>
             <div>
-                <h1 class="text-lg font-semibold">Admin User</h1>
-                <p class="text-sm text-muted-foreground">admin@churchvolunteers.com</p>
+                <h1 id="user_full_name" class="text-lg font-semibold">Loading...</h1>
+                <p id="user_email" class="text-sm text-muted-foreground">Loading...</p>
             </div>
         </div>
 
@@ -376,4 +394,5 @@
 @section('scripts')
 <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="{{ asset('assets/js/change_name.js') }}"></script>
+<script src="{{ asset('assets/js/admin_details.js') }}"></script>
 @endsection

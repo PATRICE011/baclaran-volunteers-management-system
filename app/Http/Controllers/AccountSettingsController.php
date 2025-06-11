@@ -9,6 +9,7 @@ use App\Models\UserOtp;
 use App\Services\MailService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class AccountSettingsController extends Controller
 {
@@ -40,6 +41,12 @@ class AccountSettingsController extends Controller
             ]);
         }
 
+        // Generate profile picture URL
+        $profilePictureUrl = null;
+        if ($user->profile_picture) {
+            $profilePictureUrl = Storage::url($user->profile_picture);
+        }
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -48,8 +55,64 @@ class AccountSettingsController extends Controller
                 'full_name' => $user->first_name . ' ' . $user->last_name,
                 'email' => $user->email,
                 'role' => ucfirst($user->role),
+                'profile_picture' => $profilePictureUrl,
             ]
         ]);
+    }
+    public function updateProfilePicture(Request $request)
+    {
+        try {
+            $user = Auth::user();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not authenticated',
+                ], 401);
+            }
+
+            $request->validate([
+                'profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB max
+            ]);
+
+            if ($request->hasFile('profile_picture')) {
+                // Delete old profile picture if it exists
+                if ($user->profile_picture && Storage::disk('public')->exists($user->profile_picture)) {
+                    Storage::disk('public')->delete($user->profile_picture);
+                }
+
+                // Store the new profile picture
+                $path = $request->file('profile_picture')->store('profile_pictures', 'public');
+
+                // Update user's profile picture path
+                $user->profile_picture = $path;
+                $user->save();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Profile picture updated successfully',
+                    'profile_picture_url' => Storage::url($path), // Full URL for frontend
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'No file uploaded',
+            ], 400);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Profile picture update failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update profile picture',
+            ], 500);
+        }
     }
 
     /**

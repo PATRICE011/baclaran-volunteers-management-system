@@ -50,17 +50,19 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     // account settings page
     Route::prefix('settings')->group(function(){
         Route::get('/', [SettingsController::class, 'index']);
+
         Route::prefix('account')->name('account.')->group(function () {
-       
+
         Route::get('/user-data', [AccountSettingsController::class, 'getUserData'])->name('user.data');
-        
-      
         Route::post('/name-change/request-otp', [AccountSettingsController::class, 'requestNameChangeOTP'])->name('name.change.request');
         Route::post('/name-change/verify-otp', [AccountSettingsController::class, 'verifyNameChangeOTP'])->name('name.change.verify');
-     
         Route::post('/resend-otp', [AccountSettingsController::class, 'resendOTP'])->name('resend.otp');
         
+
+         Route::post('update-profile-picture', [AccountSettingsController::class, 'updateProfilePicture']);
         });
+
+
     });
     
 });

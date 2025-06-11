@@ -25,7 +25,31 @@ $(document).ready(function () {
                 if (response.success) {
                     const userData = response.data;
 
-                    // Populate current information display
+                    // Update header section
+                    $("#user_full_name").text(
+                        userData.full_name || "Not available"
+                    );
+                    $("#user_email").text(userData.email || "Not available");
+
+                    // Update profile picture
+                    if (userData.profile_picture) {
+                        $("#profile_picture_display").attr(
+                            "src",
+                            userData.profile_picture
+                        );
+                    } else {
+                        // Fallback to generated avatar based on user's name or email
+                        const seed =
+                            userData.full_name || userData.email || "default";
+                        $("#profile_picture_display").attr(
+                            "src",
+                            `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+                                seed
+                            )}`
+                        );
+                    }
+
+                    // Populate other fields if they exist
                     $("#current_full_name").text(
                         userData.full_name || "Not available"
                     );
