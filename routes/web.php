@@ -11,6 +11,7 @@ use App\Http\Controllers\MinistryController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SchedulesController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\SignController;
 use App\Http\Controllers\TasksController;
 use App\Http\Controllers\VolunteersController;
 use Illuminate\Support\Facades\Auth;
@@ -31,6 +32,8 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::get('/settings', [SettingsController::class, 'index']);
     Route::get('/role', [RoleController::class, 'index']);
     Route::get('/archives', [ArchivesController::class, 'index']);
+    Route::get('/sign', [SignController::class, 'index']);
+
     
     // volunteers page
     Route::prefix('volunteers')->group(function(){
