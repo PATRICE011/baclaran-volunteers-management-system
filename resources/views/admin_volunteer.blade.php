@@ -369,6 +369,7 @@
                                 <select name="timeline_start_year[]"
                                     class="border rounded px-2 py-2 w-full year-select"
                                     data-row="{{ $i }}">
+                                    <option value="">Start Year</option>
                                     @for ($y = date('Y'); $y >= 1980; $y--)
                                     <option value="{{ $y }}">{{ $y }}</option>
                                     @endfor
@@ -377,12 +378,13 @@
                                 <select name="timeline_end_year[]"
                                     class="border rounded px-2 py-2 w-full year-select"
                                     data-row="{{ $i }}">
+                                    <option value="">End Year</option>
                                     @for ($y = date('Y'); $y >= 1980; $y--)
                                     <option value="{{ $y }}">{{ $y }}</option>
                                     @endfor
                                 </select>
                             </div>
-                            <input type="number" name="timeline_total[]" min="0" class="w-full border rounded px-3 py-2 total-years" readonly>
+                            <input type="number" name="timeline_total[]" min="0" class="w-full border rounded px-3 py-2 total-years" placeholder="Total" readonly>
                             <select name="timeline_active[]" class="border rounded px-3 py-2">
                                 <option value="">is active?</option>
                                 <option value="Y">Y</option>
