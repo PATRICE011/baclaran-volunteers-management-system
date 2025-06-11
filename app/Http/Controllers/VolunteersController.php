@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Arr;
 
 use Illuminate\Http\Request;
 use App\Models\Volunteer;
@@ -151,15 +152,13 @@ class VolunteersController extends Controller
             $birthDate = $request->dob;
 
             // Check for existing volunteer by name + birthdate OR email
-            $duplicate = Volunteer::where(function ($query) use ($email, $fullName, $birthDate) {
-                $query->where('email_address', $email)
-                    ->orWhereHas('detail', function ($q) use ($fullName, $birthDate) {
-                        $q->where('full_name', $fullName)
-                            ->whereHas('volunteer', function ($subQ) use ($birthDate) {
-                                $subQ->whereDate('date_of_birth', $birthDate);
-                            });
-                    });
-            })->exists();
+            $duplicate = Volunteer::where('email_address', $email)
+                ->whereHas('detail', function ($q) use ($fullName) {
+                    $q->where('full_name', $fullName);
+                })
+                ->whereDate('date_of_birth', $birthDate)
+                ->exists();
+
 
             if ($duplicate) {
                 return response()->json([
@@ -196,6 +195,8 @@ class VolunteersController extends Controller
                 'sacraments_received' => $request->sacraments ?? [],
                 'formations_received' => $request->formations ?? [],
                 'profile_picture' => $profilePicturePath,
+
+
             ]);
 
             // Create detail
@@ -282,14 +283,12 @@ class VolunteersController extends Controller
 
             $volunteer->has_complete_profile = $volunteer->hasCompleteProfile();
 
-            // Add active_for like in index()
             $applied = $volunteer->detail?->applied_month_year;
-
             if ($applied) {
                 try {
-                    $start = \Carbon\Carbon::createFromFormat('Y-m', $applied);
+                    $start = Carbon::createFromFormat('Y-m', $applied);
                     $now = $volunteer->detail?->volunteer_status === 'Inactive' && $volunteer->detail?->updated_at
-                        ? \Carbon\Carbon::parse($volunteer->detail->updated_at)
+                        ? Carbon::parse($volunteer->detail->updated_at)
                         : now();
 
                     $months = $start->diffInMonths($now);
@@ -307,11 +306,107 @@ class VolunteersController extends Controller
                 $volunteer->active_for = 'Duration unknown';
             }
 
-            return response()->json($volunteer);
+            // $ministries = Ministry::pluck('ministry_name')->toArray();
+            $ministries = Ministry::select('id', 'ministry_name')->get(); 
+
+            return response()->json([
+                'volunteer' => $volunteer,
+                'ministries' => $ministries,
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Volunteer not found'
             ], 404);
+        }
+    }
+
+
+    public function edit($id)
+    {
+        $volunteer = Volunteer::with(['detail.ministry', 'timelines', 'affiliations'])->findOrFail($id);
+        $ministries = Ministry::whereNull('parent_id')->with('children')->get();
+        return view('admin_edit_profile', compact('volunteer', 'ministries'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            $volunteer = Volunteer::findOrFail($id);
+
+            // Convert empty strings to null
+            $request->merge(array_map(function ($value) {
+                return $value === '' ? null : $value;
+            }, $request->all()));
+
+            $validated = $request->validate([
+                'nickname' => 'sometimes|string|max:255',
+                'date_of_birth' => 'sometimes|date',
+                'sex' => 'sometimes|in:male,female,Male,Female',
+                'address' => 'sometimes|string|max:255',
+                'mobile_number' => 'sometimes|string|max:20',
+                'email_address' => 'sometimes|email|max:255',
+                'occupation' => 'sometimes|string|max:255',
+                'civil_status' => 'sometimes|string|max:255',
+                'full_name' => 'sometimes|string|max:255',
+                'timelines' => 'sometimes|array',
+                'affiliations' => 'sometimes|array',
+                'profile_picture' => 'sometimes|image|mimes:jpg,jpeg,png,webp|max:2048',
+                'volunteer_status' => 'sometimes|string|in:Active,Inactive',
+                'ministry_name' => 'sometimes|nullable|string|exists:ministries,ministry_name',
+            ]);
+
+            // Handle profile picture upload
+            if ($request->hasFile('profile_picture')) {
+                $path = $request->file('profile_picture')->store('volunteer_avatars', 'public');
+                $validated['profile_picture'] = $path;
+            }
+
+            // Capitalize specific fields
+            foreach (['nickname', 'full_name', 'occupation', 'address', 'civil_status'] as $field) {
+                if (isset($validated[$field])) {
+                    $validated[$field] = Str::title($validated[$field]);
+                }
+            }
+
+            // Normalize casing for 'sex'
+            if (isset($validated['sex'])) {
+                $validated['sex'] = ucfirst(strtolower($validated['sex']));
+            }
+
+            // Fill Volunteer (excluding detail fields)
+            $volunteer->fill(Arr::except($validated, ['full_name', 'volunteer_status', 'ministry_name']));
+            $volunteer->save();
+
+            // Fill VolunteerDetail
+            if ($volunteer->detail) {
+                if (isset($validated['volunteer_status'])) {
+                    $volunteer->detail->volunteer_status = $validated['volunteer_status'];
+                }
+
+                if (isset($validated['full_name'])) {
+                    $volunteer->detail->full_name = $validated['full_name'];
+                }
+
+                // Convert ministry_name to ministry_id if present
+                if (isset($validated['ministry_name'])) {
+                    if ($validated['ministry_name'] === null) {
+                        // If ministry_name is null, clear the ministry assignment
+                        $volunteer->detail->ministry_id = null;
+                    } else {
+                        $ministry = Ministry::where('ministry_name', $validated['ministry_name'])->first();
+                        if ($ministry) {
+                            $volunteer->detail->ministry_id = $ministry->id;
+                        }
+                    }
+                }
+
+                $volunteer->detail->save();
+            }
+
+            return response()->json(['message' => 'Profile updated successfully.']);
+        } catch (\Throwable $e) {
+            Log::error('Update error: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to update volunteer.'], 500);
         }
     }
 

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\MinistryController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SchedulesController;
@@ -24,7 +25,7 @@ Route::post('/login', [AuthController::class, 'login'])->name('authorizeUser');
 Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index']);
-    
+
     Route::get('/schedule', [SchedulesController::class, 'index']);
     Route::get('/ministries', [MinistryController::class, 'index']);
     Route::get('/attendance', [AttendanceController::class, 'index']);
@@ -32,16 +33,16 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::get('/settings', [SettingsController::class, 'index']);
     Route::get('/role', [RoleController::class, 'index']);
     Route::get('/archives', [ArchivesController::class, 'index']);
-    Route::get('/sign', [SignController::class, 'index']);
+    Route::get('/sign-in', [SignController::class, 'index']);
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'index']);
 
-    
     // volunteers page
-    Route::prefix('volunteers')->group(function(){
+    Route::prefix('volunteers')->group(function () {
         Route::get('/', [VolunteersController::class, 'index']);
         Route::post('/register', [VolunteersController::class, 'store'])->name('volunteers.register');
         Route::get('/{id}', [VolunteersController::class, 'show'])->name('volunteers.show');
-        Route::delete('/{id}', [VolunteersController::class, 'destroy'])->name('volunteers.destroy');
+        Route::get('/{id}/edit', [VolunteersController::class, 'edit'])->name('volunteers.edit');
+        Route::put('/{id}', [VolunteersController::class, 'update'])->name('volunteers.update');
+        // Route::delete('/{id}', [VolunteersController::class, 'destroy'])->name('volunteers.destroy');
     });
-    
-
 });

@@ -7,12 +7,12 @@
      <div class="flex-1 overflow-auto py-2">
          <nav class="grid gap-1 px-2">
              @php
-                 function navActive($path)
-                 {
-                     return request()->is($path)
-                         ? 'bg-blue-500 text-white'
-                         : 'text-gray-600 hover:bg-blue-500 hover:text-white';
-                 }
+             function navActive($path)
+             {
+             return request()->is($path)
+             ? 'bg-blue-500 text-white'
+             : 'text-gray-600 hover:bg-blue-500 hover:text-white';
+             }
              @endphp
 
              <a href="{{ url('/dashboard') }}"
@@ -133,9 +133,13 @@
                          </a>
                      </div>
                      <div class="py-1">
-                         <a href="{{ url('/logout') }}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
-                             Sign Out
-                         </a>
+                         <form action="{{ url('/logout') }}" method="POST">
+                             @csrf
+                             <button type="submit" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                 Sign Out
+                             </button>
+                         </form>
+
                      </div>
                  </div>
              </div>
