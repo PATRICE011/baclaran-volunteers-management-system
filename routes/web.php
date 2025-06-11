@@ -13,6 +13,7 @@ use App\Http\Controllers\SchedulesController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TasksController;
 use App\Http\Controllers\VolunteersController;
+use App\Http\Controllers\AccountSettingsController;
 use Illuminate\Support\Facades\Auth;
 
 Route::get('/', [AuthController::class,  'getLogin']);
@@ -28,7 +29,7 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::get('/ministries', [MinistryController::class, 'index']);
     Route::get('/attendance', [AttendanceController::class, 'index']);
     Route::get('/tasks', [TasksController::class, 'index']);
-    Route::get('/settings', [SettingsController::class, 'index']);
+    
     Route::get('/role', [RoleController::class, 'index']);
     Route::get('/archives', [ArchivesController::class, 'index']);
 
@@ -41,4 +42,21 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
         Route::put('/{id}', [VolunteersController::class, 'update'])->name('volunteers.update');
         // Route::delete('/{id}', [VolunteersController::class, 'destroy'])->name('volunteers.destroy');
     });
+
+    // account settings page
+    Route::prefix('settings')->group(function(){
+        Route::get('/', [SettingsController::class, 'index']);
+        Route::prefix('account')->name('account.')->group(function () {
+       
+        Route::get('/user-data', [AccountSettingsController::class, 'getUserData'])->name('user.data');
+        
+      
+        Route::post('/name-change/request-otp', [AccountSettingsController::class, 'requestNameChangeOTP'])->name('name.change.request');
+        Route::post('/name-change/verify-otp', [AccountSettingsController::class, 'verifyNameChangeOTP'])->name('name.change.verify');
+     
+        Route::post('/resend-otp', [AccountSettingsController::class, 'resendOTP'])->name('resend.otp');
+        
+        });
+    });
+    
 });
