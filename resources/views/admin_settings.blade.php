@@ -78,34 +78,59 @@
                 </div>
                 <div class="p-6 pt-0">
                     <form id="profileForm" class="space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="first_name" class="block text-sm font-medium">First Name</label>
-                                <input id="first_name" name="first_name" type="text"
-                                    class="mt-1 block w-full rounded-md border-input px-3 py-2 text-sm shadow-sm focus:ring-1 focus:ring-ring focus:outline-none border-2">
+                        <div class="space-y-4">
+                            <!-- Current User Info Display -->
+                            <div class="bg-gray-50 p-4 rounded-lg border">
+                                <h4 class="text-sm font-medium text-gray-700 mb-2">Current Information</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <span class="text-gray-500">Full Name:</span>
+                                        <span id="current_full_name" class="font-medium ml-2">Loading...</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500">Role:</span>
+                                        <span id="current_role" class="font-medium ml-2">Loading...</span>
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <span class="text-gray-500">Email:</span>
+                                        <span id="current_email" class="font-medium ml-2">Loading...</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <label for="last_name" class="block text-sm font-medium">Last Name</label>
-                                <input id="last_name" name="last_name" type="text"
-                                    class="mt-1 block w-full rounded-md border-input px-3 py-2 text-sm shadow-sm focus:ring-1 focus:ring-ring focus:outline-none border-2">
+
+                            <!-- Editable Name Fields -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="first_name" class="block text-sm font-medium">First Name</label>
+                                    <input id="first_name" name="first_name" type="text"
+                                        class="mt-1 block w-full rounded-md border-input px-3 py-2 text-sm shadow-sm focus:ring-1 focus:ring-ring focus:outline-none border-2"
+                                        placeholder="Enter your first name">
+                                </div>
+                                <div>
+                                    <label for="last_name" class="block text-sm font-medium">Last Name</label>
+                                    <input id="last_name" name="last_name" type="text"
+                                        class="mt-1 block w-full rounded-md border-input px-3 py-2 text-sm shadow-sm focus:ring-1 focus:ring-ring focus:outline-none border-2"
+                                        placeholder="Enter your last name">
+                                </div>
                             </div>
-                        </div>
-                        <div>
-                            <label for="email" class="block text-sm font-medium">Email</label>
-                            <input id="email" type="email" disabled
-                                class="mt-1 block w-full rounded-md border-input bg-muted px-3 py-2 text-sm shadow-sm">
-                        </div>
-                        <div>
-                            <label for="role" class="block text-sm font-medium">Role</label>
-                            <input id="role" type="text" disabled
-                                class="mt-1 block w-full rounded-md border-input bg-muted px-3 py-2 text-sm shadow-sm">
+
+                            <!-- Info Notice -->
+                            <div class="flex items-start space-x-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                <svg class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                </svg>
+                                <div class="text-sm text-blue-700">
+                                    <p class="font-medium">Email Verification Required</p>
+                                    <p>A verification code will be sent to your registered email address to confirm any name changes.</p>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
                 <div class="flex justify-end p-6 pt-0">
                     <button type="button" id="saveProfileBtn"
                         class="text-sm rounded-md bg-blue-600 px-4 py-2 font-medium text-white shadow
-                       transition-colors duration-200 hover:bg-blue-500 focus:outline-none focus:ring-1 focus:ring-ring">
+               transition-colors duration-200 hover:bg-blue-500 focus:outline-none focus:ring-1 focus:ring-ring">
                         <span class="btn-text">Save Changes</span>
                         <span class="btn-loading hidden">
                             <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -133,7 +158,7 @@
 
                 <div class="mb-4">
                     <p class="text-sm text-gray-600 mb-4">
-                        We've sent a 6-digit verification code to your email address. Please enter it below to confirm your identity.
+                        We've sent a 6-digit verification code to <strong id="otp_email">your registered email</strong>. Please enter it below to confirm your identity and save your name changes.
                     </p>
 
                     <div class="space-y-4">
@@ -172,7 +197,7 @@
         </div>
 
         {{-- Email Panel --}}
-        <div x-show="tab === 'email'" x-cloak class="mb-8">
+        <!-- <div x-show="tab === 'email'" x-cloak class="mb-8">
             <div class="rounded-xl border bg-card text-card-foreground shadow">
                 <div class="p-6 space-y-1.5">
                     <h3 class="text-lg font-semibold">Update Email</h3>
@@ -200,10 +225,10 @@
                     </form>
                 </div>
             </div>
-        </div>
+        </div> -->
 
         {{-- Password Panel --}}
-        <div x-show="tab === 'password'" x-cloak>
+        <!-- <div x-show="tab === 'password'" x-cloak>
             <div class="rounded-xl border bg-card text-card-foreground shadow">
                 <div class="p-6 space-y-1.5">
                     <h3 class="text-lg font-semibold">Change Password</h3>
@@ -236,10 +261,10 @@
                     </form>
                 </div>
             </div>
-        </div>
+        </div> -->
 
         {{-- Verification Required Modal (for Email) --}}
-        <div x-show="showEmailModal" x-cloak x-transition.opacity @keydown.escape.window="showEmailModal = false"
+        <!-- <div x-show="showEmailModal" x-cloak x-transition.opacity @keydown.escape.window="showEmailModal = false"
             class="fixed inset-0 flex items-center justify-center z-50 modal-bg">
             <div x-show="showEmailModal" x-cloak x-transition @click.away="showEmailModal = false" role="dialog"
                 aria-modal="true" aria-labelledby="verify-email-title" aria-describedby="verify-email-desc"
@@ -288,10 +313,10 @@
                     <span class="sr-only">Close</span>
                 </button>
             </div>
-        </div>
+        </div> -->
 
         {{-- Verification Required Modal (for Password) --}}
-        <div x-show="showPasswordModal" x-cloak x-transition.opacity
+        <!-- <div x-show="showPasswordModal" x-cloak x-transition.opacity
             @keydown.escape.window="showPasswordModal = false"
             class="fixed inset-0 flex items-center justify-center z-50 modal-bg">
             <div x-show="showPasswordModal" x-cloak x-transition @click.away="showPasswordModal = false"
@@ -342,13 +367,13 @@
                     <span class="sr-only">Close</span>
                 </button>
             </div>
-        </div>
+        </div> -->
 
     </div>
 </main>
 @endsection
 
-@push('scripts')
+@section('scripts')
 <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="{{ asset('assets/js/change_name.js') }}"></script>
-@endpush
+@endsection

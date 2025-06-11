@@ -1,15 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('components.layout')
+@section('title','Login')
+@section('content')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Church Volunteers Login</title>
-    <!-- Include Tailwind via CDN or npm-built CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@^3/dist/tailwind.min.css" rel="stylesheet">
-</head>
-
-<body class="bg-gray-50">
     <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div class="rounded-xl border bg-card text-card-foreground shadow w-full max-w-md p-6">
             <div class="text-center space-y-1 mb-6">
@@ -28,7 +20,7 @@
                 <p class="text-sm text-muted-foreground">Sign in to your volunteer management account</p>
             </div>
 
-            <form action="{{ route('login') }}" method="POST" class="space-y-4">
+            <form action="" method="POST" class="space-y-4">
                 @csrf
 
                 <div class="space-y-2">
@@ -64,6 +56,4 @@
             </div>
         </div>
     </div>
-</body>
-
-</html>
+@endsection

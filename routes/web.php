@@ -21,7 +21,8 @@ use Illuminate\Support\Facades\Auth;
 Route::get('/', [AuthController::class,  'getLogin']);
 
 Route::post('/login', [AuthController::class, 'login'])->name('authorizeUser');
-
+Route::get('/sign-in', [SignController::class, 'index']);
+Route::get('/forgot-password', [ForgotPasswordController::class, 'index']);
 // authenticated routes
 Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -34,8 +35,7 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     
     Route::get('/role', [RoleController::class, 'index']);
     Route::get('/archives', [ArchivesController::class, 'index']);
-    Route::get('/sign-in', [SignController::class, 'index']);
-    Route::get('/forgot-password', [ForgotPasswordController::class, 'index']);
+   
 
     // volunteers page
     Route::prefix('volunteers')->group(function () {

@@ -1,14 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('components.layout')
+@section('title','forgot password')
+@section('content')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Forgot Password</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@^3/dist/tailwind.min.css" rel="stylesheet">
-</head>
-
-<body class="bg-gray-50">
     <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div class="rounded-xl border bg-card text-card-foreground shadow w-full max-w-md">
             <div class="p-6 space-y-1 text-center">
@@ -69,6 +62,4 @@
             </div>
         </div>
     </div>
-</body>
-
-</html>
+@endsection
