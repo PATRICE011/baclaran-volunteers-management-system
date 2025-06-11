@@ -15,31 +15,32 @@ $(document).ready(function () {
     /**
      * Load current user data and populate both display and input fields
      */
-   function loadUserData() {
-    console.log('AJAX request started'); // This helps check if the function is triggered
-    $.ajax({
-        url: '/settings/account/user-data', // Ensure this matches your route
-        type: 'GET',
-        success: function(response) {
-            console.log(response);  // Log the response to check data
-            if (response.success) {
-                const userData = response.data;
+    function loadUserData() {
+        console.log("AJAX request started");
+        $.ajax({
+            url: "/settings/account/user-data",
+            type: "GET",
+            success: function (response) {
+                console.log(response);
+                if (response.success) {
+                    const userData = response.data;
 
-                // Populate current information display
-                $('#current_full_name').text(userData.full_name || 'Not available');
-                $('#current_role').text(userData.role || 'Not available');
-                $('#current_email').text(userData.email || 'Not available');
-            } else {
-                toastr.error('Failed to load user data');
-            }
-        },
-        error: function(xhr) {
-            toastr.error('Failed to load user data');
-            console.error('Error loading user data:', xhr);
-        }
-    });
-}
-
+                    // Populate current information display
+                    $("#current_full_name").text(
+                        userData.full_name || "Not available"
+                    );
+                    $("#current_role").text(userData.role || "Not available");
+                    $("#current_email").text(userData.email || "Not available");
+                } else {
+                    toastr.error("Failed to load user data");
+                }
+            },
+            error: function (xhr) {
+                toastr.error("Failed to load user data");
+                console.error("Error loading user data:", xhr);
+            },
+        });
+    }
 
     /**
      * Save Profile Button Click Handler
@@ -163,8 +164,10 @@ $(document).ready(function () {
                     // Update both the display and form fields with new data
                     if (response.data) {
                         $("#current_full_name").text(response.data.full_name);
-                        $("#first_name").val(response.data.first_name);
-                        $("#last_name").val(response.data.last_name);
+                        // $("#first_name").val(response.data.first_name);
+                        // $("#last_name").val(response.data.last_name);
+                        $("#first_name").val("");
+                        $("#last_name").val("");
                     }
                 } else {
                     toastr.error(response.message);

@@ -76,9 +76,9 @@ class AccountSettingsController extends Controller
 
             $user = Auth::user();
 
-            // Trim the input values
-            $firstName = trim($request->first_name);
-            $lastName = trim($request->last_name);
+            // Trim and capitalize the input values
+            $firstName = ucwords(trim($request->first_name));
+            $lastName = ucwords(trim($request->last_name));
 
             // Check if the name is actually changing
             if ($user->first_name === $firstName && $user->last_name === $lastName) {
@@ -121,8 +121,7 @@ class AccountSettingsController extends Controller
                 'success' => true,
                 'message' => 'OTP has been sent to your registered email address (' .
                     substr($user->email, 0, 3) . '***@' .
-                    substr(strrchr($user->email, "@"), 1) .
-                    '). Please check your inbox.'
+                    substr(strrchr($user->email, "@"), 1) . '). Please check your inbox.'
             ]);
         } catch (\Exception $e) {
             Log::error('Name change OTP request failed: ' . $e->getMessage());
