@@ -7,10 +7,12 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\MinistryController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SchedulesController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\SignController;
 use App\Http\Controllers\TasksController;
 use App\Http\Controllers\VolunteersController;
 use App\Http\Controllers\AccountSettingsController;
@@ -32,6 +34,8 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     
     Route::get('/role', [RoleController::class, 'index']);
     Route::get('/archives', [ArchivesController::class, 'index']);
+    Route::get('/sign-in', [SignController::class, 'index']);
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'index']);
 
     // volunteers page
     Route::prefix('volunteers')->group(function () {
