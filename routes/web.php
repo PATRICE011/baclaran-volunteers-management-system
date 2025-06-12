@@ -32,10 +32,10 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::get('/ministries', [MinistryController::class, 'index']);
     Route::get('/attendance', [AttendanceController::class, 'index']);
     Route::get('/tasks', [TasksController::class, 'index']);
-    
+
     Route::get('/role', [RoleController::class, 'index']);
     Route::get('/archives', [ArchivesController::class, 'index']);
-   
+
 
     // volunteers page
     Route::prefix('volunteers')->group(function () {
@@ -48,25 +48,25 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     });
 
     // account settings page
-    Route::prefix('settings')->group(function(){
+    Route::prefix('settings')->group(function () {
         Route::get('/', [SettingsController::class, 'index']);
 
         Route::prefix('account')->name('account.')->group(function () {
 
-        Route::get('/user-data', [AccountSettingsController::class, 'getUserData'])->name('user.data');
-        Route::post('/name-change/request-otp', [AccountSettingsController::class, 'requestNameChangeOTP']);
-        Route::post('/name-change/verify-otp', [AccountSettingsController::class, 'verifyOTP']);
-        
-        Route::post('/email-change/request-otp', [AccountSettingsController::class, 'requestEmailChangeOTP']);
-        Route::post('/email-change/verify-otp', [AccountSettingsController::class, 'verifyEmailOTP']);
-        
-        Route::post('/resend-otp', [AccountSettingsController::class, 'resendOTP'])->name('resend.otp');
-        
+            Route::get('/user-data', [AccountSettingsController::class, 'getUserData'])->name('user.data');
+            Route::post('/name-change/request-otp', [AccountSettingsController::class, 'requestNameChangeOTP']);
+            Route::post('/name-change/verify-otp', [AccountSettingsController::class, 'verifyOTP']);
 
-         Route::post('update-profile-picture', [AccountSettingsController::class, 'updateProfilePicture']);
+            Route::post('/email-change/request-otp', [AccountSettingsController::class, 'requestEmailChangeOTP']);
+            Route::post('/email-change/verify-otp', [AccountSettingsController::class, 'verifyEmailOTP']);
+
+            Route::post('/settings/account/password-change/request-otp', [AccountSettingsController::class, 'requestPasswordChangeOTP']);
+            Route::post('/settings/account/password-change/verify-otp', [AccountSettingsController::class, 'verifyPasswordChangeOTP']);
+
+            Route::post('/resend-otp', [AccountSettingsController::class, 'resendOTP'])->name('resend.otp');
+
+
+            Route::post('update-profile-picture', [AccountSettingsController::class, 'updateProfilePicture']);
         });
-
-
     });
-    
 });
