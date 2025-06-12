@@ -215,7 +215,7 @@
         </div>
 
         {{-- Email Panel --}}
-        <!-- <div x-show="tab === 'email'" x-cloak class="mb-8">
+        <div x-show="tab === 'email'" x-cloak class="mb-8">
             <div class="rounded-xl border bg-card text-card-foreground shadow">
                 <div class="p-6 space-y-1.5">
                     <h3 class="text-lg font-semibold">Update Email</h3>
@@ -225,28 +225,98 @@
                     <form class="space-y-4">
                         <div>
                             <label for="email" class="block text-sm font-medium">Email Address</label>
-                            <input id="email" type="email" value="admin@churchvolunteers.com"
-                                class="mt-1 block w-full rounded-md border-input px-3 py-2 text-sm shadow-sm focus:ring-1 focus:ring-ring focus:outline-none border-2">
+                           
+                            <input type="email" id="InputEmail" placeholder="Input new email" class="mt-1 block w-full rounded-md border-input px-3 py-2 text-sm shadow-sm">
                         </div>
-                        <div>
+                        <!-- <div>
                             <label for="role2" class="block text-sm font-medium">Role</label>
                             <input id="role2" value="Administrator" disabled
                                 class="mt-1 block w-full rounded-md border-input bg-muted px-3 py-2 text-sm shadow-sm">
+                        </div> -->
+                        <!-- Info Notice -->
+                        <div class="flex items-start space-x-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <svg class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                            </svg>
+                            <div class="text-sm text-blue-700">
+                                <p class="font-medium">Email Verification Required</p>
+                                <p>A verification code will be sent to your registered email address to confirm email changes.</p>
+                            </div>
                         </div>
                         <div class="flex justify-end">
-                            <button type="button" @click="showEmailModal = true"
+                            <button type="button" id="saveEmailBtn"
                                 class="text-sm rounded-md bg-blue-600 px-4 py-2 font-medium text-white shadow
-                                           transition-colors duration-200 hover:bg-blue-500 focus:outline-none focus:ring-1 focus:ring-ring">
-                                Change Email
+           transition-colors duration-200 hover:bg-blue-500 focus:outline-none focus:ring-1 focus:ring-ring">
+                                <span class="btn-text">Change Email</span> <!-- This will show when the button is not loading -->
+                                <span class="btn-loading hidden"> <!-- This will be hidden initially -->
+                                    <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Processing...
+                                </span>
                             </button>
+
                         </div>
                     </form>
+
                 </div>
             </div>
-        </div> -->
+        </div>
+        <!-- Email Change OTP Modal -->
+        <div id="emailOtpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">Verify Email Change</h3>
+                    <button id="closeEmailOtpModal" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="mb-4">
+                    <p class="text-sm text-gray-600 mb-4">
+                        We've sent a 6-digit verification code to <strong id="otp_email_email">your registered email</strong>. Please enter it below to confirm your email change.
+                    </p>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label for="otpCodeEmail" class="block text-sm font-medium text-gray-700">Verification Code</label>
+                            <input type="text" id="otpCodeEmail" maxlength="6"
+                                class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 text-center text-lg font-mono tracking-widest focus:border-blue-500 focus:ring-blue-500"
+                                placeholder="000000">
+                        </div>
+
+                        <div class="text-center">
+                            <button id="resendOtpBtnEmail" class="text-sm text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                <span class="resend-text">Didn't receive the code? Resend</span>
+                                <span class="resend-timer hidden">Resend in <span id="timerCountEmail">60</span>s</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex space-x-3">
+                    <button id="cancelEmailOtpBtn" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+                        Cancel
+                    </button>
+                    <button id="verifyEmailOtpBtn" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-500 disabled:bg-blue-300">
+                        <span class="verify-text">Verify</span>
+                        <span class="verify-loading hidden">
+                            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Verifying...
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
 
         {{-- Password Panel --}}
-        <!-- <div x-show="tab === 'password'" x-cloak>
+        <div x-show="tab === 'password'" x-cloak>
             <div class="rounded-xl border bg-card text-card-foreground shadow">
                 <div class="p-6 space-y-1.5">
                     <h3 class="text-lg font-semibold">Change Password</h3>
@@ -269,123 +339,33 @@
                             <input id="confirm_password" type="password" placeholder="Confirm Password"
                                 class="mt-1 block w-full rounded-md border-input px-3 py-2 text-sm shadow-sm focus:ring-1 focus:ring-ring focus:outline-none border-2">
                         </div>
+                        <div class="flex items-start space-x-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <svg class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                            </svg>
+                            <div class="text-sm text-blue-700">
+                                <p class="font-medium">Email Verification Required</p>
+                                <p>A verification code will be sent to your registered email address to confirm password changes.</p>
+                            </div>
+                        </div>
                         <div class="flex justify-end">
-                            <button type="button" @click="showPasswordModal = true"
+                              <button type="button" id="savePassBtn"
                                 class="text-sm rounded-md bg-blue-600 px-4 py-2 font-medium text-white shadow
-                                           transition-colors duration-200 hover:bg-blue-500 focus:outline-none focus:ring-1 focus:ring-ring">
-                                Update Password
+           transition-colors duration-200 hover:bg-blue-500 focus:outline-none focus:ring-1 focus:ring-ring">
+                                <span class="btn-text">Change Email</span> <!-- This will show when the button is not loading -->
+                                <span class="btn-loading hidden"> <!-- This will be hidden initially -->
+                                    <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Processing...
+                                </span>
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
-        </div> -->
-
-        {{-- Verification Required Modal (for Email) --}}
-        <!-- <div x-show="showEmailModal" x-cloak x-transition.opacity @keydown.escape.window="showEmailModal = false"
-            class="fixed inset-0 flex items-center justify-center z-50 modal-bg">
-            <div x-show="showEmailModal" x-cloak x-transition @click.away="showEmailModal = false" role="dialog"
-                aria-modal="true" aria-labelledby="verify-email-title" aria-describedby="verify-email-desc"
-                class="relative grid w-full max-w-lg gap-4 bg-white border p-6 shadow-lg rounded-lg"
-                style="transform: translate(-50%, -50%); top:50%; left:50%; position:absolute;">
-                <div class="flex flex-col space-y-1.5 text-center sm:text-left">
-                    <h2 id="verify-email-title" class="text-lg font-semibold">Verification Required</h2>
-                    <p id="verify-email-desc" class="text-sm text-muted-foreground">
-                        Please enter the one-time password sent to your email to confirm this change.
-                    </p>
-                </div>
-
-                <form class="space-y-4 py-4">
-                    <div class="grid gap-2">
-                        <label for="otp-email" class="text-sm font-medium">One-Time Password</label>
-                        <input id="otp-email" type="text" placeholder="Enter OTP"
-                            class="w-full h-9 px-3 py-1 text-sm rounded-md border border-input bg-transparent shadow-sm focus:outline-none focus:ring-1 focus:ring-ring transition-colors">
-                    </div>
-                    <div class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
-                        <button type="button"
-                            class="rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm
-                                       hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-                            @click="showEmailModal = false">
-                            Cancel
-                        </button>
-                        <button type="submit"
-                            class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow
-                                       transition-colors duration-200 hover:bg-blue-500 focus:outline-none focus:ring-1 focus:ring-ring">
-                            Verify
-                        </button>
-                    </div>
-                </form>
-
-                <button type="button"
-                    class="absolute top-4 right-4 opacity-70 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                    @click="showEmailModal = false">
-                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none"
-                        xmlns="http://www.w3.org/2000/svg" class="h-4 w-4">
-                        <path d="M11.7816 4.03157C12.0062 3.80702 12.0062 3.44295 11.7816 3.2184C11.5571 2.99385 11.193 2.99385
-                                       10.9685 3.2184L7.50005 6.68682L4.03164 3.2184C3.80708 2.99385 3.44301 2.99385 3.21846 3.2184C2.99391
-                                       3.44295 2.99391 3.80702 3.21846 4.03157L6.68688 7.49999L3.21846 10.9684C2.99391 11.193 2.99391 11.557
-                                       3.21846 11.7816C3.44301 12.0061 3.80708 12.0061 4.03164 11.7816L7.50005 8.31316L10.9685 11.7816C11.193
-                                       12.0061 11.5571 12.0061 11.7816 11.7816C12.0062 11.557 12.0062 11.193 11.7816 10.9684L8.31322 7.49999L11.7816
-                                       4.03157Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" />
-                    </svg>
-                    <span class="sr-only">Close</span>
-                </button>
-            </div>
-        </div> -->
-
-        {{-- Verification Required Modal (for Password) --}}
-        <!-- <div x-show="showPasswordModal" x-cloak x-transition.opacity
-            @keydown.escape.window="showPasswordModal = false"
-            class="fixed inset-0 flex items-center justify-center z-50 modal-bg">
-            <div x-show="showPasswordModal" x-cloak x-transition @click.away="showPasswordModal = false"
-                role="dialog" aria-modal="true" aria-labelledby="verify-password-title"
-                aria-describedby="verify-password-desc"
-                class="relative grid w-full max-w-lg gap-4 bg-white border p-6 shadow-lg rounded-lg"
-                style="transform: translate(-50%, -50%); top:50%; left:50%; position:absolute;">
-                <div class="flex flex-col space-y-1.5 text-center sm:text-left">
-                    <h2 id="verify-password-title" class="text-lg font-semibold">Verification Required</h2>
-                    <p id="verify-password-desc" class="text-sm text-muted-foreground">
-                        Please enter the one-time password sent to your email to confirm your password change.
-                    </p>
-                </div>
-
-                <form class="space-y-4 py-4">
-                    <div class="grid gap-2">
-                        <label for="otp-pass" class="text-sm font-medium">One-Time Password</label>
-                        <input id="otp-pass" type="text" placeholder="Enter OTP"
-                            class="w-full h-9 px-3 py-1 text-sm rounded-md border border-input bg-transparent shadow-sm focus:outline-none focus:ring-1 focus:ring-ring transition-colors">
-                    </div>
-                    <div class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
-                        <button type="button"
-                            class="rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm
-                                       hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-                            @click="showPasswordModal = false">
-                            Cancel
-                        </button>
-                        <button type="submit"
-                            class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow
-                                       transition-colors duration-200 hover:bg-blue-500 focus:outline-none focus:ring-1 focus:ring-ring">
-                            Verify
-                        </button>
-                    </div>
-                </form>
-
-                <button type="button"
-                    class="absolute top-4 right-4 opacity-70 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                    @click="showPasswordModal = false">
-                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none"
-                        xmlns="http://www.w3.org/2000/svg" class="h-4 w-4">
-                        <path d="M11.7816 4.03157C12.0062 3.80702 12.0062 3.44295 11.7816 3.2184C11.5571 2.99385 11.193 2.99385
-                                       10.9685 3.2184L7.50005 6.68682L4.03164 3.2184C3.80708 2.99385 3.44301 2.99385 3.21846 3.2184C2.99391
-                                       3.44295 2.99391 3.80702 3.21846 4.03157L6.68688 7.49999L3.21846 10.9684C2.99391 11.193 2.99391 11.557
-                                       3.21846 11.7816C3.44301 12.0061 3.80708 12.0061 4.03164 11.7816L7.50005 8.31316L10.9685 11.7816C11.193
-                                       12.0061 11.5571 12.0061 11.7816 11.7816C12.0062 11.557 12.0062 11.193 11.7816 10.9684L8.31322 7.49999L11.7816
-                                       4.03157Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" />
-                    </svg>
-                    <span class="sr-only">Close</span>
-                </button>
-            </div>
-        </div> -->
+        </div>
 
     </div>
 </main>
@@ -395,4 +375,6 @@
 <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="{{ asset('assets/js/change_name.js') }}"></script>
 <script src="{{ asset('assets/js/admin_details.js') }}"></script>
+<script src="{{ asset('assets/js/admin_change_email.js') }}"></script>
+<script src="{{ asset('assets/js/admin_change_password.js') }}"></script>
 @endsection

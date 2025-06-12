@@ -16,12 +16,12 @@ $(document).ready(function () {
      * Load current user data and populate both display and input fields
      */
     function loadUserData() {
-        console.log("AJAX request started");
+        // console.log("AJAX request started");
         $.ajax({
             url: "/settings/account/user-data",
             type: "GET",
             success: function (response) {
-                console.log(response);
+                // console.log(response);
                 if (response.success) {
                     const userData = response.data;
 

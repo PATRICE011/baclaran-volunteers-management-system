@@ -64,8 +64,3 @@ function uploadProfilePicture(file) {
         }
     });
 }
-
-// Call loadUserData when page loads
-// $(document).ready(function() {
-//     loadUserData();
-// });

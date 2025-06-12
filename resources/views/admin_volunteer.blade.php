@@ -8,14 +8,10 @@
         background: rgba(0, 0, 0, 0.5);
     }
 
-    /* Make sure the container of the email address is scrollable horizontally */
     .text-base {
         white-space: nowrap;
-        /* Prevent text from wrapping */
         overflow-x: auto;
-        /* Allow horizontal scroll if the text is too long */
         max-width: 100%;
-        /* Make sure it doesn't overflow the container */
     }
 
     .profile-tab.active-tab {
@@ -32,13 +28,11 @@
         transition: opacity 0.2s ease-in-out;
     }
 
-    /* Add to your CSS */
+
     .editable-input {
         padding-right: 2.5rem;
-        /* Prevent pen icon overlap */
     }
 
-    /* Optional: remove default arrow in select (optional) */
     select::-ms-expand {
         display: none;
     }

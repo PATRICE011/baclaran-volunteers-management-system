@@ -54,8 +54,12 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
         Route::prefix('account')->name('account.')->group(function () {
 
         Route::get('/user-data', [AccountSettingsController::class, 'getUserData'])->name('user.data');
-        Route::post('/name-change/request-otp', [AccountSettingsController::class, 'requestNameChangeOTP'])->name('name.change.request');
-        Route::post('/name-change/verify-otp', [AccountSettingsController::class, 'verifyNameChangeOTP'])->name('name.change.verify');
+        Route::post('/name-change/request-otp', [AccountSettingsController::class, 'requestNameChangeOTP']);
+        Route::post('/name-change/verify-otp', [AccountSettingsController::class, 'verifyOTP']);
+        
+        Route::post('/email-change/request-otp', [AccountSettingsController::class, 'requestEmailChangeOTP']);
+        Route::post('/email-change/verify-otp', [AccountSettingsController::class, 'verifyEmailOTP']);
+        
         Route::post('/resend-otp', [AccountSettingsController::class, 'resendOTP'])->name('resend.otp');
         
 

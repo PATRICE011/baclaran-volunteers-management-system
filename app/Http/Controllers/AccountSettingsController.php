@@ -25,8 +25,7 @@ class AccountSettingsController extends Controller
      */
     public function index()
     {
-        $user = Auth::user();
-        return view('account.settings', compact('user'));
+        return view('admin_settings');
     }
 
     /**
@@ -199,7 +198,7 @@ class AccountSettingsController extends Controller
     /**
      * Verify OTP and update name
      */
-    public function verifyNameChangeOTP(Request $request)
+    public function verifyOTP(Request $request)
     {
         try {
             $validator = Validator::make($request->all(), [
@@ -335,4 +334,94 @@ class AccountSettingsController extends Controller
             ], 500);
         }
     }
+
+   public function requestEmailChangeOTP(Request $request)
+{
+    try {
+        $request->validate([
+            'email' => 'required|email|unique:users,email',
+        ]);
+
+        $user = Auth::user();
+        $newEmail = $request->email;
+
+        // Delete any existing OTP for email change purpose
+        UserOtp::where('user_id', $user->id)
+            ->where('purpose', 'email_change')
+            ->where('is_used', false)
+            ->delete();
+
+        // Generate OTP
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        // Store OTP with pending email data
+        UserOtp::create([
+            'user_id' => $user->id,
+            'otp' => $otp,
+            'purpose' => 'email_change',
+            'pending_data' => [
+                'email' => $newEmail, // Store the new email here
+            ],
+            'expires_at' => now()->addMinutes(10),
+        ]);
+
+        // Send OTP to the user's registered email
+        $this->mailService->sendOTP($user->email, $user->name, $otp, 'email_change');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'OTP has been sent to your email address.',
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Email OTP request failed: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to send OTP. Please try again later.',
+        ], 500);
+    }
+}
+
+public function verifyEmailOTP(Request $request)
+{
+    try {
+        $request->validate([
+            'otp' => 'required|digits:6',
+            'email' => 'required|email',
+        ]);
+
+        $user = Auth::user();
+        $otpRecord = UserOtp::where('user_id', $user->id)
+            ->where('otp', $request->otp)
+            ->where('purpose', 'email_change')
+            ->where('is_used', false)
+            ->first();
+
+        if (!$otpRecord) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid OTP.',
+            ]);
+        }
+
+        // Mark OTP as used
+        $otpRecord->update(['is_used' => true]);
+
+        // Update user's email using the pending data
+        $user->update([
+            'email' => $otpRecord->pending_data['email'], // Use the stored new email
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Email updated successfully.',
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Email OTP verification failed: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'An error occurred while verifying the OTP.',
+        ], 500);
+    }
+}
+
 }
