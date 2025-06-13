@@ -387,7 +387,7 @@
 
         <!-- Password Change OTP Modal -->
 
-        <!-- <div id="passwordOtpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div id="passwordOtpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
             <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-semibold">Verify Password Change</h3>
@@ -436,7 +436,7 @@
                     </button>
                 </div>
             </div>
-        </div> -->
+        </div>
 
 
     </div>
@@ -448,5 +448,5 @@
 <script src="{{ asset('assets/js/change_name.js') }}"></script>
 <script src="{{ asset('assets/js/admin_details.js') }}"></script>
 <script src="{{ asset('assets/js/admin_change_email.js') }}"></script>
-<!-- <script src="{{ asset('assets/js/admin_change_password.js') }}"></script> -->
+<script src="{{ asset('assets/js/admin_change_password.js') }}"></script>
 @endsection

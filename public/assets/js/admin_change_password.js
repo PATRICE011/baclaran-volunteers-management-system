@@ -8,6 +8,8 @@ $(document).ready(function () {
             $("#passwordOtpModal").addClass("hidden");
             // Clear OTP input
             $("#otpCodePassword").val("");
+            // Clear any running timer
+            clearPasswordResendTimer();
         }
     );
 
@@ -66,7 +68,7 @@ $(document).ready(function () {
                     toastr.success(data.message);
                     showPasswordOtpModal();
                     // Start resend OTP timer after OTP request
-                    resetResendTimer($("#passwordOtpModal"));
+                    resetPasswordResendTimer();
                 } else {
                     toastr.error(data.message);
                 }
@@ -154,7 +156,7 @@ $(document).ready(function () {
         $(this).val(value);
     });
 
-    // Helper functions (unchanged)
+    // Helper functions for button loading states
     function showButtonLoading(selector) {
         const $btn = $(selector);
         $btn.prop("disabled", true);
@@ -181,53 +183,70 @@ $(document).ready(function () {
         $("#verifyPasswordOtpBtn .verify-loading").addClass("hidden");
     }
 
-    let resendTimers = {}; // Store timers for different modals
+    // Password-specific timer variables
+    let passwordResendTimer = null;
 
-    // Reset Resend Timer for a specific modal (purpose)
-    function resetResendTimer($modal, purpose) {
+    // Reset Resend Timer specifically for password OTP
+    function resetPasswordResendTimer() {
         let resendTimeLeft = 60;
-        const $resendBtn = $modal.find(`#resendOtpBtn${purpose}`);
-        const $timerCount = $modal.find(`#timerCount${purpose}`);
+        const $modal = $("#passwordOtpModal");
+        const $resendBtn = $("#resendOtpBtnPassword");
+        const $timerCount = $("#timerCountPassword");
+
+        // Clear any existing timer
+        clearPasswordResendTimer();
+
+        // Restore the original button HTML structure first
+        $resendBtn.html(`
+            <span class="resend-text">Didn't receive the code? Resend</span>
+            <span class="resend-timer hidden">Resend in <span id="timerCountPassword">60</span>s</span>
+        `);
 
         // Disable resend button while timer is running
         $resendBtn.prop("disabled", true);
-        $modal.find(".resend-text").addClass("hidden");
-        $modal.find(".resend-timer").removeClass("hidden");
-        $timerCount.text(resendTimeLeft);
+        $resendBtn.find(".resend-text").addClass("hidden");
+        $resendBtn.find(".resend-timer").removeClass("hidden");
+        $resendBtn.find("#timerCountPassword").text(resendTimeLeft);
 
-        // Clear any existing timer for this modal to avoid conflicts
-        clearResendTimer(purpose);
-
-        resendTimers[purpose] = setInterval(function () {
+        passwordResendTimer = setInterval(function () {
             resendTimeLeft--;
-            $timerCount.text(resendTimeLeft);
+            $resendBtn.find("#timerCountPassword").text(resendTimeLeft);
 
             if (resendTimeLeft <= 0) {
-                clearResendTimer(purpose);
-                $resendBtn.prop("disabled", false); // Enable resend button once timer expires
-                $modal.find(".resend-text").removeClass("hidden");
-                $modal.find(".resend-timer").addClass("hidden");
+                clearPasswordResendTimer();
+                $resendBtn.prop("disabled", false);
+                $resendBtn.find(".resend-text").removeClass("hidden");
+                $resendBtn.find(".resend-timer").addClass("hidden");
             }
         }, 1000);
     }
 
-    // Clear timer for specific modal (purpose)
-    function clearResendTimer(purpose) {
-        if (resendTimers[purpose]) {
-            clearInterval(resendTimers[purpose]);
-            delete resendTimers[purpose];
+    // Clear password resend timer
+    function clearPasswordResendTimer() {
+        if (passwordResendTimer) {
+            clearInterval(passwordResendTimer);
+            passwordResendTimer = null;
         }
     }
 
     // Resend OTP for Password Change
     $("#resendOtpBtnPassword").on("click", function () {
+        const currentPassword = $("#current_password").val().trim();
+        const newPassword = $("#new_password").val().trim();
+        const confirmPassword = $("#confirm_password").val().trim();
+
         const otpRequestData = {
+            current_password: currentPassword,
+            password: newPassword,
+            password_confirmation: confirmPassword,
             purpose: "password_change", // purpose of OTP request
         };
 
-        // Disable the button to prevent multiple submissions while the request is in progress
-        $(this).prop("disabled", true);
-        $(this).text("Resending...");
+        // Show loading state on resend button
+        const $resendBtn = $(this);
+        const originalHTML = $resendBtn.html();
+        $resendBtn.prop("disabled", true);
+        $resendBtn.html("Resending...");
 
         // Request OTP resend
         fetch("/settings/account/password-change/request-otp", {
@@ -242,9 +261,14 @@ $(document).ready(function () {
             .then((data) => {
                 if (data.success) {
                     toastr.success(data.message);
-                    resetResendTimer($("#passwordOtpModal"), "Password"); // Reset OTP timer for password
+                    // First restore the original HTML structure, then start timer
+                    $resendBtn.html(originalHTML);
+                    resetPasswordResendTimer();
                 } else {
                     toastr.error(data.message);
+                    // Re-enable button if request failed
+                    $resendBtn.prop("disabled", false);
+                    $resendBtn.html(originalHTML);
                 }
             })
             .catch((error) => {
@@ -252,15 +276,14 @@ $(document).ready(function () {
                     "An error occurred: " +
                         (error.message || "Please try again later.")
                 );
-            })
-            .finally(() => {
-                // Re-enable the button after the request completes
-                $("#resendOtpBtnPassword").prop("disabled", false);
-                $("#resendOtpBtnPassword").text("Resend OTP");
+                // Re-enable button if request failed
+                $resendBtn.prop("disabled", false);
+                $resendBtn.html(originalHTML);
             });
     });
 
-    // Toggle password visibility (unchanged)
+
+    // Toggle password visibility functions
     function togglePasswordVisibility(inputId, toggleButtonId) {
         const input = document.getElementById(inputId);
         const toggleButton = document.getElementById(toggleButtonId);
@@ -275,25 +298,19 @@ $(document).ready(function () {
         }
     }
 
-    // Attach event listeners (unchanged)
-    document
-        .getElementById("toggleCurrentPassword")
-        ?.addEventListener("click", function () {
+    // Attach event listeners for password visibility toggles
+    document.getElementById("toggleCurrentPassword")?.addEventListener("click", function () {
             togglePasswordVisibility(
                 "current_password",
                 "toggleCurrentPassword"
             );
         });
 
-    document
-        .getElementById("toggleNewPassword")
-        ?.addEventListener("click", function () {
+    document.getElementById("toggleNewPassword")?.addEventListener("click", function () {
             togglePasswordVisibility("new_password", "toggleNewPassword");
         });
 
-    document
-        .getElementById("toggleConfirmPassword")
-        ?.addEventListener("click", function () {
+    document.getElementById("toggleConfirmPassword")?.addEventListener("click", function () {
             togglePasswordVisibility(
                 "confirm_password",
                 "toggleConfirmPassword"

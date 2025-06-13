@@ -209,8 +209,16 @@ $(document).ready(function () {
     /**
      * Resend OTP Button Click Handler
      */
+
     $("#resendOtpBtn").on("click", function () {
         if ($(this).prop("disabled")) return;
+
+        // Store original HTML and show loading state
+        const $resendBtn = $(this);
+        const originalHTML = $resendBtn.html();
+
+        $resendBtn.prop("disabled", true);
+        $resendBtn.html("Resending...");
 
         $.ajax({
             url: "settings/account/resend-otp",
@@ -221,16 +229,24 @@ $(document).ready(function () {
             success: function (response) {
                 if (response.success) {
                     toastr.success(response.message);
+                    // Restore original HTML first, then start timer
+                    $resendBtn.html(originalHTML);
                     resetResendTimer();
                     $("#otpCode").val("").focus();
                 } else {
                     toastr.error(response.message);
+                    // Restore button if failed
+                    $resendBtn.prop("disabled", false);
+                    $resendBtn.html(originalHTML);
                 }
             },
             error: function (xhr) {
                 toastr.error(
                     xhr.responseJSON?.message || "Failed to resend OTP"
                 );
+                // Restore button if failed
+                $resendBtn.prop("disabled", false);
+                $resendBtn.html(originalHTML);
             },
         });
     });
