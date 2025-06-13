@@ -3,6 +3,8 @@ $(document).ready(function () {
     $(document).on("click", "#closeEmailOtpModal", function () {
         // Hide the OTP modal
         $("#emailOtpModal").addClass("hidden");
+        // Clear any running timers when modal is closed
+        clearResendTimer("Email");
     });
 
     // Handle Email Update Request
@@ -58,8 +60,15 @@ $(document).ready(function () {
 
     // Email OTP Modal Handlers
     function setupEmailOtpModalHandlers($modal, newEmail) {
+        // Remove any existing event handlers to prevent duplicate bindings
+        $modal.find("#cancelEmailOtpBtn").off("click");
+        $modal.find("#otpCodeEmail").off("input");
+        $modal.find("#verifyEmailOtpBtn").off("click");
+        $("#resendOtpBtnEmail").off("click");
+
         $modal.find("#cancelEmailOtpBtn").on("click", function () {
             $modal.addClass("hidden");
+            clearResendTimer("Email"); // Clear timer when canceling
         });
 
         $modal.find("#otpCodeEmail").on("input", function () {
@@ -92,6 +101,7 @@ $(document).ready(function () {
                     if (response.success) {
                         toastr.success(response.message);
                         $modal.addClass("hidden");
+                        clearResendTimer("Email"); // Clear timer when verification succeeds
 
                         // Update the UI with the new email
                         $("#current_email").text(newEmail);
@@ -126,7 +136,10 @@ $(document).ready(function () {
             };
 
             $(this).prop("disabled", true);
-            $(this).text("Resending...");
+            // Hide the normal text and show a loading state
+            $modal.find(".resend-text").addClass("hidden");
+            $modal.find(".resend-timer").addClass("hidden");
+            $(this).html('<span class="resending-text">Resending...</span>');
 
             $.ajax({
                 url: "/settings/account/resend-otp", // Endpoint to resend OTP
@@ -135,28 +148,77 @@ $(document).ready(function () {
                 success: function (response) {
                     if (response.success) {
                         toastr.success(response.message);
-                        resetResendTimer($("#emailOtpModal"), "Email");
+                        // Restore the original HTML structure and start timer
+                        $("#resendOtpBtnEmail").html(`
+                            <span class="resend-text">Didn't receive the code? Resend</span>
+                            <span class="resend-timer hidden">Resend in <span id="timerCountEmail">60</span>s</span>
+                        `);
+                        resetResendTimer($modal, "Email");
                     } else {
                         toastr.error(response.message);
+                        // Restore original structure and re-enable
+                        $("#resendOtpBtnEmail").html(`
+                            <span class="resend-text">Didn't receive the code? Resend</span>
+                            <span class="resend-timer hidden">Resend in <span id="timerCountEmail">60</span>s</span>
+                        `);
+                        $("#resendOtpBtnEmail").prop("disabled", false);
                     }
                 },
                 error: function (xhr) {
                     toastr.error(
                         xhr.responseJSON?.message || "Failed to resend OTP"
                     );
-                },
-                complete: function () {
-                    // Re-enable the button after the request completes
+                    // Restore original structure and re-enable
+                    $("#resendOtpBtnEmail").html(`
+                        <span class="resend-text">Didn't receive the code? Resend</span>
+                        <span class="resend-timer hidden">Resend in <span id="timerCountEmail">60</span>s</span>
+                    `);
                     $("#resendOtpBtnEmail").prop("disabled", false);
-                    $("#resendOtpBtnEmail").text("Resend OTP");
                 },
             });
         });
 
-        resetResendTimer($modal); // Start the timer for resending OTP
+        resetResendTimer($modal, "Email"); // Start the timer with correct purpose parameter
     }
 
-   
+    let resendTimers = {}; // Store timers for different modals
+
+    // Reset Resend Timer for a specific modal (purpose)
+    function resetResendTimer($modal, purpose) {
+        let resendTimeLeft = 60;
+        // Fix the selector to match your actual HTML IDs
+        const $resendBtn = $("#resendOtpBtnEmail");
+        const $timerCount = $("#timerCountEmail");
+
+        // Disable resend button while timer is running
+        $resendBtn.prop("disabled", true);
+        $modal.find(".resend-text").addClass("hidden");
+        $modal.find(".resend-timer").removeClass("hidden");
+        $timerCount.text(resendTimeLeft);
+
+        // Clear any existing timer for this modal to avoid conflicts
+        clearResendTimer(purpose);
+
+        resendTimers[purpose] = setInterval(function () {
+            resendTimeLeft--;
+            $timerCount.text(resendTimeLeft);
+
+            if (resendTimeLeft <= 0) {
+                clearResendTimer(purpose);
+                $resendBtn.prop("disabled", false); // Enable resend button once timer expires
+                $modal.find(".resend-text").removeClass("hidden");
+                $modal.find(".resend-timer").addClass("hidden");
+            }
+        }, 1000);
+    }
+
+    // Clear timer for specific modal (purpose)
+    function clearResendTimer(purpose) {
+        if (resendTimers[purpose]) {
+            clearInterval(resendTimers[purpose]);
+            delete resendTimers[purpose];
+        }
+    }
 
     // Helper function to show loading state on button
     function showButtonLoading(selector) {

@@ -264,7 +264,7 @@
             </div>
         </div>
         <!-- Email Change OTP Modal -->
-        <!-- <div id="emailOtpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div id="emailOtpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
             <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-semibold">Verify Email Change</h3>
@@ -313,7 +313,7 @@
                     </button>
                 </div>
             </div>
-        </div> -->
+        </div>
 
         {{-- Password Panel --}}
         <div x-show="tab === 'password'" x-cloak>
@@ -447,6 +447,6 @@
 <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="{{ asset('assets/js/change_name.js') }}"></script>
 <script src="{{ asset('assets/js/admin_details.js') }}"></script>
-<!-- <script src="{{ asset('assets/js/admin_change_email.js') }}"></script>
-<script src="{{ asset('assets/js/admin_change_password.js') }}"></script> -->
+<script src="{{ asset('assets/js/admin_change_email.js') }}"></script>
+<!-- <script src="{{ asset('assets/js/admin_change_password.js') }}"></script> -->
 @endsection
