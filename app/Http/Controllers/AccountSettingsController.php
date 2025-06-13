@@ -24,9 +24,9 @@ class AccountSettingsController extends Controller
     /**
      * Show the account settings page
      */
-    public function index()
-    {
-        return view('admin_settings');
+      public function index(){
+        $user = Auth::user();
+        return view('admin_accountsettings', compact('user'));
     }
 
     /**

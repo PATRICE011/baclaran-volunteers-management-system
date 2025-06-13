@@ -86,7 +86,7 @@
 @section('content')
     @include('components.navs')
 
-    <div class="flex-1 flex flex-col overflow-auto p-6 space-y-6">
+    <div class="flex-1 flex flex-col overflow-auto p-6 space-y-6 md:ml-64">
         <!-- Header -->
         <div class="flex justify-between items-center">
             <h1 class="text-2xl font-bold">Schedule Calendar</h1>

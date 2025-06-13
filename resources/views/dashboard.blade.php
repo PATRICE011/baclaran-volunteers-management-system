@@ -1,49 +1,53 @@
 @extends('components.layout')
 @section('title', 'Dashboard')
 @section('styles')
-    <link rel="stylesheet" href="{{ asset('assets/css/admin_dashboard.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/admin_dashboard.css') }}">
 @endsection
 @section('content')
 
-    <body class="bg-gray-50">
-        @php
-            $current = request()->is('dashboard') ? 'active' : '';
+<body class="bg-gray-50">
+    @php
+    $current = request()->is('dashboard') ? 'active' : '';
 
-            $metrics = [
-                'totalVolunteers' => 124,
-                'activeVolunteers' => 98,
-                'upcomingEvents' => 12,
-                'taskCompletionRate' => 78,
-                'recentVolunteers' => [
-                    ['id' => 1, 'name' => 'Sarah Johnson', 'role' => 'Worship Team', 'avatar' => 'SJ'],
-                    ['id' => 2, 'name' => 'Michael Chen', 'role' => "Children's Ministry", 'avatar' => 'MC'],
-                    ['id' => 3, 'name' => 'David Wilson', 'role' => 'Tech Team', 'avatar' => 'DW'],
-                    ['id' => 4, 'name' => 'Rebecca Taylor', 'role' => 'Hospitality', 'avatar' => 'RT'],
-                ],
-                'upcomingTasks' => [
-                    [
-                        'id' => 1,
-                        'title' => 'Sunday Service Setup',
-                        'date' => '2023-06-18',
-                        'assignee' => 'David Wilson',
-                    ],
-                    [
-                        'id' => 2,
-                        'title' => "Children's Program Preparation",
-                        'date' => '2023-06-17',
-                        'assignee' => 'Michael Chen',
-                    ],
-                    [
-                        'id' => 3,
-                        'title' => 'Worship Team Rehearsal',
-                        'date' => '2023-06-16',
-                        'assignee' => 'Sarah Johnson',
-                    ],
-                ],
-            ];
-        @endphp
-        <!-- Main Content -->
-        @include('components.navs')
+    $metrics = [
+    'totalVolunteers' => 124,
+    'activeVolunteers' => 98,
+    'upcomingEvents' => 12,
+    'taskCompletionRate' => 78,
+    'recentVolunteers' => [
+    ['id' => 1, 'name' => 'Sarah Johnson', 'role' => 'Worship Team', 'avatar' => 'SJ'],
+    ['id' => 2, 'name' => 'Michael Chen', 'role' => "Children's Ministry", 'avatar' => 'MC'],
+    ['id' => 3, 'name' => 'David Wilson', 'role' => 'Tech Team', 'avatar' => 'DW'],
+    ['id' => 4, 'name' => 'Rebecca Taylor', 'role' => 'Hospitality', 'avatar' => 'RT'],
+    ],
+    'upcomingTasks' => [
+    [
+    'id' => 1,
+    'title' => 'Sunday Service Setup',
+    'date' => '2023-06-18',
+    'assignee' => 'David Wilson',
+    ],
+    [
+    'id' => 2,
+    'title' => "Children's Program Preparation",
+    'date' => '2023-06-17',
+    'assignee' => 'Michael Chen',
+    ],
+    [
+    'id' => 3,
+    'title' => 'Worship Team Rehearsal',
+    'date' => '2023-06-16',
+    'assignee' => 'Sarah Johnson',
+    ],
+    ],
+    ];
+    @endphp
+
+    <!-- Include Navigation -->
+    @include('components.navs')
+
+    <!-- Main Content Container - Add left margin to account for fixed sidebar -->
+    <div class="md:ml-64">
         <!-- Dashboard Content -->
         <main class="flex-1 overflow-auto p-4 sm:p-6">
             <div class="grid gap-6">
@@ -162,195 +166,196 @@
                                 <div class="h-48 flex items-end gap-2 justify-between mt-4">
                                     @for ($i = 0; $i < 7; $i++)
                                         <div class="bg-blue-500 rounded-t w-full" style="height: {{ rand(20, 120) }}px;">
-                                        </div>
-                                    @endfor
                                 </div>
-                            </div>
-                            <!-- Quick Actions -->
-                            <div class="bg-white rounded shadow p-4 lg:col-span-3">
-                                <div>
-                                    <h3 class="text-lg font-semibold">Quick Actions</h3>
-                                    <p class="text-sm text-gray-500">Common tasks and actions</p>
-                                </div>
-                                <div class="space-y-2 mt-4">
-                                    <a href="{{ url('/volunteers') }}"
-                                        class="flex justify-between items-center border px-3 py-2 rounded hover:bg-blue-500 hover:text-white">
-                                        <span class="flex items-center gap-2">
-                                            <!-- Users Icon -->
-                                            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M17 20h5v-2a4 4 0 00-3-3.87M9 20h5v-2a4 4 0 00-3-3.87M9 20V10a4 4 0 00-8 0v10m12-10a4 4 0 018 0v10" />
-                                            </svg>
-                                            Add New Volunteer
-                                        </span>
-                                        <span>
-                                            <!-- Chevron Right Icon -->
-                                            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M9 5l7 7-7 7" />
-                                            </svg>
-                                        </span>
-                                    </a>
-
-                                    <a href="{{ url('/schedule') }}"
-                                        class="flex justify-between items-center border px-3 py-2 rounded hover:bg-blue-500 hover:text-white">
-                                        <span class="flex items-center gap-2">
-                                            <!-- Calendar Icon -->
-                                            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M8 7V3m8 4V3M3 11h18M5 20h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v11a2 2 0 002 2z" />
-                                            </svg>
-                                            Schedule Event
-                                        </span>
-                                        <span>
-                                            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M9 5l7 7-7 7" />
-                                            </svg>
-                                        </span>
-                                    </a>
-
-                                    <a href="{{ url('/tasks') }}"
-                                        class="flex justify-between items-center border px-3 py-2 rounded hover:bg-blue-500 hover:text-white">
-                                        <span class="flex items-center gap-2">
-                                            <!-- List Icon -->
-                                            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M9 5l7 7-7 7" />
-                                            </svg>
-                                            Create Task
-                                        </span>
-                                        <span>
-                                            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M9 5l7 7-7 7" />
-                                            </svg>
-                                        </span>
-                                    </a>
-                                </div>
+                                @endfor
                             </div>
                         </div>
-                    </div>
-
-                    <div id="volunteers" class="hidden mt-4">
-                        <div class="bg-white rounded shadow p-4">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h3 class="text-lg font-semibold">Recent Volunteers</h3>
-                                    <p class="text-sm text-gray-500">Recently active volunteers</p>
-                                </div>
+                        <!-- Quick Actions -->
+                        <div class="bg-white rounded shadow p-4 lg:col-span-3">
+                            <div>
+                                <h3 class="text-lg font-semibold">Quick Actions</h3>
+                                <p class="text-sm text-gray-500">Common tasks and actions</p>
+                            </div>
+                            <div class="space-y-2 mt-4">
                                 <a href="{{ url('/volunteers') }}"
-                                    class="py-1 px-2 border rounded hover:bg-blue-500 hover:text-white inline-flex items-center">
-                                    <!-- Plus Icon -->
-                                    <svg class="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 4v16m8-8H4" />
-                                    </svg>
-                                    Add Volunteer
+                                    class="flex justify-between items-center border px-3 py-2 rounded hover:bg-blue-500 hover:text-white">
+                                    <span class="flex items-center gap-2">
+                                        <!-- Users Icon -->
+                                        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17 20h5v-2a4 4 0 00-3-3.87M9 20h5v-2a4 4 0 00-3-3.87M9 20V10a4 4 0 00-8 0v10m12-10a4 4 0 018 0v10" />
+                                        </svg>
+                                        Add New Volunteer
+                                    </span>
+                                    <span>
+                                        <!-- Chevron Right Icon -->
+                                        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </span>
                                 </a>
-                            </div>
-                            <div class="mt-4 space-y-4">
-                                @foreach ($metrics['recentVolunteers'] as $volunteer)
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-8 h-8 rounded-full overflow-hidden">
-                                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ urlencode($volunteer['name']) }}"
-                                                    alt="{{ $volunteer['name'] }}">
-                                            </div>
-                                            <div>
-                                                <p class="text-sm font-medium">{{ $volunteer['name'] }}</p>
-                                                <p class="text-xs text-gray-500">{{ $volunteer['role'] }}</p>
-                                            </div>
-                                        </div>
-                                        <a href="#" class="p-1 border rounded hover:bg-blue-500 hover:text-white">
-                                            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M9 5l7 7-7 7" />
-                                            </svg>
-                                        </a>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
 
-                    <div id="tasks" class="hidden mt-4">
-                        <div class="bg-white rounded shadow p-4">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h3 class="text-lg font-semibold">Upcoming Tasks</h3>
-                                    <p class="text-sm text-gray-500">Tasks scheduled for the next 7 days</p>
-                                </div>
-                                <a href="{{ url('/tasks') }}"
-                                    class="py-1 px-2 border rounded hover:bg-blue-500 hover:text-white inline-flex items-center">
-                                    <!-- Plus Icon -->
-                                    <svg class="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 4v16m8-8H4" />
-                                    </svg>
-                                    Add Task
+                                <a href="{{ url('/schedule') }}"
+                                    class="flex justify-between items-center border px-3 py-2 rounded hover:bg-blue-500 hover:text-white">
+                                    <span class="flex items-center gap-2">
+                                        <!-- Calendar Icon -->
+                                        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 7V3m8 4V3M3 11h18M5 20h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v11a2 2 0 002 2z" />
+                                        </svg>
+                                        Schedule Event
+                                    </span>
+                                    <span>
+                                        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </span>
                                 </a>
-                            </div>
-                            <div class="mt-4 space-y-4">
-                                @foreach ($metrics['upcomingTasks'] as $task)
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            <p class="text-sm font-medium">{{ $task['title'] }}</p>
-                                            <div class="flex items-center gap-2 text-xs text-gray-500">
-                                                <span>{{ $task['date'] }}</span>
-                                                <span>•</span>
-                                                <span>{{ $task['assignee'] }}</span>
-                                            </div>
-                                        </div>
-                                        <a href="#"
-                                            class="py-1 px-2 border rounded hover:bg-blue-500 hover:text-white">
-                                            View
-                                        </a>
-                                    </div>
-                                @endforeach
+
+                                <a href="{{ url('/tasks') }}"
+                                    class="flex justify-between items-center border px-3 py-2 rounded hover:bg-blue-500 hover:text-white">
+                                    <span class="flex items-center gap-2">
+                                        <!-- List Icon -->
+                                        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 5l7 7-7 7" />
+                                        </svg>
+                                        Create Task
+                                    </span>
+                                    <span>
+                                        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </span>
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <div id="volunteers" class="hidden mt-4">
+                    <div class="bg-white rounded shadow p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold">Recent Volunteers</h3>
+                                <p class="text-sm text-gray-500">Recently active volunteers</p>
+                            </div>
+                            <a href="{{ url('/volunteers') }}"
+                                class="py-1 px-2 border rounded hover:bg-blue-500 hover:text-white inline-flex items-center">
+                                <!-- Plus Icon -->
+                                <svg class="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4" />
+                                </svg>
+                                Add Volunteer
+                            </a>
+                        </div>
+                        <div class="mt-4 space-y-4">
+                            @foreach ($metrics['recentVolunteers'] as $volunteer)
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full overflow-hidden">
+                                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ urlencode($volunteer['name']) }}"
+                                            alt="{{ $volunteer['name'] }}">
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium">{{ $volunteer['name'] }}</p>
+                                        <p class="text-xs text-gray-500">{{ $volunteer['role'] }}</p>
+                                    </div>
+                                </div>
+                                <a href="#" class="p-1 border rounded hover:bg-blue-500 hover:text-white">
+                                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </a>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tasks" class="hidden mt-4">
+                    <div class="bg-white rounded shadow p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold">Upcoming Tasks</h3>
+                                <p class="text-sm text-gray-500">Tasks scheduled for the next 7 days</p>
+                            </div>
+                            <a href="{{ url('/tasks') }}"
+                                class="py-1 px-2 border rounded hover:bg-blue-500 hover:text-white inline-flex items-center">
+                                <!-- Plus Icon -->
+                                <svg class="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4" />
+                                </svg>
+                                Add Task
+                            </a>
+                        </div>
+                        <div class="mt-4 space-y-4">
+                            @foreach ($metrics['upcomingTasks'] as $task)
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium">{{ $task['title'] }}</p>
+                                    <div class="flex items-center gap-2 text-xs text-gray-500">
+                                        <span>{{ $task['date'] }}</span>
+                                        <span>•</span>
+                                        <span>{{ $task['assignee'] }}</span>
+                                    </div>
+                                </div>
+                                <a href="#"
+                                    class="py-1 px-2 border rounded hover:bg-blue-500 hover:text-white">
+                                    View
+                                </a>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
-        </div>
-        </div>
+    </div>
 
-    @endsection
-    @section('scripts')
-        <!-- Simple Tabs Script -->
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const tabButtons = document.querySelectorAll('[data-target]');
-                const tabContents = document.querySelectorAll('#overview, #volunteers, #tasks');
+@endsection
 
-                tabButtons.forEach(button => {
-                    button.addEventListener('click', function() {
-                        // Remove active class from all tabs and hide contents
-                        tabButtons.forEach(btn => {
-                            btn.classList.remove('border-blue-500');
-                            btn.classList.add('border-transparent');
-                        });
-                        tabContents.forEach(content => content.classList.add('hidden'));
+@section('scripts')
+<!-- Simple Tabs Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabButtons = document.querySelectorAll('[data-target]');
+        const tabContents = document.querySelectorAll('#overview, #volunteers, #tasks');
 
-                        // Activate the selected tab and content
-                        this.classList.remove('border-transparent');
-                        this.classList.add('border-blue-500');
-                        const target = this.getAttribute('data-target');
-                        document.getElementById(target).classList.remove('hidden');
-                    });
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active styling from all buttons
+                tabButtons.forEach(btn => {
+                    btn.classList.remove('bg-white', 'shadow');
+                    btn.classList.add('hover:bg-white', 'hover:text-gray-800');
                 });
+
+                // Hide all tab contents
+                tabContents.forEach(content => content.classList.add('hidden'));
+
+                // Activate the selected tab and content
+                this.classList.add('bg-white', 'shadow');
+                this.classList.remove('hover:bg-white', 'hover:text-gray-800');
+                
+                const target = this.getAttribute('data-target');
+                document.getElementById(target).classList.remove('hidden');
             });
-        </script>
-    @endsection
+        });
+    });
+</script>
+@endsection

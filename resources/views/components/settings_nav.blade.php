@@ -7,7 +7,6 @@
         </a>
     </div>
 
-
     <div class="flex-1 overflow-auto py-2">
         <nav class="grid gap-1 px-2">
             @php
@@ -17,46 +16,24 @@
             }
             @endphp
 
-            <!-- Dashboard Link -->
-            <a href="{{ url('/dashboard') }}" class="flex items-center gap-3 rounded-md px-3 py-2 {{ navActive('dashboard') }}">
-                <!-- Dashboard Icon (Boxicon) -->
-                <i class="bx bx-home h-5 w-5"></i>
-                <span>Dashboard</span>
+            <!-- Account Settings Link -->
+            <a href="{{ url('/settings') }}" class="flex items-center gap-3 rounded-md px-3 py-2 {{ navActive('settings') }}">
+                <!-- Account Settings Icon (Boxicon) -->
+                <i class="bx bx-cog h-5 w-5"></i>
+                <span>Account Settings</span>
             </a>
 
-            <!-- Volunteers Link -->
-            <a href="{{ url('/volunteers') }}" class="flex items-center gap-3 rounded-md px-3 py-2 {{ navActive('volunteers') }}">
-                <!-- Users Icon (Boxicon) -->
-                <i class="bx bx-group h-5 w-5"></i>
-                <span>Volunteers</span>
+            <a href="{{ url('/role') }}" class="flex items-center gap-3 rounded-md px-3 py-2 {{ navActive('role') }}">
+                <!-- Role Management Icon (Boxicons) -->
+                <i class="bx bx-user-circle h-5 w-5 text-gray-600"></i>
+                <span>Role Management</span>
             </a>
 
-            <!-- Ministries Link -->
-            <a href="{{ url('/ministries') }}" class="flex items-center gap-3 rounded-md px-3 py-2 {{ navActive('ministries') }}">
-                <!-- Ministry Icon (Boxicon) -->
-                <i class="bx bx-church h-5 w-5"></i>
-                <span>Ministries</span>
-            </a>
-
-            <!-- Schedule Link -->
-            <a href="{{ url('/schedule') }}" class="flex items-center gap-3 rounded-md px-3 py-2 {{ navActive('schedule') }}">
-                <!-- Calendar Icon (Boxicon) -->
-                <i class="bx bx-calendar h-5 w-5"></i>
-                <span>Schedule</span>
-            </a>
-
-            <!-- Attendance Link -->
-            <a href="{{ url('/attendance') }}" class="flex items-center gap-3 rounded-md px-3 py-2 {{ navActive('attendance') }}">
-                <!-- Attendance Icon (Boxicon) -->
-                <i class="bx bx-check-circle h-5 w-5"></i>
-                <span>Attendance</span>
-            </a>
-
-            <!-- Tasks Link -->
-            <a href="{{ url('/tasks') }}" class="flex items-center gap-3 rounded-md px-3 py-2 {{ navActive('tasks') }}">
-                <!-- Tasks Icon (Boxicon) -->
-                <i class="bx bx-list-check h-5 w-5"></i>
-                <span>Tasks</span>
+            <!-- Archives Link -->
+            <a href="{{ url('/archives') }}" class="flex items-center gap-3 rounded-md px-3 py-2 {{ navActive('archives') }}">
+                <!-- Archives Icon (Boxicon) -->
+                <i class="bx bx-archive h-5 w-5"></i>
+                <span>Archives</span>
             </a>
         </nav>
     </div>

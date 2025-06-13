@@ -1,45 +1,45 @@
 {{-- resources/views/ministries.blade.php --}}
 
 @php
-    // Static array of ministries—no database involved
-    $ministries = [
-        [
-            'name' => 'Worship Team',
-            'description' => 'Lead worship services through music and song',
-            'category' => 'Worship',
-            'volunteers' => 12,
-        ],
-        [
-            'name' => "Children's Ministry",
-            'description' => 'Teach and care for children during services',
-            'category' => 'Education',
-            'volunteers' => 8,
-        ],
-        [
-            'name' => 'Welcome Team',
-            'description' => 'Greet visitors and help them find their way',
-            'category' => 'Hospitality',
-            'volunteers' => 6,
-        ],
-        [
-            'name' => 'Media Team',
-            'description' => 'Handle audio, video, and presentation during services',
-            'category' => 'Technical',
-            'volunteers' => 5,
-        ],
-        [
-            'name' => 'Prayer Team',
-            'description' => 'Lead and organize prayer meetings and initiatives',
-            'category' => 'Spiritual',
-            'volunteers' => 10,
-        ],
-        [
-            'name' => 'Outreach',
-            'description' => 'Organize community service and evangelism events',
-            'category' => 'Missions',
-            'volunteers' => 15,
-        ],
-    ];
+// Static array of ministries—no database involved
+$ministries = [
+[
+'name' => 'Worship Team',
+'description' => 'Lead worship services through music and song',
+'category' => 'Worship',
+'volunteers' => 12,
+],
+[
+'name' => "Children's Ministry",
+'description' => 'Teach and care for children during services',
+'category' => 'Education',
+'volunteers' => 8,
+],
+[
+'name' => 'Welcome Team',
+'description' => 'Greet visitors and help them find their way',
+'category' => 'Hospitality',
+'volunteers' => 6,
+],
+[
+'name' => 'Media Team',
+'description' => 'Handle audio, video, and presentation during services',
+'category' => 'Technical',
+'volunteers' => 5,
+],
+[
+'name' => 'Prayer Team',
+'description' => 'Lead and organize prayer meetings and initiatives',
+'category' => 'Spiritual',
+'volunteers' => 10,
+],
+[
+'name' => 'Outreach',
+'description' => 'Organize community service and evangelism events',
+'category' => 'Missions',
+'volunteers' => 15,
+],
+];
 @endphp
 
 @extends('components.layout')
@@ -47,16 +47,16 @@
 @section('title', 'Ministries')
 
 @section('styles')
-    <style>
-        .modal-bg {
-            background: rgba(0, 0, 0, 0.5);
-        }
-    </style>
+<style>
+    .modal-bg {
+        background: rgba(0, 0, 0, 0.5);
+    }
+</style>
 @endsection
 
 @section('content')
-    @include('components.navs')
-
+@include('components.navs')
+<div class="md:ml-64">
     {{-- Alpine root: show/hide both modals + track selected ministry index + category filter --}}
     <main class="flex-1 overflow-auto p-4 sm:p-6" x-data="{
         showModal: false, // controls “View Details”
@@ -67,7 +67,7 @@
     }">
         <div class="bg-background min-h-screen p-6">
             {{-- ─────────────────────────────────────────────────────────────────── --}}
-            {{--   Search bar / Filters / Add Ministry Button                         --}}
+            {{-- Search bar / Filters / Add Ministry Button                         --}}
             {{-- ─────────────────────────────────────────────────────────────────── --}}
             <div class="flex justify-between items-center mb-6">
                 {{-- Search input --}}
@@ -110,7 +110,7 @@
             </div>
 
             {{-- ─────────────────────────────────────────────────────────────────── --}}
-            {{--   Grid of Ministry Cards                                             --}}
+            {{-- Grid of Ministry Cards                                             --}}
             {{-- ─────────────────────────────────────────────────────────────────── --}}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <template x-for="(ministry, idx) in ministries" :key="idx">
@@ -155,7 +155,7 @@
         </div>
 
         {{-- ─────────────────────────────────────────────────────────────────── --}}
-        {{--   Modal #1: View Details for Selected Ministry                       --}}
+        {{-- Modal #1: View Details for Selected Ministry                       --}}
         {{-- ─────────────────────────────────────────────────────────────────── --}}
         <div x-show="showModal" x-cloak x-transition.opacity
             class="fixed inset-0 modal-bg flex items-center justify-center z-50">
@@ -253,7 +253,7 @@
 
 
         {{-- ─────────────────────────────────────────────────────────────────── --}}
-        {{--   Modal #2: Add New Ministry (as provided by the user)             --}}
+        {{-- Modal #2: Add New Ministry (as provided by the user)             --}}
         {{-- ─────────────────────────────────────────────────────────────────── --}}
         <div x-show="showAddModal" x-cloak x-transition.opacity
             class="fixed inset-0 modal-bg flex items-center justify-center z-50">
@@ -351,6 +351,10 @@
 
     </main>
 
-    {{-- Alpine.js CDN --}}
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</div>
+
+@endsection
+@section('scripts')
+{{-- Alpine.js CDN --}}
+<script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 @endsection

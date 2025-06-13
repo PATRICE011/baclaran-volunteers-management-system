@@ -11,12 +11,16 @@ use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use App\Models\Volunteer;
 use App\Models\Ministry;
+use Illuminate\Container\Attributes\Auth;
 
 class VolunteersController extends Controller
 {
     public function index(Request $request)
     {
+        
         try {
+            $user = auth()->user();
+
             // Build the base query, including eager-loaded relations
             $query = Volunteer::with(['detail.ministry', 'timelines', 'affiliations']);
 
@@ -66,7 +70,7 @@ class VolunteersController extends Controller
 
                 if ($applied) {
                     try {
-                        $start = \Carbon\Carbon::createFromFormat('Y-m', $applied);
+                        $start = Carbon::createFromFormat('Y-m', $applied);
                         $endDate = ($volunteer->detail?->volunteer_status === 'Inactive' && $volunteer->detail?->updated_at)
                             ? Carbon::parse($volunteer->detail->updated_at)
                             : now();
@@ -116,7 +120,7 @@ class VolunteersController extends Controller
             }
 
             // Full page load
-            return view('admin_volunteer', compact('volunteers', 'ministries', 'statuses'));
+            return view('admin_volunteer', compact('volunteers', 'ministries', 'statuses','user'));
         } catch (\Exception $e) {
             Log::error('Volunteer filter error: ' . $e->getMessage());
 

@@ -11,12 +11,10 @@ use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\MinistryController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SchedulesController;
-use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SignController;
 use App\Http\Controllers\TasksController;
 use App\Http\Controllers\VolunteersController;
 use App\Http\Controllers\AccountSettingsController;
-use Illuminate\Support\Facades\Auth;
 
 Route::get('/', [AuthController::class,  'getLogin'])->name('login');
 
@@ -49,7 +47,7 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
 
     // account settings page
     Route::prefix('settings')->group(function () {
-        Route::get('/', [SettingsController::class, 'index']);
+        Route::get('/', [AccountSettingsController::class, 'index']);
 
         Route::prefix('account')->name('account.')->group(function () {
 

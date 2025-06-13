@@ -67,7 +67,7 @@
     @include('components.navs')
 
     {{-- Alpine root: manage tasks, dragging state, and “Create New Task” modal visibility --}}
-    <main class="flex-1 overflow-auto p-4 sm:p-6" x-data="{
+    <main class="flex-1 overflow-auto p-4 sm:p-6 md:ml-64" x-data="{
         tasks: {{ json_encode($tasks) }},
         draggedIndex: null,
         showCreateModal: false,

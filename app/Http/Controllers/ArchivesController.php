@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
 class ArchivesController extends Controller
 {
     //
     public function index(){
-        return view('admin_archives');
+        $user = Auth::user();
+        return view('admin_archives',compact('user'));
     }
 }
