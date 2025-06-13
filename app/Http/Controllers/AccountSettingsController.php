@@ -10,6 +10,7 @@ use App\Services\MailService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Hash;
 
 class AccountSettingsController extends Controller
 {
@@ -271,69 +272,6 @@ class AccountSettingsController extends Controller
         }
     }
 
-    /**
-     * Resend OTP
-     */
-    public function resendOTP(Request $request)
-    {
-        try {
-            $validator = Validator::make($request->all(), [
-                'purpose' => 'required|string|in:name_change',
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid request.'
-                ], 422);
-            }
-
-            $user = Auth::user();
-
-            // Find the latest unused OTP for this purpose
-            $otpRecord = UserOtp::where('user_id', $user->id)
-                ->where('purpose', $request->purpose)
-                ->where('is_used', false)
-                ->latest()
-                ->first();
-
-            if (!$otpRecord) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No active OTP request found. Please initiate a new request.'
-                ]);
-            }
-
-            // Generate new OTP
-            $newOtp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-
-            // Update the existing record
-            $otpRecord->update([
-                'otp' => $newOtp,
-                'expires_at' => Carbon::now()->addMinutes(10),
-            ]);
-
-            // Send new OTP via email to user's registered email
-            $this->mailService->sendOTP(
-                $user->email,
-                $user->first_name . ' ' . $user->last_name,
-                $newOtp,
-                $request->purpose
-            );
-
-            return response()->json([
-                'success' => true,
-                'message' => 'A new OTP has been sent to your registered email address.'
-            ]);
-        } catch (\Exception $e) {
-            Log::error('OTP resend failed: ' . $e->getMessage());
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to resend OTP. Please try again later.'
-            ], 500);
-        }
-    }
 
     public function requestEmailChangeOTP(Request $request)
     {
@@ -413,7 +351,7 @@ class AccountSettingsController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Email updated successfully.',
+                'message' => 'Password updated successfully. Please log in again.',
             ]);
         } catch (\Exception $e) {
             Log::error('Email OTP verification failed: ' . $e->getMessage());
@@ -426,51 +364,80 @@ class AccountSettingsController extends Controller
     public function requestPasswordChangeOTP(Request $request)
     {
         try {
-            $request->validate([
-                'password' => 'required|string|min:8|confirmed',
+            $validator = Validator::make($request->all(), [
+                'current_password' => 'required|string',
+                'password' => 'required|string|confirmed|min:8|regex:/^(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/',
+            ], [
+                'password.regex' => 'Password must contain at least one uppercase letter and one special character.',
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
 
             $user = Auth::user();
 
-            // Delete any existing OTP for password change
+            // Verify current password
+            if (!Hash::check($request->current_password, $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Current password is incorrect'
+                ]);
+            }
+
+
+            // Delete any existing unused OTPs for this user and purpose
             UserOtp::where('user_id', $user->id)
                 ->where('purpose', 'password_change')
                 ->where('is_used', false)
                 ->delete();
 
-            // Generate OTP
+            // Generate 6-digit OTP
             $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-            // Store OTP
+            // Store OTP with pending data
             UserOtp::create([
                 'user_id' => $user->id,
                 'otp' => $otp,
                 'purpose' => 'password_change',
-                'expires_at' => now()->addMinutes(10),
+                'pending_data' => [
+                    'password' => bcrypt($request->password),
+                ],
+                'expires_at' => Carbon::now()->addMinutes(10),
             ]);
 
-            // Send OTP to the user's registered email
-            $this->mailService->sendOTP($user->email, $user->name, $otp, 'password_change');
+            // Send OTP via email
+            $this->mailService->sendOTP(
+                $user->email,
+                $user->first_name . ' ' . $user->last_name,
+                $otp,
+                'password_change'
+            );
 
             return response()->json([
                 'success' => true,
-                'message' => 'OTP has been sent to your email address.',
+                'message' => 'OTP has been sent to your registered email address (' .
+                    substr($user->email, 0, 3) . '***@' .
+                    substr(strrchr($user->email, "@"), 1) . '). Please check your inbox.'
             ]);
         } catch (\Exception $e) {
             Log::error('Password change OTP request failed: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to send OTP. Please try again later.',
+                'message' => 'Failed to send OTP. Please try again later.'
             ], 500);
         }
     }
-
     public function verifyPasswordChangeOTP(Request $request)
     {
         try {
             $request->validate([
                 'otp' => 'required|digits:6',
-                'password' => 'required|string|min:8|confirmed',
+                'password' => 'required|string',
             ]);
 
             $user = Auth::user();
@@ -495,13 +462,97 @@ class AccountSettingsController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Password updated successfully.',
+                'message' => 'Password updated successfully. Please log in again.',
             ]);
         } catch (\Exception $e) {
             Log::error('Password change OTP verification failed: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'An error occurred while changing your password.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Resend OTP
+     */
+    public function resendOTP(Request $request)
+    {
+        try {
+            // Validate the purpose field to allow 'name_change', 'password_change', and 'email_change'
+            $validator = Validator::make($request->all(), [
+                'purpose' => 'required|string|in:name_change,password_change,email_change',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid request.'
+                ], 422);
+            }
+
+            $user = Auth::user();
+
+            // Find the latest unused OTP for this purpose
+            $otpRecord = UserOtp::where('user_id', $user->id)
+                ->where('purpose', $request->purpose)
+                ->where('is_used', false)
+                ->latest()
+                ->first();
+
+            if (!$otpRecord) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No active OTP request found. Please initiate a new request.'
+                ]);
+            }
+
+            // Generate new OTP
+            $newOtp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+            // Update the existing record with the new OTP and expiration time
+            $otpRecord->update([
+                'otp' => $newOtp,
+                'expires_at' => Carbon::now()->addMinutes(10),
+            ]);
+
+            // Send new OTP via email based on the purpose
+            if ($request->purpose === 'name_change') {
+                // Send OTP for name change
+                $this->mailService->sendOTP(
+                    $user->email,
+                    $user->first_name . ' ' . $user->last_name,
+                    $newOtp,
+                    'name_change'
+                );
+            } elseif ($request->purpose === 'password_change') {
+                // Send OTP for password change
+                $this->mailService->sendOTP(
+                    $user->email,
+                    $user->first_name . ' ' . $user->last_name,
+                    $newOtp,
+                    'password_change'
+                );
+            } elseif ($request->purpose === 'email_change') {
+                // Send OTP for email change
+                $this->mailService->sendOTP(
+                    $user->email,
+                    $user->first_name . ' ' . $user->last_name,
+                    $newOtp,
+                    'email_change'
+                );
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'A new OTP has been sent to your registered email address.'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('OTP resend failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to resend OTP. Please try again later.'
             ], 500);
         }
     }

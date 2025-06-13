@@ -18,7 +18,7 @@ use App\Http\Controllers\VolunteersController;
 use App\Http\Controllers\AccountSettingsController;
 use Illuminate\Support\Facades\Auth;
 
-Route::get('/', [AuthController::class,  'getLogin']);
+Route::get('/', [AuthController::class,  'getLogin'])->name('login');
 
 Route::post('/login', [AuthController::class, 'login'])->name('authorizeUser');
 Route::get('/sign-in', [SignController::class, 'index']);
@@ -60,8 +60,8 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
             Route::post('/email-change/request-otp', [AccountSettingsController::class, 'requestEmailChangeOTP']);
             Route::post('/email-change/verify-otp', [AccountSettingsController::class, 'verifyEmailOTP']);
 
-            Route::post('/settings/account/password-change/request-otp', [AccountSettingsController::class, 'requestPasswordChangeOTP']);
-            Route::post('/settings/account/password-change/verify-otp', [AccountSettingsController::class, 'verifyPasswordChangeOTP']);
+            Route::post('/password-change/request-otp', [AccountSettingsController::class, 'requestPasswordChangeOTP']);
+            Route::post('/password-change/verify-otp', [AccountSettingsController::class, 'verifyPasswordChangeOTP']);
 
             Route::post('/resend-otp', [AccountSettingsController::class, 'resendOTP'])->name('resend.otp');
 

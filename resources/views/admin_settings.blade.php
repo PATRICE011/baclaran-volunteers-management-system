@@ -264,7 +264,7 @@
             </div>
         </div>
         <!-- Email Change OTP Modal -->
-        <div id="emailOtpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <!-- <div id="emailOtpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
             <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-semibold">Verify Email Change</h3>
@@ -313,7 +313,7 @@
                     </button>
                 </div>
             </div>
-        </div>
+        </div> -->
 
         {{-- Password Panel --}}
         <div x-show="tab === 'password'" x-cloak>
@@ -345,7 +345,7 @@
                                     class="mt-1 block w-full rounded-md border-input px-3 py-2 text-sm shadow-sm focus:ring-1 focus:ring-ring focus:outline-none border-2"
                                     autocomplete="new-password">
                                 <button type="button" id="toggleNewPassword" class="absolute inset-y-0 right-0 flex items-center px-3 text-sm">
-                                    <svg id="newPasswordToggle"  class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <svg id="newPasswordToggle" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"></path>
                                     </svg>
                                 </button>
@@ -359,21 +359,10 @@
                                     class="mt-1 block w-full rounded-md border-input px-3 py-2 text-sm shadow-sm focus:ring-1 focus:ring-ring focus:outline-none border-2"
                                     autocomplete="new-password">
                                 <button type="button" id="toggleConfirmPassword" class="absolute inset-y-0 right-0 flex items-center px-3 text-sm">
-                                    <svg id="confirmPasswordToggle"  class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <svg id="confirmPasswordToggle" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"></path>
                                     </svg>
                                 </button>
-                            </div>
-                        </div>
-
-                        <!-- Info Notice -->
-                        <div class="flex items-start space-x-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                            <svg class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-                            </svg>
-                            <div class="text-sm text-blue-700">
-                                <p class="font-medium">Email Verification Required</p>
-                                <p>A verification code will be sent to your registered email address to confirm password changes.</p>
                             </div>
                         </div>
 
@@ -395,8 +384,10 @@
             </div>
         </div>
 
+
         <!-- Password Change OTP Modal -->
-        <div id="passwordOtpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+
+        <!-- <div id="passwordOtpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
             <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-semibold">Verify Password Change</h3>
@@ -409,19 +400,30 @@
 
                 <div class="mb-4">
                     <p class="text-sm text-gray-600 mb-4">
-                        We've sent a 6-digit verification code to your registered email. Please enter it below to confirm your password change.
+                        We've sent a 6-digit verification code to <strong id="otp_email_email">your registered email</strong>. Please enter it below to confirm your password change.
                     </p>
 
                     <div class="space-y-4">
                         <div>
                             <label for="otpCodePassword" class="block text-sm font-medium text-gray-700">Verification Code</label>
-                            <input type="text" id="otpCodePassword" maxlength="6" class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 text-center text-lg font-mono tracking-widest focus:border-blue-500 focus:ring-blue-500" placeholder="000000">
+                            <input type="text" id="otpCodePassword" maxlength="6"
+                                class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 text-center text-lg font-mono tracking-widest focus:border-blue-500 focus:ring-blue-500"
+                                placeholder="000000">
+                        </div>
+
+                        <div class="text-center">
+                            <button id="resendOtpBtnPassword" class="text-sm text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                <span class="resend-text">Didn't receive the code? Resend</span>
+                                <span class="resend-timer hidden">Resend in <span id="timerCountPassword">60</span>s</span>
+                            </button>
                         </div>
                     </div>
                 </div>
 
                 <div class="flex space-x-3">
-                    <button id="cancelPasswordOtpBtn" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Cancel</button>
+                    <button id="cancelPasswordOtpBtn" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+                        Cancel
+                    </button>
                     <button id="verifyPasswordOtpBtn" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-500 disabled:bg-blue-300">
                         <span class="verify-text">Verify</span>
                         <span class="verify-loading hidden">
@@ -434,7 +436,8 @@
                     </button>
                 </div>
             </div>
-        </div>
+        </div> -->
+
 
     </div>
 </main>
@@ -444,6 +447,6 @@
 <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="{{ asset('assets/js/change_name.js') }}"></script>
 <script src="{{ asset('assets/js/admin_details.js') }}"></script>
-<script src="{{ asset('assets/js/admin_change_email.js') }}"></script>
-<script src="{{ asset('assets/js/admin_change_password.js') }}"></script>
+<!-- <script src="{{ asset('assets/js/admin_change_email.js') }}"></script>
+<script src="{{ asset('assets/js/admin_change_password.js') }}"></script> -->
 @endsection
