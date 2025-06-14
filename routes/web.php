@@ -54,7 +54,7 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
         Route::put('/{id}', [MinistryController::class, 'update'])->name('ministries.update');
         Route::delete('/{id}', [MinistryController::class, 'destroy'])->name('ministries.destroy');
         Route::get('/parents/list', [MinistryController::class, 'getParentMinistries'])->name('ministries.parents');
-        Route::get('/parents', [MinistryController::class, 'getParentMinistries'])->name('ministries.parents');
+        // Route::get('/parents', [MinistryController::class, 'getParentMinistries'])->name('ministries.parents');
         Route::get('/stats', [MinistryController::class, 'getStats'])->name('ministries.stats');
     });
 

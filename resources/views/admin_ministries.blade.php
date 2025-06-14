@@ -13,36 +13,43 @@
         right: 0;
         bottom: 0;
     }
-    
+
     .fade-in {
         animation: fadeIn 0.2s ease-out;
     }
-    
+
     @keyframes fadeIn {
-        from { opacity: 0; transform: scale(0.95); }
-        to { opacity: 1; transform: scale(1); }
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
     }
-    
+
     .card-hover {
         transition: all 0.3s ease;
     }
-    
+
     .card-hover:hover {
         transform: translateY(-4px);
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     }
-    
+
     .btn-primary {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border: none;
         transition: all 0.3s ease;
     }
-    
+
     .btn-primary:hover {
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
-    
+
     .loading-spinner {
         display: none;
         width: 20px;
@@ -52,23 +59,28 @@
         border-radius: 50%;
         animation: spin 1s linear infinite;
     }
-    
+
     @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
     }
-    
+
     .form-group {
         margin-bottom: 1rem;
     }
-    
+
     .form-label {
         display: block;
         margin-bottom: 0.5rem;
         font-weight: 500;
         color: #374151;
     }
-    
+
     .form-input {
         width: 100%;
         padding: 0.75rem;
@@ -76,19 +88,19 @@
         border-radius: 0.5rem;
         transition: border-color 0.2s;
     }
-    
+
     .form-input:focus {
         outline: none;
         border-color: #667eea;
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
-    
+
     .error-message {
         color: #ef4444;
         font-size: 0.875rem;
         margin-top: 0.25rem;
     }
-    
+
     .success-message {
         color: #10b981;
         font-size: 0.875rem;
@@ -111,7 +123,7 @@
 
             {{-- Search bar / Filters / Add Ministry Button --}}
             <div class="bg-white rounded-lg shadow-sm border p-6 mb-6">
-                <div class="flex flex-col lg:flex-row gap-4 items-center justify-between">
+                <form id="filterForm" method="GET" class="flex flex-col lg:flex-row gap-4 items-center justify-between w-full">
                     {{-- Search input --}}
                     <div class="relative w-full max-w-md">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -120,24 +132,27 @@
                             <circle cx="11" cy="11" r="8"></circle>
                             <path d="m21 21-4.3-4.3"></path>
                         </svg>
-                        <input type="search" id="searchQuery"
+                        <input type="search" name="search" id="searchQuery"
                             class="form-input pl-10"
+                            value="{{ request('search') }}"
                             placeholder="Search ministries...">
                     </div>
 
                     {{-- Category dropdown & Add Ministry --}}
                     <div class="flex items-center gap-4">
                         {{-- Category selector --}}
-                        <select id="categorySelector" class="form-input min-w-[150px]">
+                        <select name="category" id="categorySelector" class="form-input min-w-[150px]">
                             <option value="All">All Categories</option>
                             @foreach($categories as $category)
-                                <option value="{{ $category->ministry_type }}">
-                                    {{ $category->ministry_type }}
-                                </option>
+                            @if($category->ministry_type !== 'SUB_GROUP')
+                            <option value="{{ $category->ministry_type }}" {{ request('category') === $category->ministry_type ? 'selected' : '' }}>
+                                {{ ucwords(strtolower(str_replace('_', ' ', $category->ministry_type))) }}
+                            </option>
+                            @endif
                             @endforeach
                         </select>
 
-                        {{-- Add Ministry button --}}
+                        {{-- Add Ministry button (not inside form submission) --}}
                         <button type="button" class="btn-primary inline-flex items-center justify-center whitespace-nowrap rounded-lg text-white text-sm font-medium h-10 px-6 py-2"
                             onclick="openAddModal()">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
@@ -149,100 +164,110 @@
                             Add Ministry
                         </button>
                     </div>
-                </div>
+                </form>
             </div>
+
 
             {{-- Grid of Ministry Cards --}}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="ministries-grid">
                 @foreach ($ministries as $ministry)
-                    <div class="card-hover rounded-xl border bg-white shadow-sm overflow-hidden ministry-card" 
-                         data-id="{{ $ministry->id }}"
-                         data-category="{{ $ministry->ministry_type }}"
-                         data-name="{{ strtolower($ministry->ministry_name) }}">
-                        {{-- Card header --}}
-                        <div class="p-6 pb-4">
-                            <div class="flex justify-between items-start mb-3">
-                                <div class="flex-1">
-                                    <h3 class="font-semibold text-lg text-gray-900 mb-1">{{ $ministry->ministry_name }}</h3>
-                                    <!-- <p class="text-sm text-gray-500">{{ $ministry->ministry_code ?? 'No code assigned' }}</p> -->
-                                    @if($ministry->parent)
-                                        <p class="text-xs text-gray-400 mt-1">
-                                            <span class="inline-flex items-center">
-                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 111.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                                                </svg>
-                                                Sub-ministry of {{ $ministry->parent->ministry_name }}
-                                            </span>
-                                        </p>
-                                    @endif
-                                </div>
-                                <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800">
-                                    {{ ucwords(str_replace('_', ' ', strtolower($ministry->ministry_type))) }}
-                                </span>
-                            </div>
-                        </div>
+                <div class="card-hover rounded-xl border bg-white shadow-sm overflow-hidden ministry-card"
+                    data-id="{{ $ministry->id }}"
+                    data-category="{{ $ministry->ministry_type }}"
+                    @if($ministry->parent)
+                    data-parent-type="{{ $ministry->parent->ministry_type }}"
+                    @endif
 
-                        {{-- Stats section --}}
-                        <div class="px-6 pb-4">
-                            <div class="flex items-center justify-between text-sm">
-                                <div class="flex items-center text-gray-600">
-                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
-                                    </svg>
-                                    <span class="font-medium">{{ $ministry->volunteer_details_count ?? 0 }}</span>
-                                    <span class="ml-1">volunteers</span>
-                                </div>
-                                @if($ministry->children_count > 0)
-                                    <div class="flex items-center text-gray-500">
-                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                    data-name="{{ strtolower($ministry->ministry_name) }}">
+                    {{-- Card header --}}
+                    <div class="p-6 pb-4">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-lg text-gray-900 mb-1">{{ $ministry->ministry_name }}</h3>
+                                <!-- <p class="text-sm text-gray-500">{{ $ministry->ministry_code ?? 'No code assigned' }}</p> -->
+                                @if($ministry->parent)
+                                <p class="text-xs text-gray-400 mt-1">
+                                    <span class="inline-flex items-center">
+                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 111.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                                         </svg>
-                                        <span class="text-xs">{{ $ministry->children_count }} sub-ministries</span>
-                                    </div>
+                                        Sub-ministry of {{ $ministry->parent->ministry_name }}
+                                    </span>
+                                </p>
                                 @endif
                             </div>
-                        </div>
+                            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800">
+                                {{
+                                    $ministry->ministry_type === 'SUB_GROUP' && $ministry->parent
+                                        ? ucwords(str_replace('_', ' ', strtolower($ministry->parent->ministry_type)))
+                                        : ucwords(str_replace('_', ' ', strtolower($ministry->ministry_type)))
+                                }}
+                            </span>
 
-                        {{-- Action buttons --}}
-                        <div class="border-t bg-gray-50 px-6 py-4">
-                            <div class="flex items-center justify-between">
-                                <button 
-                                    class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-                                    onclick="viewMinistry({{ $ministry->id }})">
+                        </div>
+                    </div>
+
+                    {{-- Stats section --}}
+                    <div class="px-6 pb-4">
+                        <div class="flex items-center justify-between text-sm">
+                            <div class="flex items-center text-gray-600">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                                </svg>
+                                <span class="font-medium">{{ $ministry->volunteer_details_count ?? 0 }}</span>
+                                <span class="ml-1">volunteers</span>
+                            </div>
+                            @if($ministry->children_count > 0)
+                            <div class="flex items-center text-gray-500">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                                </svg>
+                                <span class="text-xs">{{ $ministry->children_count }} sub-ministries</span>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- Action buttons --}}
+                    <div class="border-t bg-gray-50 px-6 py-4">
+                        <div class="flex items-center justify-between">
+                            <button
+                                class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                                onclick="viewMinistry({{ $ministry->id }})">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                                </svg>
+                                View Details
+                            </button>
+                            <div class="flex gap-1">
+                                <button
+                                    class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                                    onclick="openEditModal({{ $ministry->id }})">
                                     <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                                        <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                     </svg>
-                                    View Details
+                                    Edit
                                 </button>
-                                <div class="flex gap-1">
-                                    <button 
-                                        class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-                                        onclick="openEditModal({{ $ministry->id }})">
-                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
-                                        </svg>
-                                        Edit
-                                    </button>
-                                    <button 
-                                        class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
-                                        onclick="deleteMinistry({{ $ministry->id }})">
-                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                                        </svg>
-                                        Delete
-                                    </button>
-                                </div>
+                                <button
+                                    class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
+                                    onclick="deleteMinistry({{ $ministry->id }})">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                    </svg>
+                                    Delete
+                                </button>
                             </div>
                         </div>
                     </div>
+                </div>
                 @endforeach
             </div>
 
             {{-- Empty state --}}
             <div id="empty-state" class="text-center py-12 hidden">
                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 48 48">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5a2 2 0 00-2 2v10a2 2 0 002 2h14m-9-8l2 2 4-4M15 20h14a2 2 0 002-2V8a2 2 0 00-2-2H15"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5a2 2 0 00-2 2v10a2 2 0 002 2h14m-9-8l2 2 4-4M15 20h14a2 2 0 002-2V8a2 2 0 00-2-2H15" />
                 </svg>
                 <h3 class="mt-2 text-sm font-medium text-gray-900">No ministries found</h3>
                 <p class="mt-1 text-sm text-gray-500">Try adjusting your search or filter criteria.</p>
@@ -250,11 +275,11 @@
 
             {{-- Pagination --}}
             @if ($ministries->hasPages())
-                <div class="mt-10 flex justify-center">
-                    <div class="bg-white rounded-lg shadow-sm border p-4">
-                        {!! $ministries->appends(request()->query())->links() !!}
-                    </div>
+            <div class="mt-10 flex justify-center">
+                <div class="bg-white rounded-lg shadow-sm border p-4">
+                    {!! $ministries->appends(request()->query())->links() !!}
                 </div>
+            </div>
             @endif
         </div>
     </main>
@@ -268,7 +293,7 @@
             <h2 id="modal-title" class="text-xl font-semibold text-gray-900">Add Ministry</h2>
             <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
         </div>
@@ -277,7 +302,7 @@
         <div class="p-6">
             <form id="ministryForm">
                 <input type="hidden" id="ministry_id" name="ministry_id">
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-group md:col-span-2">
                         <label for="ministry_name" class="form-label">Ministry Name *</label>
@@ -313,7 +338,7 @@
                 </div>
 
                 <div class="flex items-center justify-end gap-4 mt-6 pt-6 border-t">
-                    <button type="button" onclick="closeModal()" 
+                    <button type="button" onclick="closeModal()"
                         class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
                         Cancel
                     </button>
@@ -336,7 +361,7 @@
             <h2 id="view-modal-title" class="text-xl font-semibold text-gray-900">Ministry Details</h2>
             <button type="button" onclick="closeViewModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
         </div>
@@ -361,20 +386,18 @@
     });
 
     function initializeEventListeners() {
-        // Search functionality
-        document.getElementById('searchQuery').addEventListener('input', debounce(handleSearch, 300));
-        
-        // Category filter
-        document.getElementById('categorySelector').addEventListener('change', handleCategoryFilter);
-        
+        document.getElementById('categorySelector')?.addEventListener('change', function() {
+            document.getElementById('filterForm')?.submit();
+        });
+
         // Form submission
         document.getElementById('ministryForm').addEventListener('submit', handleFormSubmit);
-        
+
         // Close modals on backdrop click
         document.getElementById('ministryModal').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
         });
-        
+
         document.getElementById('viewModal').addEventListener('click', function(e) {
             if (e.target === this) closeViewModal();
         });
@@ -417,7 +440,11 @@
 
         cards.forEach(card => {
             const category = card.dataset.category;
-            const isVisible = selectedCategory === 'All' || category === selectedCategory;
+            const isVisible =
+                selectedCategory === 'All' ||
+                category === selectedCategory ||
+                (category === 'SUB_GROUP' && card.closest('.ministry-card')?.querySelector('p')?.innerText.includes(selectedCategory.replace('_', ' ')));
+
             card.style.display = isVisible ? '' : 'none';
             if (isVisible) visibleCount++;
         });
@@ -431,7 +458,7 @@
     function toggleEmptyState(show) {
         const emptyState = document.getElementById('empty-state');
         const grid = document.getElementById('ministries-grid');
-        
+
         if (show) {
             emptyState.classList.remove('hidden');
             grid.classList.add('hidden');
@@ -444,13 +471,13 @@
     // Load parent ministries for dropdown
     async function loadParentMinistries() {
         try {
-            const response = await fetch('/ministries/parents');
+            const response = await fetch('/ministries/parents/list');
             const data = await response.json();
-            
+
             if (data.success) {
                 const parentSelect = document.getElementById('parent_id');
                 parentSelect.innerHTML = '<option value="">No Parent (Top Level)</option>';
-                
+
                 data.parents.forEach(parent => {
                     const option = document.createElement('option');
                     option.value = parent.id;
@@ -477,23 +504,23 @@
     async function openEditModal(ministryId) {
         try {
             showLoadingState();
-            
+
             const response = await fetch(`/ministries/${ministryId}`);
             const data = await response.json();
-            
+
             if (data.success) {
                 isEditing = true;
                 currentMinistryId = ministryId;
                 document.getElementById('modal-title').textContent = 'Edit Ministry';
                 document.getElementById('submit-text').textContent = 'Update Ministry';
-                
+
                 // Populate form
                 document.getElementById('ministry_id').value = ministryId;
                 document.getElementById('ministry_name').value = data.ministry.name;
                 document.getElementById('ministry_code').value = data.ministry.code || '';
                 document.getElementById('ministry_type').value = data.ministry.type;
                 document.getElementById('parent_id').value = data.ministry.parent_id || '';
-                
+
                 showModal();
             } else {
                 showErrorMessage('Failed to load ministry data');
@@ -511,16 +538,16 @@
         try {
             showViewModal();
             showViewLoadingState();
-            
+
             const response = await fetch(`/ministries/${ministryId}`);
             const data = await response.json();
-            
+
             if (data.success) {
                 const ministry = data.ministry;
                 const volunteers = data.volunteers;
-                
+
                 document.getElementById('view-modal-title').textContent = ministry.name;
-                
+
                 const content = `
                     <div class="space-y-6">
                         <!-- Ministry Info -->
@@ -595,7 +622,7 @@
                         </div>
                     </div>
                 `;
-                
+
                 document.getElementById('view-modal-content').innerHTML = content;
             } else {
                 showErrorMessage('Failed to load ministry details');
@@ -608,36 +635,40 @@
 
     // Get status color for volunteer status
     function getStatusColor(status) {
-        switch(status?.toLowerCase()) {
-            case 'active': return 'bg-green-100 text-green-800';
-            case 'inactive': return 'bg-red-100 text-red-800';
-            case 'pending': return 'bg-yellow-100 text-yellow-800';
-            default: return 'bg-gray-100 text-gray-800';
+        switch (status?.toLowerCase()) {
+            case 'active':
+                return 'bg-green-100 text-green-800';
+            case 'inactive':
+                return 'bg-red-100 text-red-800';
+            case 'pending':
+                return 'bg-yellow-100 text-yellow-800';
+            default:
+                return 'bg-gray-100 text-gray-800';
         }
     }
 
     // Handle form submission
     async function handleFormSubmit(e) {
         e.preventDefault();
-        
+
         if (document.querySelector('.loading-spinner').style.display !== 'none') {
             return; // Prevent double submission
         }
-        
+
         showLoadingState();
         clearErrors();
-        
+
         try {
             const formData = new FormData(e.target);
             const url = isEditing ? `/ministries/${currentMinistryId}` : '/ministries';
             const method = isEditing ? 'PUT' : 'POST';
-            
+
             // Convert FormData to regular object for PUT requests
             const data = {};
             for (let [key, value] of formData.entries()) {
                 if (value) data[key] = value;
             }
-            
+
             const response = await fetch(url, {
                 method: method,
                 headers: {
@@ -646,9 +677,9 @@
                 },
                 body: JSON.stringify(data)
             });
-            
+
             const result = await response.json();
-            
+
             if (result.success) {
                 showSuccessMessage(result.message);
                 closeModal();
@@ -675,7 +706,7 @@
         if (!confirm('Are you sure you want to delete this ministry? This action cannot be undone.')) {
             return;
         }
-        
+
         try {
             const response = await fetch(`/ministries/${ministryId}`, {
                 method: 'DELETE',
@@ -683,9 +714,9 @@
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 }
             });
-            
+
             const data = await response.json();
-            
+
             if (data.success) {
                 showSuccessMessage('Ministry deleted successfully');
                 const card = document.querySelector(`[data-id="${ministryId}"]`);
@@ -757,7 +788,7 @@
             el.classList.add('hidden');
             el.textContent = '';
         });
-        
+
         const inputs = document.querySelectorAll('.form-input');
         inputs.forEach(input => {
             input.classList.remove('border-red-500');
@@ -768,7 +799,7 @@
         Object.keys(errors).forEach(field => {
             const errorElement = document.getElementById(`${field}_error`);
             const inputElement = document.getElementById(field);
-            
+
             if (errorElement && inputElement) {
                 errorElement.textContent = Array.isArray(errors[field]) ? errors[field][0] : errors[field];
                 errorElement.classList.remove('hidden');
@@ -781,7 +812,7 @@
         const spinner = document.querySelector('.loading-spinner');
         const submitBtn = document.getElementById('submit-btn');
         const submitText = document.getElementById('submit-text');
-        
+
         spinner.style.display = 'block';
         submitBtn.disabled = true;
         submitText.textContent = isEditing ? 'Updating...' : 'Saving...';
@@ -791,7 +822,7 @@
         const spinner = document.querySelector('.loading-spinner');
         const submitBtn = document.getElementById('submit-btn');
         const submitText = document.getElementById('submit-text');
-        
+
         spinner.style.display = 'none';
         submitBtn.disabled = false;
         submitText.textContent = isEditing ? 'Update Ministry' : 'Save Ministry';
@@ -810,7 +841,7 @@
         // Remove existing notifications
         const existing = document.querySelector('.notification');
         if (existing) existing.remove();
-        
+
         const notification = document.createElement('div');
         notification.className = `notification fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ${
             type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
@@ -827,14 +858,14 @@
                 <span>${message}</span>
             </div>
         `;
-        
+
         document.body.appendChild(notification);
-        
+
         // Animate in
         setTimeout(() => {
             notification.style.transform = 'translateX(0)';
         }, 100);
-        
+
         // Auto-remove after 5 seconds
         setTimeout(() => {
             notification.style.transform = 'translateX(100%)';
