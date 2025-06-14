@@ -104,14 +104,24 @@
             <div class="relative flex-grow">
                 <select id="ministryFilter" class="pl-10 pr-3 py-2 border rounded w-full h-12">
                     <option value="">-- Select Ministry --</option>
-                    @foreach ($ministries as $ministry)
-                    <optgroup label="{{ $ministry->ministry_name }}">
+                    @foreach ($ministries as $main)
+                    <optgroup label="{{ $main->ministry_name }}">
+                        @foreach ($main->children as $ministry)
+                        <option value="{{ $ministry->id }}">{{ $ministry->ministry_name }}</option>
+
+                        {{-- Render sub-groups --}}
+                        @if ($ministry->children->count())
                         @foreach ($ministry->children as $sub)
-                        <option value="{{ $sub->id }}">{{ $sub->ministry_name }}</option>
+                        <option value="{{ $sub->id }}">
+                            &nbsp;&nbsp;&nbsp;→ {{ $sub->ministry_name }}
+                        </option>
+                        @endforeach
+                        @endif
                         @endforeach
                     </optgroup>
                     @endforeach
                 </select>
+
             </div>
 
             <!-- Status Filter -->

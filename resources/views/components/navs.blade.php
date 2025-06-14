@@ -63,10 +63,15 @@
 </div>
 
 <!-- Header -->
+<!-- Header -->
 <header class="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-white px-4 sm:px-6" x-data="{ userMenuOpen: false }" @click.away="userMenuOpen = false">
     <div class="flex flex-1 items-center justify-end">
         <div class="relative flex items-center gap-4">
             {{-- Avatar + Name + Chevron --}}
+            @php
+                // Set the avatar seed using the user's first and last name
+                $avatarSeed = strtolower($user->first_name . ' ' . $user->last_name);
+            @endphp
             <button type="button" class="inline-flex items-center gap-2 px-2 py-1 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400" @click="userMenuOpen = !userMenuOpen" aria-haspopup="true" :aria-expanded="userMenuOpen">
                 <span class="relative flex h-8 w-8 overflow-hidden rounded-full bg-gray-200">
                     @if($user->profile_picture)

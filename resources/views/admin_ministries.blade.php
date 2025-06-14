@@ -1,47 +1,3 @@
-{{-- resources/views/ministries.blade.php --}}
-
-@php
-// Static array of ministries—no database involved
-$ministries = [
-[
-'name' => 'Worship Team',
-'description' => 'Lead worship services through music and song',
-'category' => 'Worship',
-'volunteers' => 12,
-],
-[
-'name' => "Children's Ministry",
-'description' => 'Teach and care for children during services',
-'category' => 'Education',
-'volunteers' => 8,
-],
-[
-'name' => 'Welcome Team',
-'description' => 'Greet visitors and help them find their way',
-'category' => 'Hospitality',
-'volunteers' => 6,
-],
-[
-'name' => 'Media Team',
-'description' => 'Handle audio, video, and presentation during services',
-'category' => 'Technical',
-'volunteers' => 5,
-],
-[
-'name' => 'Prayer Team',
-'description' => 'Lead and organize prayer meetings and initiatives',
-'category' => 'Spiritual',
-'volunteers' => 10,
-],
-[
-'name' => 'Outreach',
-'description' => 'Organize community service and evangelism events',
-'category' => 'Missions',
-'volunteers' => 15,
-],
-];
-@endphp
-
 @extends('components.layout')
 
 @section('title', 'Ministries')
@@ -49,312 +5,855 @@ $ministries = [
 @section('styles')
 <style>
     .modal-bg {
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.2s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    
+    .card-hover {
+        transition: all 0.3s ease;
+    }
+    
+    .card-hover:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .loading-spinner {
+        display: none;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: #374151;
+    }
+    
+    .form-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        transition: border-color 0.2s;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .error-message {
+        color: #ef4444;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    .success-message {
+        color: #10b981;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
     }
 </style>
 @endsection
 
 @section('content')
 @include('components.navs')
+
 <div class="md:ml-64">
-    {{-- Alpine root: show/hide both modals + track selected ministry index + category filter --}}
-    <main class="flex-1 overflow-auto p-4 sm:p-6" x-data="{
-        showModal: false, // controls “View Details”
-        showAddModal: false, // controls “Add New Ministry”
-        selectedIndex: null, // which ministry is currently “viewing details”
-        selectedCategory: 'All', // filter dropdown state
-        ministries: {{ json_encode($ministries) }}
-    }">
+    <main class="flex-1 overflow-auto p-4 sm:p-6">
         <div class="bg-background min-h-screen p-6">
-            {{-- ─────────────────────────────────────────────────────────────────── --}}
-            {{-- Search bar / Filters / Add Ministry Button                         --}}
-            {{-- ─────────────────────────────────────────────────────────────────── --}}
-            <div class="flex justify-between items-center mb-6">
-                {{-- Search input --}}
-                <div class="relative w-full max-w-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="lucide lucide-search absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.3-4.3"></path>
-                    </svg>
-                    <input type="search"
-                        class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 pl-8"
-                        placeholder="Search ministries...">
-                </div>
+            {{-- Header --}}
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Ministries Management</h1>
+                <p class="text-gray-600">Manage church ministries and volunteer assignments</p>
+            </div>
 
-                {{-- Category dropdown & Add Ministry --}}
-                <div class="flex items-center gap-4">
-                    {{-- ▼ Category selector (now a real <select>) --}}
-                    <select x-model="selectedCategory"
-                        class="h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring">
-                        <option value="All">All Categories</option>
-                        <option value="Education">Education</option>
-                        <option value="Hospitality">Hospitality</option>
-                        <option value="Technical">Technical</option>
-                    </select>
-
-                    {{-- Add Ministry button (opens the “Add New Ministry” modal) --}}
-                    <button type="button"
-                        class="inline-flex items-center justify-center whitespace-nowrap rounded-md bg-primary text-primary-foreground text-sm font-medium shadow hover:bg-primary/90 h-9 px-4 py-2"
-                        @click="showAddModal = true">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" class="lucide lucide-plus mr-2 h-4 w-4">
-                            <path d="M5 12h14"></path>
-                            <path d="M12 5v14"></path>
+            {{-- Search bar / Filters / Add Ministry Button --}}
+            <div class="bg-white rounded-lg shadow-sm border p-6 mb-6">
+                <div class="flex flex-col lg:flex-row gap-4 items-center justify-between">
+                    {{-- Search input --}}
+                    <div class="relative w-full max-w-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="absolute left-3 top-3 h-4 w-4 text-gray-400">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.3-4.3"></path>
                         </svg>
-                        Add Ministry
-                    </button>
-                </div>
-            </div>
-
-            {{-- ─────────────────────────────────────────────────────────────────── --}}
-            {{-- Grid of Ministry Cards                                             --}}
-            {{-- ─────────────────────────────────────────────────────────────────── --}}
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <template x-for="(ministry, idx) in ministries" :key="idx">
-                    <div class="rounded-xl border bg-card text-card-foreground shadow overflow-hidden"
-                        x-show="selectedCategory === 'All' || ministry.category === selectedCategory" x-cloak>
-                        {{-- Card header: name, description, category badge --}}
-                        <div class="flex flex-col space-y-1.5 p-6 pb-3">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h3 class="font-semibold leading-none tracking-tight" x-text="ministry.name"></h3>
-                                    <p class="text-sm text-muted-foreground mt-1" x-text="ministry.description"></p>
-                                </div>
-                                <div class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                                    x-text="ministry.category"></div>
-                            </div>
-                        </div>
-
-                        {{-- Volunteer count --}}
-                        <div class="p-6 pt-0">
-                            <div class="text-sm">
-                                <span class="font-medium" x-text="ministry.volunteers"></span>
-                                volunteers assigned
-                            </div>
-                        </div>
-
-                        {{-- View Details button --}}
-                        <div class="flex items-center p-6 border-t bg-muted/50 px-6 py-3">
-                            <button
-                                class="ml-auto inline-flex items-center justify-center rounded-md px-3 py-1 text-xs font-medium hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
-                                @click="selectedIndex = idx; showModal = true">
-                                View Details
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="lucide lucide-chevron-down ml-1 h-4 w-4">
-                                    <path d="m6 9 6 6 6-6"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </template>
-            </div>
-        </div>
-
-        {{-- ─────────────────────────────────────────────────────────────────── --}}
-        {{-- Modal #1: View Details for Selected Ministry                       --}}
-        {{-- ─────────────────────────────────────────────────────────────────── --}}
-        <div x-show="showModal" x-cloak x-transition.opacity
-            class="fixed inset-0 modal-bg flex items-center justify-center z-50">
-            <div x-show="showModal" x-cloak x-transition @click.away="showModal = false" role="dialog"
-                aria-labelledby="modal-title" aria-describedby="modal-description"
-                class="relative w-[90%] max-w-xl rounded-lg bg-white p-6 shadow-xl" tabindex="-1">
-                {{-- Close “X” --}}
-                <button type="button" @click="showModal = false"
-                    class="absolute right-4 top-4 rounded-sm opacity-60 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
-                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4">
-                        <path
-                            d="M11.7816 4.03157C12.0062 3.80702 12.0062 3.44295 11.7816 3.2184C11.5571 2.99385 11.193 2.99385 10.9685 3.2184L7.50005 6.68682L4.03164 3.2184C3.80708 2.99385 3.44301 2.99385 3.21846 3.2184C2.99391 3.44295 2.99391 3.80702 3.21846 4.03157L6.68688 7.49999L3.21846 10.9684C2.99391 11.193 2.99391 11.557 3.21846 11.7816C3.44301 12.0061 3.80708 12.0061 4.03164 11.7816L7.50005 8.31316L10.9685 11.7816C11.193 12.0061 11.5571 12.0061 11.7816 11.7816C12.0062 11.557 12.0062 11.193 11.7816 10.9684L8.31322 7.49999L11.7816 4.03157Z"
-                            fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
-                    </svg>
-                    <span class="sr-only">Close</span>
-                </button>
-
-                {{-- Header: Ministry Name + Category Badge --}}
-                <div class="flex justify-between items-center mb-4">
-                    <div>
-                        <h2 id="modal-title" class="text-lg font-semibold leading-none tracking-tight"
-                            x-text="ministries[selectedIndex]?.name"></h2>
-                        <p id="modal-description" class="text-sm text-muted-foreground mt-1"
-                            x-text="ministries[selectedIndex]?.description"></p>
-                    </div>
-                    <div class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                        x-text="ministries[selectedIndex]?.category"></div>
-                </div>
-
-                {{-- Body: Volunteer Info + Ministry Details --}}
-                <div class="grid grid-cols-2 gap-6 mb-6">
-                    {{-- Volunteer Information --}}
-                    <div>
-                        <h3 class="font-medium mb-2">Volunteer Information</h3>
-                        <p class="text-sm text-muted-foreground mb-3">
-                            <span class="font-medium" x-text="ministries[selectedIndex]?.volunteers"></span>
-                            volunteers currently assigned
-                        </p>
-                        <div class="max-h-48 overflow-y-auto border rounded-md" x-data="{
-                            volunteersList: [
-                                { name: 'John Smith', email: 'john.smith@example.com', phone: '(555) 123-4567' },
-                                { name: 'Sarah Johnson', email: 'sarah.j@example.com', phone: '(555) 234-5678' },
-                                { name: 'Michael Brown', email: 'mbrown@example.com', phone: '(555) 345-6789' },
-                                { name: 'Emily Davis', email: 'emily.d@example.com', phone: '(555) 456-7890' }
-                            ]
-                        }">
-                            <template x-for="(vol, vIdx) in volunteersList" :key="vIdx">
-                                <div class="p-2 border-b last:border-b-0 hover:bg-muted/50">
-                                    <div class="font-medium" x-text="vol.name"></div>
-                                    <div class="text-xs text-muted-foreground" x-text="vol.email"></div>
-                                    <div class="text-xs text-muted-foreground" x-text="vol.phone"></div>
-                                </div>
-                            </template>
-                        </div>
+                        <input type="search" id="searchQuery"
+                            class="form-input pl-10"
+                            placeholder="Search ministries...">
                     </div>
 
-                    {{-- Ministry Details --}}
-                    <div>
-                        <h3 class="font-medium mb-2">Ministry Details</h3>
-                        <p class="text-sm text-muted-foreground">
-                            Ministry ID: <span class="font-medium" x-text="selectedIndex + 1"></span><br>
-                            Name: <span class="font-medium" x-text="ministries[selectedIndex]?.name"></span><br>
-                            Category: <span class="font-medium" x-text="ministries[selectedIndex]?.category"></span><br>
-                            Volunteers: <span class="font-medium" x-text="ministries[selectedIndex]?.volunteers"></span>
-                        </p>
-                    </div>
-                </div>
-
-                {{-- Actions --}}
-                <div class="mb-6">
-                    <h3 class="font-medium mb-2">Actions</h3>
-                    <div class="flex gap-2">
-                        <button
-                            class="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50">
-                            Clone Ministry
-                        </button>
-                        <button
-                            class="inline-flex items-center justify-center whitespace-nowrap rounded-md bg-red-500 text-white px-3 py-2 text-xs font-medium shadow-sm hover:bg-red-600 focus:outline-none focus:ring-1 focus:ring-red-400 disabled:opacity-50">
-                            Delete Ministry
-                        </button>
-                    </div>
-                </div>
-
-                {{-- Footer: Close Button --}}
-                <div class="flex justify-end">
-                    <button
-                        class="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
-                        @click="showModal = false">
-                        Close
-                    </button>
-                </div>
-            </div>
-        </div>
-
-
-        {{-- ─────────────────────────────────────────────────────────────────── --}}
-        {{-- Modal #2: Add New Ministry (as provided by the user)             --}}
-        {{-- ─────────────────────────────────────────────────────────────────── --}}
-        <div x-show="showAddModal" x-cloak x-transition.opacity
-            class="fixed inset-0 modal-bg flex items-center justify-center z-50">
-            <div x-show="showAddModal" x-cloak x-transition @click.away="showAddModal = false" role="dialog"
-                aria-labelledby="add-modal-title" aria-describedby="add-modal-description"
-                class="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white p-6 shadow-lg rounded-lg sm:max-w-[425px]"
-                tabindex="-1">
-                {{-- Header --}}
-                <div class="flex flex-col space-y-1.5 text-center sm:text-left">
-                    <h2 id="add-modal-title" class="text-lg font-semibold leading-none tracking-tight">
-                        Add New Ministry
-                    </h2>
-                    <p id="add-modal-description" class="text-sm text-muted-foreground">
-                        Create a new ministry for volunteers to join.
-                    </p>
-                </div>
-
-                {{-- Form fields: Name, Category, Description, Volunteers --}}
-                <div class="grid gap-4 py-4" x-data="{
-                    newName: '',
-                    newCategory: '',
-                    newDescription: '',
-                    newVolunteers: null
-                }">
-                    {{-- Name --}}
-                    <div class="grid grid-cols-4 items-center gap-4">
-                        <label for="name" class="text-sm font-medium leading-none text-right">Name</label>
-                        <input id="name" type="text" x-model="newName"
-                            class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring col-span-3"
-                            placeholder="e.g. Youth Fellowship">
-                    </div>
-
-                    {{-- Category (now a proper <select>) --}}
-                    <div class="grid grid-cols-4 items-center gap-4">
-                        <label for="category" class="text-sm font-medium leading-none text-right">Category</label>
-                        <select id="category" x-model="newCategory"
-                            class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring col-span-3">
-                            <option value="" disabled selected>Select category</option>
-                            <option value="Education">Education</option>
-                            <option value="Hospitality">Hospitality</option>
-                            <option value="Technical">Technical</option>
+                    {{-- Category dropdown & Add Ministry --}}
+                    <div class="flex items-center gap-4">
+                        {{-- Category selector --}}
+                        <select id="categorySelector" class="form-input min-w-[150px]">
+                            <option value="All">All Categories</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->ministry_type }}">
+                                    {{ $category->ministry_type }}
+                                </option>
+                            @endforeach
                         </select>
+
+                        {{-- Add Ministry button --}}
+                        <button type="button" class="btn-primary inline-flex items-center justify-center whitespace-nowrap rounded-lg text-white text-sm font-medium h-10 px-6 py-2"
+                            onclick="openAddModal()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="mr-2 h-4 w-4">
+                                <path d="M5 12h14"></path>
+                                <path d="M12 5v14"></path>
+                            </svg>
+                            Add Ministry
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Grid of Ministry Cards --}}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="ministries-grid">
+                @foreach ($ministries as $ministry)
+                    <div class="card-hover rounded-xl border bg-white shadow-sm overflow-hidden ministry-card" 
+                         data-id="{{ $ministry->id }}"
+                         data-category="{{ $ministry->ministry_type }}"
+                         data-name="{{ strtolower($ministry->ministry_name) }}">
+                        {{-- Card header --}}
+                        <div class="p-6 pb-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-lg text-gray-900 mb-1">{{ $ministry->ministry_name }}</h3>
+                                    <!-- <p class="text-sm text-gray-500">{{ $ministry->ministry_code ?? 'No code assigned' }}</p> -->
+                                    @if($ministry->parent)
+                                        <p class="text-xs text-gray-400 mt-1">
+                                            <span class="inline-flex items-center">
+                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 111.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                                                </svg>
+                                                Sub-ministry of {{ $ministry->parent->ministry_name }}
+                                            </span>
+                                        </p>
+                                    @endif
+                                </div>
+                                <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800">
+                                    {{ ucwords(str_replace('_', ' ', strtolower($ministry->ministry_type))) }}
+                                </span>
+                            </div>
+                        </div>
+
+                        {{-- Stats section --}}
+                        <div class="px-6 pb-4">
+                            <div class="flex items-center justify-between text-sm">
+                                <div class="flex items-center text-gray-600">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                                    </svg>
+                                    <span class="font-medium">{{ $ministry->volunteer_details_count ?? 0 }}</span>
+                                    <span class="ml-1">volunteers</span>
+                                </div>
+                                @if($ministry->children_count > 0)
+                                    <div class="flex items-center text-gray-500">
+                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        <span class="text-xs">{{ $ministry->children_count }} sub-ministries</span>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- Action buttons --}}
+                        <div class="border-t bg-gray-50 px-6 py-4">
+                            <div class="flex items-center justify-between">
+                                <button 
+                                    class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                                    onclick="viewMinistry({{ $ministry->id }})">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                        <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                    View Details
+                                </button>
+                                <div class="flex gap-1">
+                                    <button 
+                                        class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                                        onclick="openEditModal({{ $ministry->id }})">
+                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                                        </svg>
+                                        Edit
+                                    </button>
+                                    <button 
+                                        class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
+                                        onclick="deleteMinistry({{ $ministry->id }})">
+                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            {{-- Empty state --}}
+            <div id="empty-state" class="text-center py-12 hidden">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5a2 2 0 00-2 2v10a2 2 0 002 2h14m-9-8l2 2 4-4M15 20h14a2 2 0 002-2V8a2 2 0 00-2-2H15"/>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No ministries found</h3>
+                <p class="mt-1 text-sm text-gray-500">Try adjusting your search or filter criteria.</p>
+            </div>
+
+            {{-- Pagination --}}
+            @if ($ministries->hasPages())
+                <div class="mt-10 flex justify-center">
+                    <div class="bg-white rounded-lg shadow-sm border p-4">
+                        {!! $ministries->appends(request()->query())->links() !!}
+                    </div>
+                </div>
+            @endif
+        </div>
+    </main>
+</div>
+
+{{-- Add/Edit Ministry Modal --}}
+<div id="ministryModal" class="modal-bg hidden items-center justify-center z-50">
+    <div class="fade-in relative w-[90%] max-w-2xl rounded-xl bg-white shadow-2xl max-h-[90vh] overflow-y-auto">
+        {{-- Modal Header --}}
+        <div class="flex items-center justify-between p-6 border-b">
+            <h2 id="modal-title" class="text-xl font-semibold text-gray-900">Add Ministry</h2>
+            <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        {{-- Modal Body --}}
+        <div class="p-6">
+            <form id="ministryForm">
+                <input type="hidden" id="ministry_id" name="ministry_id">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-group md:col-span-2">
+                        <label for="ministry_name" class="form-label">Ministry Name *</label>
+                        <input type="text" id="ministry_name" name="ministry_name" class="form-input" required>
+                        <div id="ministry_name_error" class="error-message hidden"></div>
                     </div>
 
-                    {{-- Description --}}
-                    <div class="grid grid-cols-4 items-center gap-4">
-                        <label for="description" class="text-sm font-medium leading-none text-right">Description</label>
-                        <textarea id="description" x-model="newDescription"
-                            class="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring col-span-3"
-                            placeholder="Describe this ministry..."></textarea>
+                    <div class="form-group">
+                        <label for="ministry_code" class="form-label">Ministry Code</label>
+                        <input type="text" id="ministry_code" name="ministry_code" class="form-input" maxlength="20">
+                        <div id="ministry_code_error" class="error-message hidden"></div>
                     </div>
 
-                    {{-- Volunteers --}}
-                    <div class="grid grid-cols-4 items-center gap-4">
-                        <label for="volunteers" class="text-sm font-medium leading-none text-right">Volunteers</label>
-                        <input id="volunteers" type="number" x-model="newVolunteers"
-                            class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring col-span-3"
-                            placeholder="0">
+                    <div class="form-group">
+                        <label for="ministry_type" class="form-label">Ministry Type *</label>
+                        <select id="ministry_type" name="ministry_type" class="form-input" required>
+                            <option value="">Select Type</option>
+                            <option value="LITURGICAL">Liturgical</option>
+                            <option value="PASTORAL">Pastoral</option>
+                            <option value="SOCIAL_MISSION">Social Mission</option>
+                            <option value="SUB_GROUP">Sub Group</option>
+                        </select>
+                        <div id="ministry_type_error" class="error-message hidden"></div>
+                    </div>
+
+                    <div class="form-group md:col-span-2">
+                        <label for="parent_id" class="form-label">Parent Ministry (Optional)</label>
+                        <select id="parent_id" name="parent_id" class="form-input">
+                            <option value="">No Parent (Top Level)</option>
+                        </select>
+                        <div id="parent_id_error" class="error-message hidden"></div>
                     </div>
                 </div>
 
-                {{-- Buttons: Cancel / Add Ministry --}}
-                <div class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
-                    <button
-                        class="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50 mt-2 sm:mt-0"
-                        @click="showAddModal = false" type="button">
+                <div class="flex items-center justify-end gap-4 mt-6 pt-6 border-t">
+                    <button type="button" onclick="closeModal()" 
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
                         Cancel
                     </button>
-                    <button
-                        class="inline-flex items-center justify-center whitespace-nowrap rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium shadow hover:bg-primary/90 focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50 mb-2 sm:mb-0"
-                        @click="
-                            // In a real app you might push the new ministry into `ministries`
-                            // or do an AJAX/POST. For this demo we simply close the modal:
-                            showAddModal = false
-                        "
-                        type="button">
-                        Add Ministry
+                    <button type="submit" id="submit-btn"
+                        class="btn-primary inline-flex items-center px-6 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        <div class="loading-spinner mr-2"></div>
+                        <span id="submit-text">Save Ministry</span>
                     </button>
                 </div>
+            </form>
+        </div>
+    </div>
+</div>
 
-                {{-- “X” close button in top‐right corner --}}
-                <button type="button"
-                    class="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                    @click="showAddModal = false">
-                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none"
-                        xmlns="http://www.w3.org/2000/svg" class="h-4 w-4">
-                        <path
-                            d="M11.7816 4.03157C12.0062 3.80702 12.0062 3.44295 11.7816 3.2184C11.5571 2.99385 11.193 2.99385 10.9685 3.2184L7.50005 6.68682L4.03164 3.2184C3.80708 2.99385 3.44301 2.99385 3.21846 3.2184C2.99391 3.44295 2.99391 3.80702 3.21846 4.03157L6.68688 7.49999L3.21846 10.9684C2.99391 11.193 2.99391 11.557 3.21846 11.7816C3.44301 12.0061 3.80708 12.0061 4.03164 11.7816L7.50005 8.31316L10.9685 11.7816C11.193 12.0061 11.5571 12.0061 11.7816 11.7816C12.0062 11.557 12.0062 11.193 11.7816 10.9684L8.31322 7.49999L11.7816 4.03157Z"
-                            fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
-                    </svg>
-                    <span class="sr-only">Close</span>
-                </button>
-            </div>
+{{-- View Ministry Details Modal --}}
+<div id="viewModal" class="modal-bg hidden items-center justify-center z-50">
+    <div class="fade-in relative w-[90%] max-w-4xl rounded-xl bg-white shadow-2xl max-h-[90vh] overflow-y-auto">
+        {{-- Modal Header --}}
+        <div class="flex items-center justify-between p-6 border-b">
+            <h2 id="view-modal-title" class="text-xl font-semibold text-gray-900">Ministry Details</h2>
+            <button type="button" onclick="closeViewModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
         </div>
 
-    </main>
-
+        {{-- Modal Body --}}
+        <div id="view-modal-content" class="p-6">
+            <!-- Content will be loaded here -->
+        </div>
+    </div>
 </div>
 
 @endsection
 @section('scripts')
-{{-- Alpine.js CDN --}}
-<script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script>
+    let isEditing = false;
+    let currentMinistryId = null;
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadParentMinistries();
+        initializeEventListeners();
+    });
+
+    function initializeEventListeners() {
+        // Search functionality
+        document.getElementById('searchQuery').addEventListener('input', debounce(handleSearch, 300));
+        
+        // Category filter
+        document.getElementById('categorySelector').addEventListener('change', handleCategoryFilter);
+        
+        // Form submission
+        document.getElementById('ministryForm').addEventListener('submit', handleFormSubmit);
+        
+        // Close modals on backdrop click
+        document.getElementById('ministryModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+        
+        document.getElementById('viewModal').addEventListener('click', function(e) {
+            if (e.target === this) closeViewModal();
+        });
+    }
+
+    // Debounce function for search
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Search functionality
+    function handleSearch() {
+        const searchValue = document.getElementById('searchQuery').value.toLowerCase();
+        const cards = document.querySelectorAll('.ministry-card');
+        let visibleCount = 0;
+
+        cards.forEach(card => {
+            const name = card.dataset.name;
+            const isVisible = name.includes(searchValue);
+            card.style.display = isVisible ? '' : 'none';
+            if (isVisible) visibleCount++;
+        });
+
+        toggleEmptyState(visibleCount === 0);
+    }
+
+    // Category filter functionality
+    function handleCategoryFilter() {
+        const selectedCategory = document.getElementById('categorySelector').value;
+        const cards = document.querySelectorAll('.ministry-card');
+        let visibleCount = 0;
+
+        cards.forEach(card => {
+            const category = card.dataset.category;
+            const isVisible = selectedCategory === 'All' || category === selectedCategory;
+            card.style.display = isVisible ? '' : 'none';
+            if (isVisible) visibleCount++;
+        });
+
+        // Clear search when filtering
+        document.getElementById('searchQuery').value = '';
+        toggleEmptyState(visibleCount === 0);
+    }
+
+    // Toggle empty state
+    function toggleEmptyState(show) {
+        const emptyState = document.getElementById('empty-state');
+        const grid = document.getElementById('ministries-grid');
+        
+        if (show) {
+            emptyState.classList.remove('hidden');
+            grid.classList.add('hidden');
+        } else {
+            emptyState.classList.add('hidden');
+            grid.classList.remove('hidden');
+        }
+    }
+
+    // Load parent ministries for dropdown
+    async function loadParentMinistries() {
+        try {
+            const response = await fetch('/ministries/parents');
+            const data = await response.json();
+            
+            if (data.success) {
+                const parentSelect = document.getElementById('parent_id');
+                parentSelect.innerHTML = '<option value="">No Parent (Top Level)</option>';
+                
+                data.parents.forEach(parent => {
+                    const option = document.createElement('option');
+                    option.value = parent.id;
+                    option.textContent = `${parent.ministry_name} (${parent.ministry_type})`;
+                    parentSelect.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading parent ministries:', error);
+        }
+    }
+
+    // Open Add Ministry Modal
+    function openAddModal() {
+        isEditing = false;
+        currentMinistryId = null;
+        document.getElementById('modal-title').textContent = 'Add New Ministry';
+        document.getElementById('submit-text').textContent = 'Save Ministry';
+        resetForm();
+        showModal();
+    }
+
+    // Open Edit Ministry Modal
+    async function openEditModal(ministryId) {
+        try {
+            showLoadingState();
+            
+            const response = await fetch(`/ministries/${ministryId}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                isEditing = true;
+                currentMinistryId = ministryId;
+                document.getElementById('modal-title').textContent = 'Edit Ministry';
+                document.getElementById('submit-text').textContent = 'Update Ministry';
+                
+                // Populate form
+                document.getElementById('ministry_id').value = ministryId;
+                document.getElementById('ministry_name').value = data.ministry.name;
+                document.getElementById('ministry_code').value = data.ministry.code || '';
+                document.getElementById('ministry_type').value = data.ministry.type;
+                document.getElementById('parent_id').value = data.ministry.parent_id || '';
+                
+                showModal();
+            } else {
+                showErrorMessage('Failed to load ministry data');
+            }
+        } catch (error) {
+            console.error('Error loading ministry:', error);
+            showErrorMessage('An error occurred while loading ministry data');
+        } finally {
+            hideLoadingState();
+        }
+    }
+
+    // View Ministry Details
+    async function viewMinistry(ministryId) {
+        try {
+            showViewModal();
+            showViewLoadingState();
+            
+            const response = await fetch(`/ministries/${ministryId}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                const ministry = data.ministry;
+                const volunteers = data.volunteers;
+                
+                document.getElementById('view-modal-title').textContent = ministry.name;
+                
+                const content = `
+                    <div class="space-y-6">
+                        <!-- Ministry Info -->
+                        <div class="bg-gray-50 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Ministry Information</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-sm font-medium text-gray-500">Name</label>
+                                    <p class="text-gray-900">${ministry.name}</p>
+                                </div>
+                                
+                                <div>
+                                    <label class="text-sm font-medium text-gray-500">Type</label>
+                                    <p class="text-gray-900">${ministry.category}</p>
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-gray-500">Status</label>
+                                    <p class="text-gray-900">${ministry.has_children ? 'Has Sub-ministries' : 'No Sub-ministries'}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Volunteers Section -->
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold text-gray-900">Assigned Volunteers (${volunteers.length})</h3>
+                            </div>
+                            
+                            ${volunteers.length > 0 ? `
+                                <div class="bg-white border rounded-lg overflow-hidden">
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full divide-y divide-gray-200">
+                                            <thead class="bg-gray-50">
+                                                <tr>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white divide-y divide-gray-200">
+                                                ${volunteers.map(volunteer => `
+                                                    <tr class="hover:bg-gray-50">
+                                                        <td class="px-6 py-4 whitespace-nowrap">
+                                                            <div class="text-sm font-medium text-gray-900">${volunteer.name}</div>
+                                                            ${volunteer.line_group ? `<div class="text-sm text-gray-500">Line: ${volunteer.line_group}</div>` : ''}
+                                                        </td>
+                                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${volunteer.email}</td>
+                                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${volunteer.phone}</td>
+                                                        <td class="px-6 py-4 whitespace-nowrap">
+                                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(volunteer.status)}">
+                                                                ${volunteer.status}
+                                                            </span>
+                                                        </td>
+                                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${volunteer.applied_date || 'N/A'}</td>
+                                                    </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="text-center py-8 bg-gray-50 rounded-lg">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5m-2.5-6v12M9 11v6"/>
+                                    </svg>
+                                    <h3 class="mt-2 text-sm font-medium text-gray-900">No volunteers assigned</h3>
+                                    <p class="mt-1 text-sm text-gray-500">This ministry doesn't have any volunteers assigned yet.</p>
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('view-modal-content').innerHTML = content;
+            } else {
+                showErrorMessage('Failed to load ministry details');
+            }
+        } catch (error) {
+            console.error('Error loading ministry details:', error);
+            showErrorMessage('An error occurred while loading ministry details');
+        }
+    }
+
+    // Get status color for volunteer status
+    function getStatusColor(status) {
+        switch(status?.toLowerCase()) {
+            case 'active': return 'bg-green-100 text-green-800';
+            case 'inactive': return 'bg-red-100 text-red-800';
+            case 'pending': return 'bg-yellow-100 text-yellow-800';
+            default: return 'bg-gray-100 text-gray-800';
+        }
+    }
+
+    // Handle form submission
+    async function handleFormSubmit(e) {
+        e.preventDefault();
+        
+        if (document.querySelector('.loading-spinner').style.display !== 'none') {
+            return; // Prevent double submission
+        }
+        
+        showLoadingState();
+        clearErrors();
+        
+        try {
+            const formData = new FormData(e.target);
+            const url = isEditing ? `/ministries/${currentMinistryId}` : '/ministries';
+            const method = isEditing ? 'PUT' : 'POST';
+            
+            // Convert FormData to regular object for PUT requests
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                if (value) data[key] = value;
+            }
+            
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showSuccessMessage(result.message);
+                closeModal();
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                if (result.errors) {
+                    displayErrors(result.errors);
+                } else {
+                    showErrorMessage(result.message || 'An error occurred');
+                }
+            }
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            showErrorMessage('An error occurred while saving the ministry');
+        } finally {
+            hideLoadingState();
+        }
+    }
+
+    // Delete Ministry
+    async function deleteMinistry(ministryId) {
+        if (!confirm('Are you sure you want to delete this ministry? This action cannot be undone.')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/ministries/${ministryId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showSuccessMessage('Ministry deleted successfully');
+                const card = document.querySelector(`[data-id="${ministryId}"]`);
+                if (card) {
+                    card.style.animation = 'fadeOut 0.3s ease-out';
+                    setTimeout(() => {
+                        card.remove();
+                        // Check if we need to show empty state
+                        const remainingCards = document.querySelectorAll('.ministry-card');
+                        if (remainingCards.length === 0) {
+                            toggleEmptyState(true);
+                        }
+                    }, 300);
+                }
+            } else {
+                showErrorMessage(data.message || 'Error deleting ministry');
+            }
+        } catch (error) {
+            console.error('Error deleting ministry:', error);
+            showErrorMessage('An error occurred while deleting the ministry');
+        }
+    }
+
+    // Modal functions
+    function showModal() {
+        document.getElementById('ministryModal').classList.remove('hidden');
+        document.getElementById('ministryModal').classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        document.getElementById('ministryModal').classList.add('hidden');
+        document.getElementById('ministryModal').classList.remove('flex');
+        document.body.style.overflow = '';
+        resetForm();
+    }
+
+    function showViewModal() {
+        document.getElementById('viewModal').classList.remove('hidden');
+        document.getElementById('viewModal').classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeViewModal() {
+        document.getElementById('viewModal').classList.add('hidden');
+        document.getElementById('viewModal').classList.remove('flex');
+        document.body.style.overflow = '';
+    }
+
+    function showViewLoadingState() {
+        document.getElementById('view-modal-content').innerHTML = `
+            <div class="flex items-center justify-center py-12">
+                <div class="loading-spinner" style="display: block;"></div>
+                <span class="ml-2 text-gray-600">Loading ministry details...</span>
+            </div>
+        `;
+    }
+
+    // Form helper functions
+    function resetForm() {
+        document.getElementById('ministryForm').reset();
+        document.getElementById('ministry_id').value = '';
+        clearErrors();
+    }
+
+    function clearErrors() {
+        const errorElements = document.querySelectorAll('.error-message');
+        errorElements.forEach(el => {
+            el.classList.add('hidden');
+            el.textContent = '';
+        });
+        
+        const inputs = document.querySelectorAll('.form-input');
+        inputs.forEach(input => {
+            input.classList.remove('border-red-500');
+        });
+    }
+
+    function displayErrors(errors) {
+        Object.keys(errors).forEach(field => {
+            const errorElement = document.getElementById(`${field}_error`);
+            const inputElement = document.getElementById(field);
+            
+            if (errorElement && inputElement) {
+                errorElement.textContent = Array.isArray(errors[field]) ? errors[field][0] : errors[field];
+                errorElement.classList.remove('hidden');
+                inputElement.classList.add('border-red-500');
+            }
+        });
+    }
+
+    function showLoadingState() {
+        const spinner = document.querySelector('.loading-spinner');
+        const submitBtn = document.getElementById('submit-btn');
+        const submitText = document.getElementById('submit-text');
+        
+        spinner.style.display = 'block';
+        submitBtn.disabled = true;
+        submitText.textContent = isEditing ? 'Updating...' : 'Saving...';
+    }
+
+    function hideLoadingState() {
+        const spinner = document.querySelector('.loading-spinner');
+        const submitBtn = document.getElementById('submit-btn');
+        const submitText = document.getElementById('submit-text');
+        
+        spinner.style.display = 'none';
+        submitBtn.disabled = false;
+        submitText.textContent = isEditing ? 'Update Ministry' : 'Save Ministry';
+    }
+
+    // Notification functions
+    function showSuccessMessage(message) {
+        showNotification(message, 'success');
+    }
+
+    function showErrorMessage(message) {
+        showNotification(message, 'error');
+    }
+
+    function showNotification(message, type) {
+        // Remove existing notifications
+        const existing = document.querySelector('.notification');
+        if (existing) existing.remove();
+        
+        const notification = document.createElement('div');
+        notification.className = `notification fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ${
+            type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+        }`;
+        notification.style.transform = 'translateX(100%)';
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    ${type === 'success' 
+                        ? '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>'
+                        : '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>'
+                    }
+                </svg>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+        }, 100);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
+        }, 5000);
+    }
+
+    // Add CSS for fade out animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.95); }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
 @endsection

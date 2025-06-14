@@ -14,17 +14,18 @@ return new class extends Migration
         Schema::create('ministries', function (Blueprint $table) {
             $table->id();
             $table->string('ministry_name');
-            $table->string('ministry_code')->nullable();
             $table->unsignedBigInteger('parent_id')->nullable();
             $table->enum('ministry_type', ['LITURGICAL', 'PASTORAL', 'SOCIAL_MISSION', 'SUB_GROUP']);
-            $table->text('description')->nullable();
-            $table->string('contact_person')->nullable();
-            $table->string('contact_email')->nullable();
-            $table->string('contact_phone')->nullable();
-            $table->string('meeting_schedule')->nullable();
             $table->timestamps();
             $table->softDeletes();
-            
+
+            // Add index on parent_id for better query performance
+            $table->index('parent_id');
+
+            // Optional: Add index on ministry_type for better query performance
+            $table->index('ministry_type');
+
+            // Foreign key constraint for parent-child relationship
             $table->foreign('parent_id')->references('id')->on('ministries')->onDelete('cascade');
         });
     }

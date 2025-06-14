@@ -4,29 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Ministry extends Model
 {
     use HasFactory, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'ministry_name',
         'ministry_code',
         'parent_id',
         'ministry_type',
-        'description',
-        'contact_person',
-        'contact_email',
-        'contact_phone',
-        'meeting_schedule',
     ];
 
     /**
@@ -54,6 +44,14 @@ class Ministry extends Model
     public function children(): HasMany
     {
         return $this->hasMany(Ministry::class, 'parent_id');
+    }
+
+    /**
+     * Get all volunteer details for this ministry.
+     */
+    public function volunteerDetails(): HasMany
+    {
+        return $this->hasMany(VolunteerDetail::class);
     }
 
     /**

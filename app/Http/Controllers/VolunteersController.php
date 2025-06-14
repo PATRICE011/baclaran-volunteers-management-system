@@ -17,7 +17,7 @@ class VolunteersController extends Controller
 {
     public function index(Request $request)
     {
-        
+
         try {
             $user = auth()->user();
 
@@ -98,7 +98,10 @@ class VolunteersController extends Controller
 
 
             // Fetch ministries and statuses
-            $ministries = Ministry::whereNull('parent_id')->with('children')->get();
+            $ministries = Ministry::whereNull('parent_id')
+                ->with(['children.children']) // includes sub-groups
+                ->get();
+
 
             // Fetch distinct statuses from the volunteer_details table
             $statuses = \App\Models\VolunteerDetail::select('volunteer_status')
@@ -120,7 +123,7 @@ class VolunteersController extends Controller
             }
 
             // Full page load
-            return view('admin_volunteer', compact('volunteers', 'ministries', 'statuses','user'));
+            return view('admin_volunteer', compact('volunteers', 'ministries', 'statuses', 'user'));
         } catch (\Exception $e) {
             Log::error('Volunteer filter error: ' . $e->getMessage());
 
@@ -310,8 +313,10 @@ class VolunteersController extends Controller
                 $volunteer->active_for = 'Duration unknown';
             }
 
-            // $ministries = Ministry::pluck('ministry_name')->toArray();
-            $ministries = Ministry::select('id', 'ministry_name')->get(); 
+            $ministries = Ministry::whereNull('parent_id')
+                ->with('children.children') // Load grandchildren
+                ->get();
+
 
             return response()->json([
                 'volunteer' => $volunteer,
@@ -356,7 +361,8 @@ class VolunteersController extends Controller
                 'affiliations' => 'sometimes|array',
                 'profile_picture' => 'sometimes|image|mimes:jpg,jpeg,png,webp|max:2048',
                 'volunteer_status' => 'sometimes|string|in:Active,Inactive',
-                'ministry_name' => 'sometimes|nullable|string|exists:ministries,ministry_name',
+                'ministry_id' => 'sometimes|nullable|integer|exists:ministries,id',
+
             ]);
 
             // Handle profile picture upload
@@ -392,16 +398,8 @@ class VolunteersController extends Controller
                 }
 
                 // Convert ministry_name to ministry_id if present
-                if (isset($validated['ministry_name'])) {
-                    if ($validated['ministry_name'] === null) {
-                        // If ministry_name is null, clear the ministry assignment
-                        $volunteer->detail->ministry_id = null;
-                    } else {
-                        $ministry = Ministry::where('ministry_name', $validated['ministry_name'])->first();
-                        if ($ministry) {
-                            $volunteer->detail->ministry_id = $ministry->id;
-                        }
-                    }
+                if (array_key_exists('ministry_id', $validated)) {
+                    $volunteer->detail->ministry_id = $validated['ministry_id'];
                 }
 
                 $volunteer->detail->save();

@@ -27,7 +27,8 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
     Route::get('/schedule', [SchedulesController::class, 'index']);
-    Route::get('/ministries', [MinistryController::class, 'index']);
+
+
     Route::get('/attendance', [AttendanceController::class, 'index']);
     Route::get('/tasks', [TasksController::class, 'index']);
 
@@ -43,6 +44,18 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
         Route::get('/{id}/edit', [VolunteersController::class, 'edit'])->name('volunteers.edit');
         Route::put('/{id}', [VolunteersController::class, 'update'])->name('volunteers.update');
         // Route::delete('/{id}', [VolunteersController::class, 'destroy'])->name('volunteers.destroy');
+    });
+
+    // ministry page
+    Route::prefix('ministries')->group(function () {
+        Route::get('/', [MinistryController::class, 'index'])->name('ministries.index');
+        Route::post('/', [MinistryController::class, 'store'])->name('ministries.store');
+        Route::get('/{id}', [MinistryController::class, 'show'])->name('ministries.show');
+        Route::put('/{id}', [MinistryController::class, 'update'])->name('ministries.update');
+        Route::delete('/{id}', [MinistryController::class, 'destroy'])->name('ministries.destroy');
+        Route::get('/parents/list', [MinistryController::class, 'getParentMinistries'])->name('ministries.parents');
+        Route::get('/parents', [MinistryController::class, 'getParentMinistries'])->name('ministries.parents');
+        Route::get('/stats', [MinistryController::class, 'getStats'])->name('ministries.stats');
     });
 
     // account settings page

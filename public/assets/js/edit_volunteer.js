@@ -1,6 +1,47 @@
+function renderMinistryOptions(ministries, selectedId = null, level = 0) {
+    return ministries
+        .map((ministry) => {
+            const indent = "&nbsp;".repeat(level * 4) + (level > 0 ? "→ " : "");
+            let option = `<option value="${ministry.id}" ${
+                ministry.id === selectedId ? "selected" : ""
+            }>
+            ${indent}${ministry.ministry_name}
+        </option>`;
+
+            if (
+                Array.isArray(ministry.children) &&
+                ministry.children.length > 0
+            ) {
+                option += renderMinistryOptions(
+                    ministry.children,
+                    selectedId,
+                    level + 1
+                );
+            }
+
+            return option;
+        })
+        .join("");
+}
+
+function renderMinistryOptionsWithGroups(ministries, selectedId) {
+    return ministries
+        .map((main) => {
+            const groupOptions = renderMinistryOptions(
+                main.children || [],
+                selectedId,
+                1
+            );
+            return `
+            <optgroup label="${main.ministry_name}">
+                ${groupOptions}
+            </optgroup>
+        `;
+        })
+        .join("");
+}
 
 function openProfile(id, activeTabId = "contact-tab") {
-    
     const profileContent = document.getElementById("profileContent");
     profileContent.innerHTML = `
         <div class="flex items-center justify-center py-16">
@@ -27,8 +68,13 @@ function openProfile(id, activeTabId = "contact-tab") {
             }
             return response.json();
         })
-       .then((data) => {
-            renderEditableProfile(data.volunteer, id, activeTabId, data.ministries);
+        .then((data) => {
+            renderEditableProfile(
+                data.volunteer,
+                id,
+                activeTabId,
+                data.ministries
+            );
         })
         .catch((error) => {
             console.error("Error fetching volunteer data:", error);
@@ -46,24 +92,29 @@ function uploadProfilePicture(event, volunteerId) {
     fetch(`/volunteers/${volunteerId}/picture`, {
         method: "POST",
         headers: {
-            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')
+                .content,
         },
         body: formData,
     })
-    .then((res) => {
-        if (!res.ok) throw new Error("Upload failed");
-        return res.json();
-    })
-    .then(() => {
-        toastr.success("Profile picture updated");
-        openProfile(volunteerId, currentActiveTabId); // Refresh
-    })
-    .catch(() => toastr.error("Failed to update profile picture."));
+        .then((res) => {
+            if (!res.ok) throw new Error("Upload failed");
+            return res.json();
+        })
+        .then(() => {
+            toastr.success("Profile picture updated");
+            openProfile(volunteerId, currentActiveTabId); // Refresh
+        })
+        .catch(() => toastr.error("Failed to update profile picture."));
 }
 
 // Renders profile details including editable and read-only sections.
-function renderEditableProfile(volunteer, id, activeTabId = "contact-tab", ministriesList = [])
- {
+function renderEditableProfile(
+    volunteer,
+    id,
+    activeTabId = "contact-tab",
+    ministriesList = []
+) {
     const profileContent = document.getElementById("profileContent");
 
     const displayName =
@@ -82,8 +133,24 @@ function renderEditableProfile(volunteer, id, activeTabId = "contact-tab", minis
     const status = volunteer.detail?.volunteer_status;
     const activeTime = volunteer.active_for || "Duration unknown";
 
-    const ministryName =
-        volunteer.detail?.ministry?.ministry_name || "No Ministry Assigned";
+    const ministryId = volunteer.detail?.ministry?.id;
+    let ministryName = "No Ministry Assigned";
+
+    function findMinistryNameById(ministries, id) {
+        for (const ministry of ministries) {
+            if (ministry.id === id) return ministry.ministry_name;
+            if (Array.isArray(ministry.children)) {
+                const childMatch = findMinistryNameById(ministry.children, id);
+                if (childMatch) return childMatch;
+            }
+        }
+        return null;
+    }
+
+    if (ministryId) {
+        const name = findMinistryNameById(ministriesList, ministryId);
+        if (name) ministryName = name;
+    }
 
     const volunteerStatus = volunteer.detail?.volunteer_status || "No Status";
     const statusClass =
@@ -91,7 +158,6 @@ function renderEditableProfile(volunteer, id, activeTabId = "contact-tab", minis
             ? "bg-emerald-100 text-emerald-800 border-emerald-200"
             : "bg-red-100 text-red-800 border-red-200";
 
-   
     const sacraments = Array.isArray(volunteer.sacraments_received)
         ? volunteer.sacraments_received
         : volunteer.sacraments_received
@@ -149,8 +215,10 @@ function renderEditableProfile(volunteer, id, activeTabId = "contact-tab", minis
                     <div class="flex items-center gap-2 mb-2">
                         <div class="relative group flex items-center">
                             <h2 id="display-name-display" class="text-2xl font-bold text-gray-900">${displayName}</h2>
-                            <input type="text" id="display-name-input" data-field="nickname" data-original="${volunteer.nickname || ''}" 
-                                   value="${volunteer.nickname || ''}" 
+                            <input type="text" id="display-name-input" data-field="nickname" data-original="${
+                                volunteer.nickname || ""
+                            }" 
+                                   value="${volunteer.nickname || ""}" 
                                    class="editable-input hidden text-2xl font-bold text-gray-900 bg-transparent border-b-2 border-blue-500 focus:outline-none focus:border-blue-700" 
                                    placeholder="Enter display name" />
                             <button onclick="toggleEditField('display-name', event)" class="ml-2 text-gray-400 hover:text-blue-600 transition-colors">
@@ -169,8 +237,16 @@ function renderEditableProfile(volunteer, id, activeTabId = "contact-tab", minis
                                 </span>
                                 <select id="volunteer-status-input" data-field="volunteer_status" data-original="${volunteerStatus}" 
                                         class="editable-input hidden px-3 py-1 text-sm font-medium rounded-full border border-gray-300 bg-white">
-                                    <option value="Active" ${volunteerStatus === 'Active' ? 'selected' : ''}>Active</option>
-                                    <option value="Inactive" ${volunteerStatus === 'Inactive' ? 'selected' : ''}>Inactive</option>
+                                    <option value="Active" ${
+                                        volunteerStatus === "Active"
+                                            ? "selected"
+                                            : ""
+                                    }>Active</option>
+                                    <option value="Inactive" ${
+                                        volunteerStatus === "Inactive"
+                                            ? "selected"
+                                            : ""
+                                    }>Inactive</option>
                                 </select>
                                 <button onclick="toggleEditField('volunteer-status', event)" class="ml-2 text-gray-400 hover:text-blue-600 transition-colors">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -183,14 +259,16 @@ function renderEditableProfile(volunteer, id, activeTabId = "contact-tab", minis
                             <span id="ministry-display" class="inline-flex items-center px-3 py-1 text-sm bg-blue-50 text-blue-700 rounded-full border border-blue-200">
                                 ${ministryName}
                             </span>
-                            <select id="ministry-input" data-field="ministry_id" data-original="${volunteer.detail?.ministry?.id || ''}" 
+                            <select id="ministry-input" data-field="ministry_id" data-original="${
+                                volunteer.detail?.ministry?.id || ""
+                            }" 
                                     class="editable-input hidden px-3 py-1 text-sm bg-blue-50 text-blue-700 rounded-full border border-blue-200">
                                 <option value="">No Ministry Assigned</option>
-                                ${Array.isArray(ministriesList) ? ministriesList.map(ministry => 
-                                    ministry ? `<option value="${ministry.id}" ${ministry.id == volunteer.detail?.ministry?.id ? 'selected' : ''}>
-                                        ${ministry.ministry_name}
-                                    </option>` : ''
-                                ).join('') : ''}
+                                ${renderMinistryOptions(
+                                    ministriesList,
+                                    volunteer.detail?.ministry?.id
+                                )}
+
                             </select>
                             <button onclick="toggleEditField('ministry', event)" class="ml-2 text-gray-400 hover:text-blue-600 transition-colors">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -338,7 +416,6 @@ function renderEditableProfile(volunteer, id, activeTabId = "contact-tab", minis
                             "select",
                             false,
                             ["Male", "Female"]
-
                         )}
                         ${generateEditableField(
                             "Civil Status",
@@ -445,7 +522,11 @@ function renderEditableProfile(volunteer, id, activeTabId = "contact-tab", minis
                 </h3>
                 </div>
                 <div class="space-y-4" id="timelines-display">
-                ${timelines.length > 0 ? generateTimelinesDisplay(timelines) : `<p class="text-gray-500">No timeline entries added yet.</p>`}
+                ${
+                    timelines.length > 0
+                        ? generateTimelinesDisplay(timelines)
+                        : `<p class="text-gray-500">No timeline entries added yet.</p>`
+                }
                 </div>
             </div>
             </div>
@@ -464,9 +545,11 @@ function renderEditableProfile(volunteer, id, activeTabId = "contact-tab", minis
                         </h3>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="affiliations-display">
-                        ${affiliations.length > 0 
-                            ? generateAffiliationsDisplay(affiliations) 
-                            : `<p class="text-gray-500 col-span-full">No affiliations added yet.</p>`}
+                        ${
+                            affiliations.length > 0
+                                ? generateAffiliationsDisplay(affiliations)
+                                : `<p class="text-gray-500 col-span-full">No affiliations added yet.</p>`
+                        }
                     </div>
                 </div>
             </div>
@@ -488,12 +571,13 @@ function renderEditableProfile(volunteer, id, activeTabId = "contact-tab", minis
     }
     // Activate the correct tab after content is rendered
     setTimeout(() => {
-        const activeTabBtn = document.querySelector(`button[onclick*='${activeTabId}']`);
+        const activeTabBtn = document.querySelector(
+            `button[onclick*='${activeTabId}']`
+        );
         if (activeTabBtn) {
             activeTabBtn.click();
         }
     }, 50);
-
 }
 // Creates form fields for contact/personal tab with edit toggle support.
 function generateEditableField(
@@ -506,32 +590,38 @@ function generateEditableField(
     options = null
 ) {
     const displayValue = value || "Not provided";
-    const sanitizedFieldName = fieldName.replace(/\s+/g, '_').toLowerCase();
+    const sanitizedFieldName = fieldName.replace(/\s+/g, "_").toLowerCase();
     const fieldId = `field-${sanitizedFieldName}`;
 
     const inputHtml = (() => {
         if (options && Array.isArray(options)) {
-            const normalizedValue = String(value || '').toLowerCase();
+            const normalizedValue = String(value || "").toLowerCase();
 
             return `
                 <select id="${fieldId}-input" data-field="${fieldName}" data-original="${normalizedValue}" 
                         class="form-input editable-input hidden w-full mt-1 border-gray-300 rounded-md shadow-sm">
-                    ${options.map(opt => {
-                        const optLower = opt.toLowerCase();
-                        return `<option value="${optLower}" ${optLower === normalizedValue ? 'selected' : ''}>
+                    ${options
+                        .map((opt) => {
+                            const optLower = opt.toLowerCase();
+                            return `<option value="${optLower}" ${
+                                optLower === normalizedValue ? "selected" : ""
+                            }>
                             ${opt.charAt(0).toUpperCase() + opt.slice(1)}
                         </option>`;
-                    }).join('')}
+                        })
+                        .join("")}
                 </select>
             `;
         }
 
         if (inputType === "textarea") {
             return `
-                <textarea id="${fieldId}-input" data-field="${fieldName}" data-original="${value || ''}" 
+                <textarea id="${fieldId}-input" data-field="${fieldName}" data-original="${
+                value || ""
+            }" 
                           class="form-textarea editable-input hidden w-full mt-1 border-gray-300 rounded-md shadow-sm" rows="3">${
-                value || ''
-            }</textarea>
+                              value || ""
+                          }</textarea>
             `;
         }
 
@@ -553,8 +643,12 @@ function generateEditableField(
         }
 
         return `
-            <input type="${inputType}" id="${fieldId}-input" data-field="${fieldName}" data-original="${value || ''}" 
-                   value="${value || ''}" class="form-input editable-input hidden w-full max-w-xs sm:max-w-sm md:max-w-md mt-1 border-gray-300 rounded-md shadow-sm" />
+            <input type="${inputType}" id="${fieldId}-input" data-field="${fieldName}" data-original="${
+            value || ""
+        }" 
+                   value="${
+                       value || ""
+                   }" class="form-input editable-input hidden w-full max-w-xs sm:max-w-sm md:max-w-md mt-1 border-gray-300 rounded-md shadow-sm" />
         `;
     })();
 
@@ -590,15 +684,17 @@ function toggleEditField(fieldId, event) {
 
     const displayEl = document.getElementById(`${fieldId}-display`);
     const inputEl = document.getElementById(`${fieldId}-input`);
-    
+
     if (displayEl && inputEl) {
         // Hide all other editable inputs first
-        document.querySelectorAll('.editable-input').forEach(el => {
+        document.querySelectorAll(".editable-input").forEach((el) => {
             if (el.id !== `${fieldId}-input`) {
-                el.classList.add('hidden');
-                const correspondingDisplay = document.getElementById(el.id.replace('-input', '-display'));
+                el.classList.add("hidden");
+                const correspondingDisplay = document.getElementById(
+                    el.id.replace("-input", "-display")
+                );
                 if (correspondingDisplay) {
-                    correspondingDisplay.classList.remove('hidden');
+                    correspondingDisplay.classList.remove("hidden");
                 }
             }
         });
@@ -606,13 +702,13 @@ function toggleEditField(fieldId, event) {
         // Toggle current field
         displayEl.classList.toggle("hidden");
         inputEl.classList.toggle("hidden");
-        
+
         // Focus only if showing the input
         if (!inputEl.classList.contains("hidden")) {
             setTimeout(() => {
                 inputEl.focus();
                 // For text inputs, select all text for easier editing
-                if (inputEl.type === 'text') {
+                if (inputEl.type === "text") {
                     inputEl.select();
                 }
             }, 50);
@@ -622,64 +718,103 @@ function toggleEditField(fieldId, event) {
 
 // Renders the timeline data in read-only format.
 function generateTimelinesDisplay(timelines) {
-    return timelines.map((t, index) => `
+    return timelines
+        .map(
+            (t, index) => `
         <div class="timeline-entry border-l-2 border-blue-200 pl-4 relative group space-y-2" data-index="${index}">
-            <p class="text-sm text-gray-600 font-medium">${t.organization_name || "No Title"}</p>
-            <input type="text" class="form-input w-full hidden" data-field="organization_name" value="${t.organization_name || ''}" data-index="${index}">
+            <p class="text-sm text-gray-600 font-medium">${
+                t.organization_name || "No Title"
+            }</p>
+            <input type="text" class="form-input w-full hidden" data-field="organization_name" value="${
+                t.organization_name || ""
+            }" data-index="${index}">
 
-            <p class="text-sm text-gray-500">${t.year_started || "?"} - ${t.year_ended || "Present"}</p>
+            <p class="text-sm text-gray-500">${t.year_started || "?"} - ${
+                t.year_ended || "Present"
+            }</p>
             <div class="flex gap-2 hidden">
-                <input type="text" class="form-input w-full" placeholder="Start Year" data-field="year_started" value="${t.year_started || ''}" data-index="${index}">
-                <input type="text" class="form-input w-full" placeholder="End Year" data-field="year_ended" value="${t.year_ended || ''}" data-index="${index}">
+                <input type="text" class="form-input w-full" placeholder="Start Year" data-field="year_started" value="${
+                    t.year_started || ""
+                }" data-index="${index}">
+                <input type="text" class="form-input w-full" placeholder="End Year" data-field="year_ended" value="${
+                    t.year_ended || ""
+                }" data-index="${index}">
             </div>
 
             <p class="text-xs text-gray-400 mt-1">
-                ${t.total_years ? `${t.total_years} year${t.total_years > 1 ? 's' : ''}` : "No Duration"}
-                ${t.is_active 
-                    ? `<span class="inline-block ml-2 text-green-600 text-xs font-semibold">Active</span>` 
-                    : `<span class="inline-block ml-2 text-gray-500 text-xs">Inactive</span>`}
+                ${
+                    t.total_years
+                        ? `${t.total_years} year${t.total_years > 1 ? "s" : ""}`
+                        : "No Duration"
+                }
+                ${
+                    t.is_active
+                        ? `<span class="inline-block ml-2 text-green-600 text-xs font-semibold">Active</span>`
+                        : `<span class="inline-block ml-2 text-gray-500 text-xs">Inactive</span>`
+                }
             </p>
 
             <div class="hidden">
-                <input type="text" class="form-input w-full" placeholder="Total Years" data-field="total_years" value="${t.total_years || ''}" data-index="${index}">
+                <input type="text" class="form-input w-full" placeholder="Total Years" data-field="total_years" value="${
+                    t.total_years || ""
+                }" data-index="${index}">
                 <label class="inline-flex items-center mt-1">
-                    <input type="checkbox" class="form-checkbox" data-field="is_active" data-index="${index}" ${t.is_active ? 'checked' : ''}>
+                    <input type="checkbox" class="form-checkbox" data-field="is_active" data-index="${index}" ${
+                t.is_active ? "checked" : ""
+            }>
                     <span class="ml-2 text-sm">Active</span>
                 </label>
             </div>
         </div>
-    `).join('');
+    `
+        )
+        .join("");
 }
-
 
 // Renders the affiliation data in read-only format.
 function generateAffiliationsDisplay(affiliations) {
-    return affiliations.map((a, index) => `
+    return affiliations
+        .map(
+            (a, index) => `
         <div class="affiliation-entry bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm relative space-y-2" data-index="${index}">
             <!-- Display Mode -->
-            <div class="font-medium text-gray-800">${a.organization_name || 'Unnamed Organization'}</div>
-            <input type="text" class="form-input w-full hidden" data-field="organization_name" value="${a.organization_name || ''}" data-index="${index}">
+            <div class="font-medium text-gray-800">${
+                a.organization_name || "Unnamed Organization"
+            }</div>
+            <input type="text" class="form-input w-full hidden" data-field="organization_name" value="${
+                a.organization_name || ""
+            }" data-index="${index}">
 
             <div class="text-sm text-gray-500">
                 ${a.year_started ? `From ${a.year_started}` : ""}
                 ${a.year_ended ? ` to ${a.year_ended}` : ""}
             </div>
             <div class="flex gap-2 hidden">
-                <input type="text" class="form-input w-full" placeholder="Start Year" data-field="year_started" value="${a.year_started || ''}" data-index="${index}">
-                <input type="text" class="form-input w-full" placeholder="End Year" data-field="year_ended" value="${a.year_ended || ''}" data-index="${index}">
+                <input type="text" class="form-input w-full" placeholder="Start Year" data-field="year_started" value="${
+                    a.year_started || ""
+                }" data-index="${index}">
+                <input type="text" class="form-input w-full" placeholder="End Year" data-field="year_ended" value="${
+                    a.year_ended || ""
+                }" data-index="${index}">
             </div>
 
-            <div class="text-xs ${a.is_active ? 'text-green-700' : 'text-gray-500'} font-semibold">
-                ${a.is_active ? 'Active' : 'Inactive'}
+            <div class="text-xs ${
+                a.is_active ? "text-green-700" : "text-gray-500"
+            } font-semibold">
+                ${a.is_active ? "Active" : "Inactive"}
             </div>
             <div class="hidden">
                 <label class="inline-flex items-center mt-1">
-                    <input type="checkbox" class="form-checkbox" data-field="is_active" data-index="${index}" ${a.is_active ? 'checked' : ''}>
+                    <input type="checkbox" class="form-checkbox" data-field="is_active" data-index="${index}" ${
+                a.is_active ? "checked" : ""
+            }>
                     <span class="ml-2 text-sm">Active</span>
                 </label>
             </div>
         </div>
-    `).join('');
+    `
+        )
+        .join("");
 }
 
 // Displays a fallback UI if volunteer data fetch fails.
@@ -747,16 +882,11 @@ function saveAllChanges(volunteerId) {
         const original = (input.dataset.original || "").trim();
         let current = (input.value || "").trim();
 
-        // Special handling for ministry - convert ministry_id to ministry_name
-        if (field === 'ministry_id' && current && current !== original) {
-            const ministrySelect = document.getElementById('ministry-input');
-            const selectedOption = ministrySelect.querySelector(`option[value="${current}"]`);
-            if (selectedOption && selectedOption.textContent.trim() !== 'No Ministry Assigned') {
-                data['ministry_name'] = selectedOption.textContent.trim();
-            } else if (current === '') {
-                data['ministry_name'] = null;
+        if (field === "ministry_id") {
+            if (current !== original) {
+                data[field] = current; // ✅ Send actual ID
             }
-            return; // Don't add ministry_id to data
+            return;
         }
 
         if (current !== original) {
@@ -775,105 +905,134 @@ function saveAllChanges(volunteerId) {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
-            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')
+                .content,
         },
         body: JSON.stringify(data),
     })
-    .then((res) => {
-        if (!res.ok) throw new Error("Update failed");
-        return res.json();
-    })
-    .then(() => {
-        const fieldLabels = {
-            email_address: "Email Address",
-            mobile_number: "Mobile Number",
-            date_of_birth: "Date of Birth",
-            occupation: "Occupation",
-            address: "Address",
-            sex: "Gender",
-            civil_status: "Civil Status",
-            full_name: "Full Name",
-            nickname: "Display Name",
-            volunteer_status: "Volunteer Status",
-            ministry_name: "Ministry"
-        };
+        .then((res) => {
+            if (!res.ok) throw new Error("Update failed");
+            return res.json();
+        })
+        .then(() => {
+            const fieldLabels = {
+                email_address: "Email Address",
+                mobile_number: "Mobile Number",
+                date_of_birth: "Date of Birth",
+                occupation: "Occupation",
+                address: "Address",
+                sex: "Gender",
+                civil_status: "Civil Status",
+                full_name: "Full Name",
+                nickname: "Display Name",
+                volunteer_status: "Volunteer Status",
+                ministry_name: "Ministry",
+            };
 
-        const updatedFields = Object.keys(data)
-            .map((key) => fieldLabels[key] || key.replace(/_/g, ' '))
-            .join(", ");
+            let updatedFields = Object.keys(data)
+                .map((key) => {
+                    if (key === "ministry_id") {
+                        const select =
+                            document.getElementById("ministry-input");
+                        const selectedOption = select?.querySelector(
+                            `option[value="${data[key]}"]`
+                        );
+                        return (
+                            selectedOption?.textContent?.trim() || "Ministry"
+                        );
+                    }
+                    return fieldLabels[key] || key.replace(/_/g, " ");
+                })
+                .join(", ");
 
-        toastr.success("Updated: " + updatedFields);
+            toastr.success("Updated: " + updatedFields);
 
-        // Reload profile content
-        openProfile(volunteerId, currentActiveTabId);
+            // Reload profile content
+            openProfile(volunteerId, currentActiveTabId);
 
-        // After reload, wait briefly then switch to the correct tab
-        setTimeout(() => {
-            const activeTabBtn = document.querySelector(`button[onclick*='${currentActiveTabId}']`);
-            if (activeTabBtn) activeTabBtn.click();
-        }, 100);
-
-    })
-    .catch((err) => {
-        console.error("Save failed:", err);
-        toastr.error("There was an error saving the profile.");
-    });
+            // After reload, wait briefly then switch to the correct tab
+            setTimeout(() => {
+                const activeTabBtn = document.querySelector(
+                    `button[onclick*='${currentActiveTabId}']`
+                );
+                if (activeTabBtn) activeTabBtn.click();
+            }, 100);
+        })
+        .catch((err) => {
+            console.error("Save failed:", err);
+            toastr.error("There was an error saving the profile.");
+        });
 }
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Enter') {
-        const activeInput = document.querySelector('.editable-input:not(.hidden)');
+document.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+        const activeInput = document.querySelector(
+            ".editable-input:not(.hidden)"
+        );
         if (activeInput) {
             event.preventDefault();
             // Hide the input and show the display
-            activeInput.classList.add('hidden');
-            const correspondingDisplay = document.getElementById(activeInput.id.replace('-input', '-display'));
+            activeInput.classList.add("hidden");
+            const correspondingDisplay = document.getElementById(
+                activeInput.id.replace("-input", "-display")
+            );
             if (correspondingDisplay) {
-                correspondingDisplay.classList.remove('hidden');
+                correspondingDisplay.classList.remove("hidden");
                 // Update the display value immediately
                 updateDisplayValue(activeInput);
             }
         }
-    } else if (event.key === 'Escape') {
-        const activeInput = document.querySelector('.editable-input:not(.hidden)');
+    } else if (event.key === "Escape") {
+        const activeInput = document.querySelector(
+            ".editable-input:not(.hidden)"
+        );
         if (activeInput) {
             event.preventDefault();
             // Reset to original value
-            activeInput.value = activeInput.dataset.original || '';
+            activeInput.value = activeInput.dataset.original || "";
             // Hide the input and show the display
-            activeInput.classList.add('hidden');
-            const correspondingDisplay = document.getElementById(activeInput.id.replace('-input', '-display'));
+            activeInput.classList.add("hidden");
+            const correspondingDisplay = document.getElementById(
+                activeInput.id.replace("-input", "-display")
+            );
             if (correspondingDisplay) {
-                correspondingDisplay.classList.remove('hidden');
+                correspondingDisplay.classList.remove("hidden");
             }
         }
     }
 });
 function updateDisplayValue(inputEl) {
-    const displayEl = document.getElementById(inputEl.id.replace('-input', '-display'));
+    const displayEl = document.getElementById(
+        inputEl.id.replace("-input", "-display")
+    );
     if (!displayEl) return;
 
     const field = inputEl.dataset.field;
-    let newValue = inputEl.value || '';
+    let newValue = inputEl.value || "";
 
     // Special handling for different field types
-    if (field === 'volunteer_status') {
+    if (field === "volunteer_status") {
         // Update the status badge
-        const statusClass = newValue === 'Active' 
-            ? "bg-emerald-100 text-emerald-800 border-emerald-200"
-            : "bg-red-100 text-red-800 border-red-200";
-        
+        const statusClass =
+            newValue === "Active"
+                ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                : "bg-red-100 text-red-800 border-red-200";
+
         displayEl.className = `inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${statusClass}`;
         displayEl.innerHTML = `
             <span class="w-2 h-2 bg-current rounded-full mr-2"></span>
             ${newValue}
         `;
-    } else if (field === 'ministry_id') {
+    } else if (field === "ministry_id") {
         // Update ministry display
-        const selectedOption = inputEl.querySelector(`option[value="${newValue}"]`);
-        const ministryName = selectedOption ? selectedOption.textContent.trim() : 'No Ministry Assigned';
+        const selectedOption = inputEl.querySelector(
+            `option[value="${newValue}"]`
+        );
+        const ministryName = selectedOption
+            ? selectedOption.textContent.trim()
+            : "No Ministry Assigned";
         displayEl.textContent = ministryName;
     } else {
         // Regular text fields
-        displayEl.textContent = newValue || 'Not provided';
+        displayEl.textContent = newValue || "Not provided";
     }
 }
