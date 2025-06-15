@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ministry;
+use App\Models\VolunteerDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -15,70 +16,64 @@ class MinistryController extends Controller
     {
         try {
             $user = Auth::user();
-            
+
             // Build query with filters
-            $query = Ministry::with(['children', 'parent', 'volunteerDetails.volunteer'])
-                ->withCount(['volunteerDetails', 'children']);
-            
+            $query = Ministry::with(['children', 'parent'])
+                ->withCount(['children']);
+
             // Apply search filter
             if ($request->filled('search')) {
                 $search = $request->get('search');
-                $query->where(function($q) use ($search) {
+                $query->where(function ($q) use ($search) {
                     $q->where('ministry_name', 'LIKE', "%{$search}%")
-                      ->orWhere('ministry_code', 'LIKE', "%{$search}%");
+                        ->orWhere('ministry_code', 'LIKE', "%{$search}%");
                 });
             }
-            
+
             // Apply category filter
             if ($request->filled('category') && $request->get('category') !== 'All') {
                 $query->where('ministry_type', $request->get('category'));
             }
-            
+
             // Get ministries with pagination
             $ministries = $query->orderBy('ministry_name', 'asc')
-                               ->paginate(12);
-            
+                ->paginate(12);
+
             // Get distinct categories for filter dropdown
             $categories = Ministry::select('ministry_type')
-                                 ->distinct()
-                                 ->orderBy('ministry_type')
-                                 ->get();
-            
-            // If it's an AJAX request (for search/filter), return JSON
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => true,
-                    'ministries' => $ministries->items(),
-                    'pagination' => [
-                        'current_page' => $ministries->currentPage(),
-                        'last_page' => $ministries->lastPage(),
-                        'total' => $ministries->total(),
-                        'per_page' => $ministries->perPage(),
-                    ]
-                ]);
-            }
-            
-            return view('admin_ministries', compact('user', 'ministries', 'categories'));
-            
+                ->distinct()
+                ->orderBy('ministry_type')
+                ->get();
+
+            // Calculate total volunteers including sub-ministries
+            $ministries->getCollection()->transform(function ($ministry) {
+                $ministry->total_volunteers = $this->getTotalVolunteersCount($ministry);
+                return $ministry;
+            });
+
+            // Check if we should show empty state
+            $showEmptyState = $ministries->isEmpty();
+
+            return view('admin_ministries', compact('user', 'ministries', 'categories', 'showEmptyState'));
         } catch (\Exception $e) {
             Log::error('Error in MinistryController@index: ' . $e->getMessage());
-            
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'An error occurred while loading ministries.'
-                ], 500);
-            }
-            
             return back()->with('error', 'An error occurred while loading ministries.');
         }
+    }
+    private function getTotalVolunteersCount($ministry)
+    {
+        // Get all ministry IDs including children and grandchildren
+        $ministryIds = $this->getAllDescendantIds($ministry);
+
+        // Get volunteer count including all sub-ministries
+        return VolunteerDetail::whereIn('ministry_id', $ministryIds)->count();
     }
 
     public function store(Request $request)
     {
         try {
             DB::beginTransaction();
-            
+
             $validator = Validator::make($request->all(), [
                 'ministry_name' => 'required|string|max:255|unique:ministries,ministry_name',
                 'ministry_code' => 'nullable|string|max:20|unique:ministries,ministry_code',
@@ -125,11 +120,10 @@ class MinistryController extends Controller
                 'message' => 'Ministry created successfully.',
                 'ministry' => $this->formatMinistryData($ministry->load(['children', 'parent', 'volunteerDetails']))
             ]);
-            
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error creating ministry: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'An error occurred while creating the ministry.'
@@ -140,28 +134,29 @@ class MinistryController extends Controller
     public function show($id)
     {
         try {
-            $ministry = Ministry::with(['children', 'parent', 'volunteerDetails.volunteer'])
+            $ministry = Ministry::with(['children', 'parent'])
                 ->findOrFail($id);
 
-            $volunteers = $ministry->volunteerDetails->map(function ($detail) {
-                return [
-                    'id' => $detail->id,
-                    'name' => $detail->full_name ?? 'N/A',
-                    'email' => $detail->volunteer->email_address ?? 'N/A',
-                    'phone' => $detail->volunteer->mobile_number ?? 'N/A',
-                    'status' => $detail->volunteer_status ?? 'Unknown',
-                    'line_group' => $detail->line_group ?? null,
-                    'applied_date' => $detail->applied_month_year ?? null,
-                    'regular_date' => $detail->regular_years_month ?? null,
-                ];
-            });
+            // Get all ministry IDs including children and grandchildren
+            $ministryIds = $this->getAllDescendantIds($ministry);
+
+            // Get volunteers from this ministry and all sub-ministries
+            $volunteers = VolunteerDetail::with('volunteer', 'ministry')
+                ->whereIn('ministry_id', $ministryIds)
+                ->get()
+                ->map(function ($detail) {
+                    return [
+                        'name' => $detail->full_name ?? 'N/A',
+                        'ministry_name' => $detail->ministry->ministry_name ?? 'N/A',
+                        'status' => $detail->volunteer_status ?? 'Unknown',
+                    ];
+                });
 
             return response()->json([
                 'success' => true,
                 'ministry' => $this->formatMinistryData($ministry),
                 'volunteers' => $volunteers
             ]);
-            
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
@@ -169,7 +164,6 @@ class MinistryController extends Controller
             ], 404);
         } catch (\Exception $e) {
             Log::error('Error showing ministry: ' . $e->getMessage());
-            
             return response()->json([
                 'success' => false,
                 'message' => 'An error occurred while loading ministry details.'
@@ -181,7 +175,7 @@ class MinistryController extends Controller
     {
         try {
             DB::beginTransaction();
-            
+
             $ministry = Ministry::findOrFail($id);
 
             $validator = Validator::make($request->all(), [
@@ -230,7 +224,6 @@ class MinistryController extends Controller
                 'message' => 'Ministry updated successfully.',
                 'ministry' => $this->formatMinistryData($ministry->load(['children', 'parent', 'volunteerDetails']))
             ]);
-            
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
@@ -239,7 +232,7 @@ class MinistryController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error updating ministry: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'An error occurred while updating the ministry.'
@@ -251,7 +244,7 @@ class MinistryController extends Controller
     {
         try {
             DB::beginTransaction();
-            
+
             $ministry = Ministry::findOrFail($id);
 
             // Check if ministry has children
@@ -281,7 +274,6 @@ class MinistryController extends Controller
                 'success' => true,
                 'message' => "Ministry '{$ministryName}' deleted successfully."
             ]);
-            
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
@@ -290,7 +282,7 @@ class MinistryController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error deleting ministry: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'An error occurred while deleting the ministry.'
@@ -310,10 +302,9 @@ class MinistryController extends Controller
                 'success' => true,
                 'parents' => $parents
             ]);
-            
         } catch (\Exception $e) {
             Log::error('Error getting parent ministries: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'An error occurred while loading parent ministries.'
@@ -345,10 +336,9 @@ class MinistryController extends Controller
                 'success' => true,
                 'stats' => $stats
             ]);
-            
         } catch (\Exception $e) {
             Log::error('Error getting ministry stats: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'An error occurred while loading statistics.'
@@ -402,13 +392,19 @@ class MinistryController extends Controller
      */
     private function formatMinistryData($ministry)
     {
+        // Get all ministry IDs including children and grandchildren
+        $ministryIds = $this->getAllDescendantIds($ministry);
+
+        // Get volunteer count including all sub-ministries
+        $volunteerCount = VolunteerDetail::whereIn('ministry_id', $ministryIds)->count();
+
         return [
             'id' => $ministry->id,
             'name' => $ministry->ministry_name,
             'code' => $ministry->ministry_code,
             'category' => $this->mapMinistryTypeToCategory($ministry->ministry_type),
             'type' => $ministry->ministry_type,
-            'volunteers' => $ministry->volunteerDetails ? $ministry->volunteerDetails->count() : 0,
+            'volunteers' => $volunteerCount,
             'parent_id' => $ministry->parent_id,
             'parent_name' => $ministry->parent ? $ministry->parent->ministry_name : null,
             'has_children' => $ministry->children ? $ministry->children->count() > 0 : false,
@@ -426,12 +422,22 @@ class MinistryController extends Controller
     {
         $path = [];
         $current = $ministry;
-        
+
         while ($current) {
             array_unshift($path, $current->ministry_name);
             $current = $current->parent;
         }
-        
+
         return implode(' > ', $path);
+    }
+    private function getAllDescendantIds($ministry)
+    {
+        $ids = collect([$ministry->id]);
+
+        foreach ($ministry->children as $child) {
+            $ids = $ids->merge($this->getAllDescendantIds($child));
+        }
+
+        return $ids;
     }
 }

@@ -123,7 +123,7 @@
 
             {{-- Search bar / Filters / Add Ministry Button --}}
             <div class="bg-white rounded-lg shadow-sm border p-6 mb-6">
-                <form id="filterForm" method="GET" class="flex flex-col lg:flex-row gap-4 items-center justify-between w-full">
+                <form id="filterForm" method="GET" action="{{ route('ministries.index') }}" class="flex flex-col lg:flex-row gap-4 items-center justify-between w-full">
                     {{-- Search input --}}
                     <div class="relative w-full max-w-md">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -152,7 +152,7 @@
                             @endforeach
                         </select>
 
-                        {{-- Add Ministry button (not inside form submission) --}}
+                        {{-- Add Ministry button --}}
                         <button type="button" class="btn-primary inline-flex items-center justify-center whitespace-nowrap rounded-lg text-white text-sm font-medium h-10 px-6 py-2"
                             onclick="openAddModal()">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
@@ -169,6 +169,7 @@
 
 
             {{-- Grid of Ministry Cards --}}
+            @if(!$showEmptyState)
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="ministries-grid">
                 @foreach ($ministries as $ministry)
                 <div class="card-hover rounded-xl border bg-white shadow-sm overflow-hidden ministry-card"
@@ -177,14 +178,12 @@
                     @if($ministry->parent)
                     data-parent-type="{{ $ministry->parent->ministry_type }}"
                     @endif
-
                     data-name="{{ strtolower($ministry->ministry_name) }}">
                     {{-- Card header --}}
                     <div class="p-6 pb-4">
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex-1">
                                 <h3 class="font-semibold text-lg text-gray-900 mb-1">{{ $ministry->ministry_name }}</h3>
-                                <!-- <p class="text-sm text-gray-500">{{ $ministry->ministry_code ?? 'No code assigned' }}</p> -->
                                 @if($ministry->parent)
                                 <p class="text-xs text-gray-400 mt-1">
                                     <span class="inline-flex items-center">
@@ -198,12 +197,11 @@
                             </div>
                             <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800">
                                 {{
-                                    $ministry->ministry_type === 'SUB_GROUP' && $ministry->parent
-                                        ? ucwords(str_replace('_', ' ', strtolower($ministry->parent->ministry_type)))
-                                        : ucwords(str_replace('_', ' ', strtolower($ministry->ministry_type)))
-                                }}
+                        $ministry->ministry_type === 'SUB_GROUP' && $ministry->parent
+                            ? ucwords(str_replace('_', ' ', strtolower($ministry->parent->ministry_type)))
+                            : ucwords(str_replace('_', ' ', strtolower($ministry->ministry_type)))
+                    }}
                             </span>
-
                         </div>
                     </div>
 
@@ -214,7 +212,7 @@
                                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                                 </svg>
-                                <span class="font-medium">{{ $ministry->volunteer_details_count ?? 0 }}</span>
+                                <span class="font-medium">{{ $ministry->total_volunteers }}</span>
                                 <span class="ml-1">volunteers</span>
                             </div>
                             @if($ministry->children_count > 0)
@@ -240,22 +238,16 @@
                                 </svg>
                                 View Details
                             </button>
+                            {{-- Remove Edit Button --}}
                             <div class="flex gap-1">
-                                <button
-                                    class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-                                    onclick="openEditModal({{ $ministry->id }})">
-                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                    </svg>
-                                    Edit
-                                </button>
+                                {{-- Keep only Delete button --}}
                                 <button
                                     class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
-                                    onclick="deleteMinistry({{ $ministry->id }})">
+                                   >
                                     <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
                                     </svg>
-                                    Delete
+                                    Archive
                                 </button>
                             </div>
                         </div>
@@ -263,22 +255,23 @@
                 </div>
                 @endforeach
             </div>
+            @endif
 
             {{-- Empty state --}}
-            <div id="empty-state" class="text-center py-12 hidden">
+            @if($showEmptyState)
+            <div id="empty-state" class="text-center py-12">
                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 48 48">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5a2 2 0 00-2 2v10a2 2 0 002 2h14m-9-8l2 2 4-4M15 20h14a2 2 0 002-2V8a2 2 0 00-2-2H15" />
                 </svg>
                 <h3 class="mt-2 text-sm font-medium text-gray-900">No ministries found</h3>
                 <p class="mt-1 text-sm text-gray-500">Try adjusting your search or filter criteria.</p>
             </div>
+            @endif
 
             {{-- Pagination --}}
             @if ($ministries->hasPages())
             <div class="mt-10 flex justify-center">
-                <div class="bg-white rounded-lg shadow-sm border p-4">
-                    {!! $ministries->appends(request()->query())->links() !!}
-                </div>
+                {!! $ministries->appends(request()->query())->links() !!}
             </div>
             @endif
         </div>
@@ -390,6 +383,12 @@
             document.getElementById('filterForm')?.submit();
         });
 
+        // Debounced search submit
+        const searchInput = document.getElementById('searchQuery');
+        searchInput.addEventListener('input', debounce(function() {
+            document.getElementById('filterForm').submit();
+        }, 500));
+
         // Form submission
         document.getElementById('ministryForm').addEventListener('submit', handleFormSubmit);
 
@@ -416,57 +415,6 @@
         };
     }
 
-    // Search functionality
-    function handleSearch() {
-        const searchValue = document.getElementById('searchQuery').value.toLowerCase();
-        const cards = document.querySelectorAll('.ministry-card');
-        let visibleCount = 0;
-
-        cards.forEach(card => {
-            const name = card.dataset.name;
-            const isVisible = name.includes(searchValue);
-            card.style.display = isVisible ? '' : 'none';
-            if (isVisible) visibleCount++;
-        });
-
-        toggleEmptyState(visibleCount === 0);
-    }
-
-    // Category filter functionality
-    function handleCategoryFilter() {
-        const selectedCategory = document.getElementById('categorySelector').value;
-        const cards = document.querySelectorAll('.ministry-card');
-        let visibleCount = 0;
-
-        cards.forEach(card => {
-            const category = card.dataset.category;
-            const isVisible =
-                selectedCategory === 'All' ||
-                category === selectedCategory ||
-                (category === 'SUB_GROUP' && card.closest('.ministry-card')?.querySelector('p')?.innerText.includes(selectedCategory.replace('_', ' ')));
-
-            card.style.display = isVisible ? '' : 'none';
-            if (isVisible) visibleCount++;
-        });
-
-        // Clear search when filtering
-        document.getElementById('searchQuery').value = '';
-        toggleEmptyState(visibleCount === 0);
-    }
-
-    // Toggle empty state
-    function toggleEmptyState(show) {
-        const emptyState = document.getElementById('empty-state');
-        const grid = document.getElementById('ministries-grid');
-
-        if (show) {
-            emptyState.classList.remove('hidden');
-            grid.classList.add('hidden');
-        } else {
-            emptyState.classList.add('hidden');
-            grid.classList.remove('hidden');
-        }
-    }
 
     // Load parent ministries for dropdown
     async function loadParentMinistries() {
@@ -549,79 +497,73 @@
                 document.getElementById('view-modal-title').textContent = ministry.name;
 
                 const content = `
-                    <div class="space-y-6">
-                        <!-- Ministry Info -->
-                        <div class="bg-gray-50 rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Ministry Information</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="text-sm font-medium text-gray-500">Name</label>
-                                    <p class="text-gray-900">${ministry.name}</p>
-                                </div>
-                                
-                                <div>
-                                    <label class="text-sm font-medium text-gray-500">Type</label>
-                                    <p class="text-gray-900">${ministry.category}</p>
-                                </div>
-                                <div>
-                                    <label class="text-sm font-medium text-gray-500">Status</label>
-                                    <p class="text-gray-900">${ministry.has_children ? 'Has Sub-ministries' : 'No Sub-ministries'}</p>
-                                </div>
+                <div class="space-y-6">
+                    <!-- Ministry Info -->
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Ministry Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-sm font-medium text-gray-500">Full Path</label>
+                                <p class="text-gray-900">${ministry.full_path}</p>
                             </div>
-                        </div>
-
-                        <!-- Volunteers Section -->
-                        <div>
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-lg font-semibold text-gray-900">Assigned Volunteers (${volunteers.length})</h3>
+                            <div>
+                                <label class="text-sm font-medium text-gray-500">Type</label>
+                                <p class="text-gray-900">${ministry.category}</p>
                             </div>
-                            
-                            ${volunteers.length > 0 ? `
-                                <div class="bg-white border rounded-lg overflow-hidden">
-                                    <div class="overflow-x-auto">
-                                        <table class="min-w-full divide-y divide-gray-200">
-                                            <thead class="bg-gray-50">
-                                                <tr>
-                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="bg-white divide-y divide-gray-200">
-                                                ${volunteers.map(volunteer => `
-                                                    <tr class="hover:bg-gray-50">
-                                                        <td class="px-6 py-4 whitespace-nowrap">
-                                                            <div class="text-sm font-medium text-gray-900">${volunteer.name}</div>
-                                                            ${volunteer.line_group ? `<div class="text-sm text-gray-500">Line: ${volunteer.line_group}</div>` : ''}
-                                                        </td>
-                                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${volunteer.email}</td>
-                                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${volunteer.phone}</td>
-                                                        <td class="px-6 py-4 whitespace-nowrap">
-                                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(volunteer.status)}">
-                                                                ${volunteer.status}
-                                                            </span>
-                                                        </td>
-                                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${volunteer.applied_date || 'N/A'}</td>
-                                                    </tr>
-                                                `).join('')}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            ` : `
-                                <div class="text-center py-8 bg-gray-50 rounded-lg">
-                                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 48 48">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5m-2.5-6v12M9 11v6"/>
-                                    </svg>
-                                    <h3 class="mt-2 text-sm font-medium text-gray-900">No volunteers assigned</h3>
-                                    <p class="mt-1 text-sm text-gray-500">This ministry doesn't have any volunteers assigned yet.</p>
-                                </div>
-                            `}
+                            <div>
+                                <label class="text-sm font-medium text-gray-500">Volunteers</label>
+                                <p class="text-gray-900">${ministry.volunteers} total (including sub-ministries)</p>
+                            </div>
                         </div>
                     </div>
-                `;
+
+                    <!-- Volunteers Section -->
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900">Assigned Volunteers (${volunteers.length})</h3>
+                        </div>
+                        
+                        ${volunteers.length > 0 ? `
+                            <div class="bg-white border rounded-lg overflow-hidden">
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ministry</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            ${volunteers.map(volunteer => `
+                                                <tr class="hover:bg-gray-50">
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <div class="text-sm font-medium text-gray-900">${volunteer.name}</div>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${volunteer.ministry_name}</td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(volunteer.status)}">
+                                                            ${volunteer.status}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        ` : `
+                            <div class="text-center py-8 bg-gray-50 rounded-lg">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5m-2.5-6v12M9 11v6"/>
+                                </svg>
+                                <h3 class="mt-2 text-sm font-medium text-gray-900">No volunteers assigned</h3>
+                                <p class="mt-1 text-sm text-gray-500">This ministry doesn't have any volunteers assigned yet.</p>
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
 
                 document.getElementById('view-modal-content').innerHTML = content;
             } else {
@@ -698,45 +640,6 @@
             showErrorMessage('An error occurred while saving the ministry');
         } finally {
             hideLoadingState();
-        }
-    }
-
-    // Delete Ministry
-    async function deleteMinistry(ministryId) {
-        if (!confirm('Are you sure you want to delete this ministry? This action cannot be undone.')) {
-            return;
-        }
-
-        try {
-            const response = await fetch(`/ministries/${ministryId}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                showSuccessMessage('Ministry deleted successfully');
-                const card = document.querySelector(`[data-id="${ministryId}"]`);
-                if (card) {
-                    card.style.animation = 'fadeOut 0.3s ease-out';
-                    setTimeout(() => {
-                        card.remove();
-                        // Check if we need to show empty state
-                        const remainingCards = document.querySelectorAll('.ministry-card');
-                        if (remainingCards.length === 0) {
-                            toggleEmptyState(true);
-                        }
-                    }, 300);
-                }
-            } else {
-                showErrorMessage(data.message || 'Error deleting ministry');
-            }
-        } catch (error) {
-            console.error('Error deleting ministry:', error);
-            showErrorMessage('An error occurred while deleting the ministry');
         }
     }
 

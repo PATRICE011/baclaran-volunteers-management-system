@@ -14,7 +14,6 @@ class Ministry extends Model
 
     protected $fillable = [
         'ministry_name',
-        'ministry_code',
         'parent_id',
         'ministry_type',
     ];
