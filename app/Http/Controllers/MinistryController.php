@@ -19,7 +19,8 @@ class MinistryController extends Controller
 
             // Build query with filters
             $query = Ministry::with(['children', 'parent'])
-                ->withCount(['children']);
+                ->withCount(['children'])
+                ->whereNotNull('parent_id'); // Exclude main ministries
 
             // Apply search filter
             if ($request->filled('search')) {
@@ -39,9 +40,10 @@ class MinistryController extends Controller
             $ministries = $query->orderBy('ministry_name', 'asc')
                 ->paginate(12);
 
-            // Get distinct categories for filter dropdown
+            // Get distinct categories for filter dropdown (from non-main ministries)
             $categories = Ministry::select('ministry_type')
                 ->distinct()
+                ->whereNotNull('parent_id') // Only consider non-main ministries
                 ->orderBy('ministry_type')
                 ->get();
 
