@@ -20,14 +20,14 @@
             showEmailModal: false,
             showPasswordModal: false
         }">
-        <div class="flex items-center mb-6">
+        <!-- <div class="flex items-center mb-6">
             <a href="{{ url('/dashboard') }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg shadow-sm hover:bg-gray-300">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                 </svg>
                 Back
             </a>
-        </div>
+        </div> -->
 
         {{-- User header --}}
         <div class="flex items-center gap-4 mb-8">
