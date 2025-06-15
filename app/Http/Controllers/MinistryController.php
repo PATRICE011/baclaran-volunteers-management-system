@@ -149,6 +149,9 @@ class MinistryController extends Controller
                         'name' => $detail->full_name ?? 'N/A',
                         'ministry_name' => $detail->ministry->ministry_name ?? 'N/A',
                         'status' => $detail->volunteer_status ?? 'Unknown',
+                        'profile_picture' => $detail->volunteer && $detail->volunteer->profile_picture
+                            ? asset('storage/' . $detail->volunteer->profile_picture)
+                            : null,
                     ];
                 });
 

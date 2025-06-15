@@ -190,70 +190,54 @@ document.getElementById("submitRegistration").addEventListener("click", () => {
 
     // Profile Picture
     const profilePicture = document.querySelector('[name="profile_picture"]');
-    if (profilePicture.files[0]) {
+    if (profilePicture?.files?.[0]) {
         formData.append("profile_picture", profilePicture.files[0]);
     }
 
-    // Fields
-   const fields = [
-        "nickname", "dob", "address", "phone", "email",
-        "occupation", "ministry_id", "applied_date",
-        "regular_duration", "last_name", "first_name", "middle_initial",
+    // Basic Fields
+    const fields = [
+        "nickname", "dob", "address", "phone", "email", "occupation",
+        "ministry_id", "applied_date", "regular_duration",
+        "last_name", "first_name", "middle_initial"
     ];
-  
-    fields.forEach((name) =>
-        formData.append(name, document.querySelector(`[name="${name}"]`).value)
-    );
 
-    formData.append(
-        "sex",
-        document.querySelector('[name="sex"]:checked')?.value || ""
-    );
+    fields.forEach((name) => {
+        const el = document.querySelector(`[name="${name}"]`);
+        if (el) formData.append(name, el.value);
+    });
 
-    const civilStatus = document.querySelector('[name="civil_status"]:checked')?.value || "";
-    formData.append("civil_status", civilStatus);
+    formData.append("sex", document.querySelector('[name="sex"]:checked')?.value || "");
+    formData.append("civil_status", document.querySelector('[name="civil_status"]:checked')?.value || "");
 
-    // Checkbox groups
-    ["sacraments[]", "formations[]"].forEach((name) =>
-        document
-            .querySelectorAll(`input[name="${name}"]:checked`)
-            .forEach((cb) => formData.append(name, cb.value))
-    );
+    // Sacraments and Formations
+    ["sacraments[]", "formations[]"].forEach((name) => {
+        document.querySelectorAll(`input[name="${name}"]:checked`).forEach((cb) => {
+            formData.append(name, cb.value);
+        });
+    });
 
     // Timeline
-    [
-        "timeline_org",
-        "timeline_start_year",
-        "timeline_end_year",
-        "timeline_total",
-        "timeline_active",
-    ].forEach((name) =>
-        document.querySelectorAll(`[name="${name}[]"]`).forEach((el, i) => {
-            formData.append(`${name}[${i}]`, el.value);
-        })
-    );
+    ["timeline_org", "timeline_start_year", "timeline_end_year", "timeline_total", "timeline_active"].forEach((name) => {
+        document.querySelectorAll(`[name="${name}[]"]`).forEach((el) => {
+            formData.append(`${name}[]`, el.value);
+        });
+    });
 
     // Affiliations
-    ["affil_org", "affil_start_year", "affil_end_year", "affil_active"].forEach(
-        (name) =>
-            document.querySelectorAll(`[name="${name}[]"]`).forEach((el, i) => {
-                formData.append(`${name}[${i}]`, el.value);
-            })
-    );
+    ["affil_org", "affil_start_year", "affil_end_year", "affil_active"].forEach((name) => {
+        document.querySelectorAll(`[name="${name}[]"]`).forEach((el) => {
+            formData.append(`${name}[]`, el.value);
+        });
+    });
 
     fetch("/volunteers/register", {
         method: "POST",
         headers: {
-            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')
-                .content,
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
         },
         body: formData,
     })
-        .then((res) =>
-            res
-                .json()
-                .then((body) => ({ ok: res.ok, status: res.status, body }))
-        )
+        .then((res) => res.json().then((body) => ({ ok: res.ok, status: res.status, body })))
         .then(({ ok, status, body }) => {
             if (ok) {
                 toastr.success(body.message);
@@ -261,8 +245,7 @@ document.getElementById("submitRegistration").addEventListener("click", () => {
                 resetVolunteerForm();
                 switchView(localStorage.getItem("volunteerViewType") || "grid");
             } else {
-                const msg =
-                    body.message || "An error occurred during registration.";
+                const msg = body.message || "An error occurred during registration.";
                 if (status === 409) toastr.warning(msg);
                 else if (status === 422)
                     toastr.error(body.errors?.profile_picture?.[0] || msg);
@@ -274,6 +257,7 @@ document.getElementById("submitRegistration").addEventListener("click", () => {
             console.error(err);
         });
 });
+
 // Resets the entire volunteer registration form to its default state
 function resetVolunteerForm() {
     // Clear all form inputs (text, email, tel, date, file, textarea, select)

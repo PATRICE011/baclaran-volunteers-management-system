@@ -38,179 +38,186 @@
 
 
     // View Ministry Details
-    async function viewMinistry(ministryId) {
-        try {
-            showViewModal();
-            showViewLoadingState();
+  async function viewMinistry(ministryId) {
+    try {
+        showViewModal();
+        showViewLoadingState();
 
-            const response = await fetch(`/ministries/${ministryId}`);
-            const data = await response.json();
+        const response = await fetch(`/ministries/${ministryId}`);
+        const data = await response.json();
 
-            if (data.success) {
-                const ministry = data.ministry;
-                const volunteers = data.volunteers;
+        if (data.success) {
+            const ministry = data.ministry;
+            const volunteers = data.volunteers;
 
-                // document.getElementById('view-modal-title').textContent = ministry.name;
+            const content = `
+                <div class="max-w-6xl mx-auto p-6 space-y-8">
+                    <!-- Header -->
+                    <div class="border-b border-gray-200 pb-4">
+                        <h2 class="text-2xl font-bold text-gray-900">${ministry.full_path}</h2>
+                        <p class="text-sm text-gray-600 mt-1">${ministry.category} Ministry</p>
+                    </div>
 
-               const content = `
-                    <div class="max-w-6xl mx-auto p-6 space-y-8">
-                        <!-- Header -->
-                        <div class="border-b border-gray-200 pb-4">
-                            <h2 class="text-2xl font-bold text-gray-900">${ministry.full_path}</h2>
-                            <p class="text-sm text-gray-600 mt-1">${ministry.category} Ministry</p>
-                        </div>
-
-                        <!-- Ministry Overview Cards -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
-                                <div class="flex items-center">
-                                    <div class="p-3 bg-blue-500 rounded-lg">
-                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h2M7 7h.01M7 3h5c1.11 0 2 .89 2 2v1"/>
-                                        </svg>
-                                    </div>
-                                    <div class="ml-4">
-                                        <p class="text-sm font-medium text-blue-600">Ministry Type</p>
-                                        <p class="text-lg font-bold text-blue-900">${ministry.category}</p>
-                                    </div>
+                    <!-- Ministry Overview Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+                            <div class="flex items-center">
+                                <div class="p-3 bg-blue-500 rounded-lg">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h2M7 7h.01M7 3h5c1.11 0 2 .89 2 2v1"/>
+                                    </svg>
                                 </div>
-                            </div>
-
-                            <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
-                                <div class="flex items-center">
-                                    <div class="p-3 bg-green-500 rounded-lg">
-                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
-                                        </svg>
-                                    </div>
-                                    <div class="ml-4">
-                                        <p class="text-sm font-medium text-green-600">Total Volunteers</p>
-                                        <p class="text-lg font-bold text-green-900">${ministry.volunteers}</p>
-                                        <p class="text-xs text-green-600">Including sub-ministries</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
-                                <div class="flex items-center">
-                                    <div class="p-3 bg-purple-500 rounded-lg">
-                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                    </div>
-                                    <div class="ml-4">
-                                        <p class="text-sm font-medium text-purple-600">Active Members</p>
-                                        <p class="text-lg font-bold text-purple-900">${volunteers.filter(v => v.status === 'Active').length}</p>
-                                        <p class="text-xs text-purple-600">Currently serving</p>
-                                    </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-blue-600">Ministry Type</p>
+                                    <p class="text-lg font-bold text-blue-900">${ministry.category}</p>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Volunteers Section -->
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                            <div class="px-6 py-4 border-b border-gray-200">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <h3 class="text-lg font-semibold text-gray-900">Ministry Volunteers</h3>
-                                        <p class="text-sm text-gray-600 mt-1">${volunteers.length} members assigned to this ministry</p>
+                        <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
+                            <div class="flex items-center">
+                                <div class="p-3 bg-green-500 rounded-lg">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                                    </svg>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-green-600">Total Volunteers</p>
+                                    <p class="text-lg font-bold text-green-900">${ministry.volunteers}</p>
+                                    <p class="text-xs text-green-600">Including sub-ministries</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
+                            <div class="flex items-center">
+                                <div class="p-3 bg-purple-500 rounded-lg">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-purple-600">Active Members</p>
+                                    <p class="text-lg font-bold text-purple-900">${volunteers.filter(v => v.status === 'Active').length}</p>
+                                    <p class="text-xs text-purple-600">Currently serving</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Volunteers Section -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900">Ministry Volunteers</h3>
+                                    <p class="text-sm text-gray-600 mt-1">${volunteers.length} members assigned to this ministry</p>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                                        <span class="text-sm text-gray-600">Active</span>
                                     </div>
-                                    <div class="flex items-center space-x-3">
-                                        <div class="flex items-center space-x-2">
-                                            <div class="w-3 h-3 bg-green-400 rounded-full"></div>
-                                            <span class="text-sm text-gray-600">Active</span>
-                                        </div>
-                                        <div class="flex items-center space-x-2">
-                                            <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                                            <span class="text-sm text-gray-600">Inactive</span>
-                                        </div>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                                        <span class="text-sm text-gray-600">Inactive</span>
                                     </div>
                                 </div>
                             </div>
-                            
-                            ${volunteers.length > 0 ? `
-                                <div class="overflow-hidden">
-                                    <div class="overflow-x-auto">
-                                        <table class="min-w-full divide-y divide-gray-200">
-                                            <thead class="bg-gray-50">
-                                                <tr>
-                                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                        Volunteer
-                                                    </th>
-                                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                        Specific Ministry
-                                                    </th>
-                                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                        Status
-                                                    </th>
-
-                                                </tr>
-                                            </thead>
-                                            <tbody class="bg-white divide-y divide-gray-200">
-                                                ${volunteers.map((volunteer, index) => `
-                                                    <tr class="hover:bg-gray-50 transition-colors duration-150">
-                                                        <td class="px-6 py-4 whitespace-nowrap">
-                                                            <div class="flex items-center">
-                                                                <div class="flex-shrink-0 h-10 w-10">
+                        </div>
+                        
+                        ${volunteers.length > 0 ? `
+                            <div class="overflow-hidden">
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Volunteer
+                                                </th>
+                                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Specific Ministry
+                                                </th>
+                                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Status
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            ${volunteers.map((volunteer, index) => `
+                                                <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <div class="flex items-center">
+                                                            <div class="flex-shrink-0 h-10 w-10">
+                                                                ${volunteer.profile_picture ? `
+                                                                    <img class="h-10 w-10 rounded-full object-cover border-2 border-blue-200" 
+                                                                         src="${volunteer.profile_picture}" 
+                                                                         alt="${volunteer.name}"
+                                                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                                    <div class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center" style="display: none;">
+                                                                        <span class="text-sm font-medium text-white">
+                                                                            ${volunteer.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                                                        </span>
+                                                                    </div>
+                                                                ` : `
                                                                     <div class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
                                                                         <span class="text-sm font-medium text-white">
                                                                             ${volunteer.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                                                                         </span>
                                                                     </div>
-                                                                </div>
-                                                                <div class="ml-4">
-                                                                    <div class="text-sm font-medium text-gray-900">${volunteer.name}</div>
-                                                                    <div class="text-sm text-gray-500">Member #${String(index + 1).padStart(3, '0')}</div>
-                                                                </div>
+                                                                `}
                                                             </div>
-                                                        </td>
-                                                        <td class="px-6 py-4 whitespace-nowrap">
-                                                            <div class="text-sm text-gray-900">${volunteer.ministry_name}</div>
-                                                        </td>
-                                                        <td class="px-6 py-4 whitespace-nowrap">
-                                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(volunteer.status)}">
-                                                                <div class="w-2 h-2 rounded-full mr-2 ${volunteer.status === 'Active' ? 'bg-green-400' : 'bg-yellow-400'}"></div>
-                                                                ${volunteer.status}
-                                                            </span>
-                                                        </td>
-
-                                                    </tr>
-                                                `).join('')}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                                            <div class="ml-4">
+                                                                <div class="text-sm font-medium text-gray-900">${volunteer.name}</div>
+                                                                <div class="text-sm text-gray-500">Member #${String(index + 1).padStart(3, '0')}</div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <div class="text-sm text-gray-900">${volunteer.ministry_name}</div>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(volunteer.status)}">
+                                                            <div class="w-2 h-2 rounded-full mr-2 ${volunteer.status === 'Active' ? 'bg-green-400' : 'bg-yellow-400'}"></div>
+                                                            ${volunteer.status}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
                                 </div>
-                            ` : `
-                                <div class="text-center py-12">
-                                    <div class="mx-auto h-24 w-24 text-gray-300 mb-4">
-                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-full h-full">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                                        </svg>
-                                    </div>
-                                    <h3 class="text-lg font-medium text-gray-900 mb-2">No volunteers assigned</h3>
-                                    <p class="text-gray-500 mb-6 max-w-sm mx-auto">This ministry doesn't have any volunteers assigned yet. Start by adding some members to get things going.</p>
-                                    <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 transition-colors">
-                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                        </svg>
-                                        Add Volunteer
-                                    </button>
+                            </div>
+                        ` : `
+                            <div class="text-center py-12">
+                                <div class="mx-auto h-24 w-24 text-gray-300 mb-4">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-full h-full">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                    </svg>
                                 </div>
-                            `}
-                        </div>
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">No volunteers assigned</h3>
+                                <p class="text-gray-500 mb-6 max-w-sm mx-auto">This ministry doesn't have any volunteers assigned yet. Start by adding some members to get things going.</p>
+                                <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                    </svg>
+                                    Add Volunteer
+                                </button>
+                            </div>
+                        `}
                     </div>
-                `;
+                </div>
+            `;
 
-                document.getElementById('view-modal-content').innerHTML = content;
-            } else {
-                showErrorMessage('Failed to load ministry details');
-            }
-        } catch (error) {
-            console.error('Error loading ministry details:', error);
-            showErrorMessage('An error occurred while loading ministry details');
+            document.getElementById('view-modal-content').innerHTML = content;
+        } else {
+            showErrorMessage('Failed to load ministry details');
         }
+    } catch (error) {
+        console.error('Error loading ministry details:', error);
+        showErrorMessage('An error occurred while loading ministry details');
     }
-
+}
     // Get status color for volunteer status
     function getStatusColor(status) {
         switch (status?.toLowerCase()) {
