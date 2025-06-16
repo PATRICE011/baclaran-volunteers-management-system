@@ -16,7 +16,11 @@ class Event extends Model
         'description',
         'color',
     ];
-
+    protected $casts = [
+        'date' => 'date',
+        'start_time' => 'datetime:H:i',
+        'end_time' => 'datetime:H:i',
+    ];
     public function volunteers(): BelongsToMany
     {
         return $this->belongsToMany(Volunteer::class)
