@@ -1,44 +1,55 @@
+// Initialize on page load
+document.addEventListener("DOMContentLoaded", function () {
+    initializeEventListeners();
+});
 
+function initializeEventListeners() {
+    // Get elements safely
+    const categorySelector = document.getElementById("categorySelector");
+    const searchInput = document.getElementById("searchQuery");
+    const filterForm = document.getElementById("filterForm");
+    const viewModal = document.getElementById("viewModal");
 
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', function() {
-
-        initializeEventListeners();
-    });
-
-    function initializeEventListeners() {
-        document.getElementById('categorySelector')?.addEventListener('change', function() {
-            document.getElementById('filterForm')?.submit();
+    // Attach category selector handler if exists
+    if (categorySelector) {
+        categorySelector.addEventListener("change", function () {
+            if (filterForm) filterForm.submit();
         });
+    }
 
-        // Debounced search submit
-        const searchInput = document.getElementById('searchQuery');
-        searchInput.addEventListener('input', debounce(function() {
-            document.getElementById('filterForm').submit();
-        }, 500));
+    // Attach search input handler if exists
+    if (searchInput && filterForm) {
+        searchInput.addEventListener(
+            "input",
+            debounce(function () {
+                filterForm.submit();
+            }, 500)
+        );
+    }
 
-
-        document.getElementById('viewModal').addEventListener('click', function(e) {
+    // Attach view modal handler if exists
+    if (viewModal) {
+        viewModal.addEventListener("click", function (e) {
             if (e.target === this) closeViewModal();
         });
     }
+}
 
-    // Debounce function for search
-    function debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
+// Debounce function for search
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
             clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
+            func(...args);
         };
-    }
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
 
-
-    // View Ministry Details
-  async function viewMinistry(ministryId) {
+// View Ministry Details
+async function viewMinistry(ministryId) {
     try {
         showViewModal();
         showViewLoadingState();
@@ -54,8 +65,12 @@
                 <div class="max-w-6xl mx-auto p-6 space-y-8">
                     <!-- Header -->
                     <div class="border-b border-gray-200 pb-4">
-                        <h2 class="text-2xl font-bold text-gray-900">${ministry.full_path}</h2>
-                        <p class="text-sm text-gray-600 mt-1">${ministry.category} Ministry</p>
+                        <h2 class="text-2xl font-bold text-gray-900">${
+                            ministry.full_path
+                        }</h2>
+                        <p class="text-sm text-gray-600 mt-1">${
+                            ministry.category
+                        } Ministry</p>
                     </div>
 
                     <!-- Ministry Overview Cards -->
@@ -69,7 +84,9 @@
                                 </div>
                                 <div class="ml-4">
                                     <p class="text-sm font-medium text-blue-600">Ministry Type</p>
-                                    <p class="text-lg font-bold text-blue-900">${ministry.category}</p>
+                                    <p class="text-lg font-bold text-blue-900">${
+                                        ministry.category
+                                    }</p>
                                 </div>
                             </div>
                         </div>
@@ -83,7 +100,9 @@
                                 </div>
                                 <div class="ml-4">
                                     <p class="text-sm font-medium text-green-600">Total Volunteers</p>
-                                    <p class="text-lg font-bold text-green-900">${ministry.volunteers}</p>
+                                    <p class="text-lg font-bold text-green-900">${
+                                        ministry.volunteers
+                                    }</p>
                                     <p class="text-xs text-green-600">Including sub-ministries</p>
                                 </div>
                             </div>
@@ -98,7 +117,11 @@
                                 </div>
                                 <div class="ml-4">
                                     <p class="text-sm font-medium text-purple-600">Active Members</p>
-                                    <p class="text-lg font-bold text-purple-900">${volunteers.filter(v => v.status === 'Active').length}</p>
+                                    <p class="text-lg font-bold text-purple-900">${
+                                        volunteers.filter(
+                                            (v) => v.status === "Active"
+                                        ).length
+                                    }</p>
                                     <p class="text-xs text-purple-600">Currently serving</p>
                                 </div>
                             </div>
@@ -111,7 +134,9 @@
                             <div class="flex items-center justify-between">
                                 <div>
                                     <h3 class="text-lg font-semibold text-gray-900">Ministry Volunteers</h3>
-                                    <p class="text-sm text-gray-600 mt-1">${volunteers.length} members assigned to this ministry</p>
+                                    <p class="text-sm text-gray-600 mt-1">${
+                                        volunteers.length
+                                    } members assigned to this ministry</p>
                                 </div>
                                 <div class="flex items-center space-x-3">
                                     <div class="flex items-center space-x-2">
@@ -126,7 +151,9 @@
                             </div>
                         </div>
                         
-                        ${volunteers.length > 0 ? `
+                        ${
+                            volunteers.length > 0
+                                ? `
                             <div class="overflow-hidden">
                                 <div class="overflow-x-auto">
                                     <table class="min-w-full divide-y divide-gray-200">
@@ -144,51 +171,106 @@
                                             </tr>
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
-                                            ${volunteers.map((volunteer, index) => `
+                                            ${volunteers
+                                                .map(
+                                                    (volunteer, index) => `
                                                 <tr class="hover:bg-gray-50 transition-colors duration-150">
                                                     <td class="px-6 py-4 whitespace-nowrap">
                                                         <div class="flex items-center">
                                                             <div class="flex-shrink-0 h-10 w-10">
-                                                                ${volunteer.profile_picture ? `
+                                                                ${
+                                                                    volunteer.profile_picture
+                                                                        ? `
                                                                     <img class="h-10 w-10 rounded-full object-cover border-2 border-blue-200" 
-                                                                         src="${volunteer.profile_picture}" 
-                                                                         alt="${volunteer.name}"
+                                                                         src="${
+                                                                             volunteer.profile_picture
+                                                                         }" 
+                                                                         alt="${
+                                                                             volunteer.name
+                                                                         }"
                                                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                                                     <div class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center" style="display: none;">
                                                                         <span class="text-sm font-medium text-white">
-                                                                            ${volunteer.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                                                            ${volunteer.name
+                                                                                .split(
+                                                                                    " "
+                                                                                )
+                                                                                .map(
+                                                                                    (
+                                                                                        n
+                                                                                    ) =>
+                                                                                        n[0]
+                                                                                )
+                                                                                .join(
+                                                                                    ""
+                                                                                )
+                                                                                .toUpperCase()}
                                                                         </span>
                                                                     </div>
-                                                                ` : `
+                                                                `
+                                                                        : `
                                                                     <div class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
                                                                         <span class="text-sm font-medium text-white">
-                                                                            ${volunteer.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                                                            ${volunteer.name
+                                                                                .split(
+                                                                                    " "
+                                                                                )
+                                                                                .map(
+                                                                                    (
+                                                                                        n
+                                                                                    ) =>
+                                                                                        n[0]
+                                                                                )
+                                                                                .join(
+                                                                                    ""
+                                                                                )
+                                                                                .toUpperCase()}
                                                                         </span>
                                                                     </div>
-                                                                `}
+                                                                `
+                                                                }
                                                             </div>
                                                             <div class="ml-4">
-                                                                <div class="text-sm font-medium text-gray-900">${volunteer.name}</div>
-                                                                <div class="text-sm text-gray-500">Member #${String(index + 1).padStart(3, '0')}</div>
+                                                                <div class="text-sm font-medium text-gray-900">${
+                                                                    volunteer.name
+                                                                }</div>
+                                                                <div class="text-sm text-gray-500">Member #${String(
+                                                                    index + 1
+                                                                ).padStart(
+                                                                    3,
+                                                                    "0"
+                                                                )}</div>
                                                             </div>
                                                         </div>
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap">
-                                                        <div class="text-sm text-gray-900">${volunteer.ministry_name}</div>
+                                                        <div class="text-sm text-gray-900">${
+                                                            volunteer.ministry_name
+                                                        }</div>
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap">
-                                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(volunteer.status)}">
-                                                            <div class="w-2 h-2 rounded-full mr-2 ${volunteer.status === 'Active' ? 'bg-green-400' : 'bg-yellow-400'}"></div>
+                                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                                                            volunteer.status
+                                                        )}">
+                                                            <div class="w-2 h-2 rounded-full mr-2 ${
+                                                                volunteer.status ===
+                                                                "Active"
+                                                                    ? "bg-green-400"
+                                                                    : "bg-yellow-400"
+                                                            }"></div>
                                                             ${volunteer.status}
                                                         </span>
                                                     </td>
                                                 </tr>
-                                            `).join('')}
+                                            `
+                                                )
+                                                .join("")}
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
-                        ` : `
+                        `
+                                : `
                             <div class="text-center py-12">
                                 <div class="mx-auto h-24 w-24 text-gray-300 mb-4">
                                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-full h-full">
@@ -199,116 +281,118 @@
                                 <p class="text-gray-500 mb-6 max-w-sm mx-auto">This ministry doesn't have any volunteers assigned.</p>
                             
                             </div>
-                        `}
+                        `
+                        }
                     </div>
                 </div>
             `;
 
-            document.getElementById('view-modal-content').innerHTML = content;
+            document.getElementById("view-modal-content").innerHTML = content;
         } else {
-            showErrorMessage('Failed to load ministry details');
+            showErrorMessage("Failed to load ministry details");
         }
     } catch (error) {
-        console.error('Error loading ministry details:', error);
-        showErrorMessage('An error occurred while loading ministry details');
+        console.error("Error loading ministry details:", error);
+        showErrorMessage("An error occurred while loading ministry details");
     }
 }
-    // Get status color for volunteer status
-    function getStatusColor(status) {
-        switch (status?.toLowerCase()) {
-            case 'active':
-                return 'bg-green-100 text-green-800';
-            case 'inactive':
-                return 'bg-red-100 text-red-800';
-            case 'pending':
-                return 'bg-yellow-100 text-yellow-800';
-            default:
-                return 'bg-gray-100 text-gray-800';
-        }
+// Get status color for volunteer status
+function getStatusColor(status) {
+    switch (status?.toLowerCase()) {
+        case "active":
+            return "bg-green-100 text-green-800";
+        case "inactive":
+            return "bg-red-100 text-red-800";
+        case "pending":
+            return "bg-yellow-100 text-yellow-800";
+        default:
+            return "bg-gray-100 text-gray-800";
     }
-    // Modal functions
-    function showModal() {
-        document.getElementById('ministryModal').classList.remove('hidden');
-        document.getElementById('ministryModal').classList.add('flex');
-        document.body.style.overflow = 'hidden';
-    }
+}
+// Modal functions
+function showModal() {
+    document.getElementById("ministryModal").classList.remove("hidden");
+    document.getElementById("ministryModal").classList.add("flex");
+    document.body.style.overflow = "hidden";
+}
 
-    function showViewModal() {
-        document.getElementById('viewModal').classList.remove('hidden');
-        document.getElementById('viewModal').classList.add('flex');
-        document.body.style.overflow = 'hidden';
-    }
+function showViewModal() {
+    document.getElementById("viewModal").classList.remove("hidden");
+    document.getElementById("viewModal").classList.add("flex");
+    document.body.style.overflow = "hidden";
+}
 
-    function closeViewModal() {
-        document.getElementById('viewModal').classList.add('hidden');
-        document.getElementById('viewModal').classList.remove('flex');
-        document.body.style.overflow = '';
-    }
+function closeViewModal() {
+    document.getElementById("viewModal").classList.add("hidden");
+    document.getElementById("viewModal").classList.remove("flex");
+    document.body.style.overflow = "";
+}
 
-    function showViewLoadingState() {
-        document.getElementById('view-modal-content').innerHTML = `
+function showViewLoadingState() {
+    document.getElementById("view-modal-content").innerHTML = `
             <div class="flex items-center justify-center py-12">
                 <div class="loading-spinner" style="display: block;"></div>
                 <span class="ml-2 text-gray-600">Loading ministry details...</span>
             </div>
         `;
-    }
+}
 
-    // Notification functions
-    function showSuccessMessage(message) {
-        showNotification(message, 'success');
-    }
+// Notification functions
+function showSuccessMessage(message) {
+    showNotification(message, "success");
+}
 
-    function showErrorMessage(message) {
-        showNotification(message, 'error');
-    }
+function showErrorMessage(message) {
+    showNotification(message, "error");
+}
 
-    function showNotification(message, type) {
-        // Remove existing notifications
-        const existing = document.querySelector('.notification');
-        if (existing) existing.remove();
+function showNotification(message, type) {
+    // Remove existing notifications
+    const existing = document.querySelector(".notification");
+    if (existing) existing.remove();
 
-        const notification = document.createElement('div');
-        notification.className = `notification fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ${
-            type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-        }`;
-        notification.style.transform = 'translateX(100%)';
-        notification.innerHTML = `
+    const notification = document.createElement("div");
+    notification.className = `notification fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ${
+        type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"
+    }`;
+    notification.style.transform = "translateX(100%)";
+    notification.innerHTML = `
             <div class="flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    ${type === 'success' 
-                        ? '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>'
-                        : '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>'
+                    ${
+                        type === "success"
+                            ? '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>'
+                            : '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>'
                     }
                 </svg>
                 <span>${message}</span>
             </div>
         `;
 
-        document.body.appendChild(notification);
+    document.body.appendChild(notification);
 
-        // Animate in
+    // Animate in
+    setTimeout(() => {
+        notification.style.transform = "translateX(0)";
+    }, 100);
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        notification.style.transform = "translateX(100%)";
         setTimeout(() => {
-            notification.style.transform = 'translateX(0)';
-        }, 100);
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 300);
+    }, 5000);
+}
 
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
-            notification.style.transform = 'translateX(100%)';
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.remove();
-                }
-            }, 300);
-        }, 5000);
-    }
-
-    // Add CSS for fade out animation
-    const style = document.createElement('style');
-    style.textContent = `
+// Add CSS for fade out animation
+const style = document.createElement("style");
+style.textContent = `
         @keyframes fadeOut {
             from { opacity: 1; transform: scale(1); }
             to { opacity: 0; transform: scale(0.95); }
         }
     `;
-    document.head.appendChild(style);
+document.head.appendChild(style);

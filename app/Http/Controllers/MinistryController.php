@@ -26,8 +26,8 @@ class MinistryController extends Controller
             if ($request->filled('search')) {
                 $search = $request->get('search');
                 $query->where(function ($q) use ($search) {
-                    $q->where('ministry_name', 'LIKE', "%{$search}%")
-                        ->orWhere('ministry_code', 'LIKE', "%{$search}%");
+                    $q->where('ministry_name', 'LIKE', "%{$search}%");
+                        
                 });
             }
 
