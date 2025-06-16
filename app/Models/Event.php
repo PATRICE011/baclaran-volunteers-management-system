@@ -24,6 +24,7 @@ class Event extends Model
     public function volunteers(): BelongsToMany
     {
         return $this->belongsToMany(Volunteer::class)
+            ->with('detail.ministry')
             ->withPivot('attendance_status', 'checked_in_at')
             ->withTimestamps();
     }

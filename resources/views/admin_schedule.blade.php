@@ -136,20 +136,31 @@
                 </div>
                 <div class="p-4 max-h-72 overflow-auto space-y-4">
                     @foreach ($availableVolunteers as $vol)
-                    {{-- Check if volunteer_detail is set and is not null --}}
-                    @if($vol['volunteer_detail'] && isset($vol['volunteer_detail']['volunteer_status']) && $vol['volunteer_detail']['volunteer_status'] === 'Active')
-                    <div class="flex items-center">
-                        <div class="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex items-center">
-                            @if($vol['profile_picture'])
-                            <img src="{{ $vol['profile_picture'] }}" alt="{{ $vol['volunteer_detail']['full_name'] }}" class="w-full h-full">
+                    {{-- Ensure volunteer has a status of Active --}}
+                    @if($vol->detail->volunteer_status === 'Active')
+                    <div class="flex items-center mb-4">
+                        <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-200">
+                            {{-- Check if volunteer has a profile picture --}}
+                            @if($vol->profile_picture)
+                            <img src="{{ asset('storage/' . $vol->profile_picture) }}"
+                                alt="{{ $vol->detail->full_name }}"
+                                class="w-full h-full object-cover">
                             @else
-                            <img src="https://api.dicebear.com/7.x/avatars/svg?seed={{ urlencode($vol['volunteer_detail']['full_name']) }}" alt="{{ $vol['volunteer_detail']['full_name'] }}" class="w-full h-full">
+                            {{-- If no profile picture, use DiceBear for default avatar --}}
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ urlencode($vol->detail->full_name) }}"
+                                alt="{{ $vol->detail->full_name }}"
+                                class="w-full h-full object-cover">
                             @endif
+                        </div>
+                        <div class="ml-4">
+                            <p class="font-semibold">{{ $vol->detail->full_name }}</p>
+                            <p class="text-sm text-gray-500">{{ $vol->detail->ministry->ministry_name }}</p>
                         </div>
                     </div>
                     @endif
                     @endforeach
                 </div>
+
 
             </div>
         </div>

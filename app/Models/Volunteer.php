@@ -37,7 +37,7 @@ class Volunteer extends Model
         return $this->profile_picture ?:
             'https://api.dicebear.com/7.x/avataaars/svg?seed=' . urlencode($this->detail->full_name);
     }
-    public function detail(): HasOne
+    public function detail()
     {
         return $this->hasOne(VolunteerDetail::class);
     }

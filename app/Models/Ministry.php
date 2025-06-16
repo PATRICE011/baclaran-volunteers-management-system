@@ -32,6 +32,10 @@ class Ministry extends Model
     /**
      * Get the parent ministry that this ministry belongs to.
      */
+     public function volunteers()
+    {
+        return $this->hasManyThrough(Volunteer::class, VolunteerDetail::class);
+    }
     public function parent(): BelongsTo
     {
         return $this->belongsTo(Ministry::class, 'parent_id');
