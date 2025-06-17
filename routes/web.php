@@ -15,12 +15,16 @@ use App\Http\Controllers\SignController;
 use App\Http\Controllers\TasksController;
 use App\Http\Controllers\VolunteersController;
 use App\Http\Controllers\AccountSettingsController;
+use App\Http\Controllers\NewPasswordController;
+use App\Http\Controllers\OtpController;
 
 Route::get('/', [AuthController::class,  'getLogin'])->name('login');
 
 Route::post('/login', [AuthController::class, 'login'])->name('authorizeUser');
 Route::get('/sign-in', [SignController::class, 'index']);
 Route::get('/forgot-password', [ForgotPasswordController::class, 'index']);
+Route::get('/otp', [OtpController::class, 'index']);
+Route::get('/new-password', [NewPasswordController::class, 'index']);
 // authenticated routes
 Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

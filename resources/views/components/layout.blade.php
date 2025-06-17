@@ -6,9 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Volunteers Management')</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <!-- Boxicons CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.2/css/boxicons.min.css" rel="stylesheet">
-
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/baclaran-church-logo.jpg') }}">
 
@@ -25,6 +22,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
         rel="stylesheet">
+
+    <!-- Boxicons CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.2/css/boxicons.min.css" rel="stylesheet">
 
     <!-- Additional Styles -->
     @yield('styles')
@@ -47,20 +47,23 @@
 
     <!-- Toastr Notifications for Session -->
     <script>
-        @if(session('success'))
-        toastr.success('{{ session('
-            success ') }}', 'Success', {
-                positionClass: 'toast-top-center',
-                timeOut: 3000
-            });
+        @if (session('success'))
+            toastr.success(
+                '{{ session('
+                                                                                        success ') }}',
+                'Success', {
+                    positionClass: 'toast-top-center',
+                    timeOut: 3000
+                });
         @endif
 
-        @if(session('error'))
-        toastr.error('{{ session('
-            error ') }}', 'Error', {
-                positionClass: 'toast-top-center',
-                timeOut: 3000
-            });
+        @if (session('error'))
+            toastr.error('{{ session('
+                                                                                    error ') }}',
+                'Error', {
+                    positionClass: 'toast-top-center',
+                    timeOut: 3000
+                });
         @endif
     </script>
 
