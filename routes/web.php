@@ -40,10 +40,15 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::get('/attendance', [AttendanceController::class, 'index']);
     Route::get('/tasks', [TasksController::class, 'index']);
 
-    Route::get('/role', [RoleController::class, 'index']);
+
     Route::get('/archives', [ArchivesController::class, 'index']);
 
-
+    // role management
+    Route::prefix('role')->group(function () {
+        Route::get('/', [RoleController::class, 'index']);
+        Route::post('', [RoleController::class, 'store'])->name('roles.store');
+        // Route::delete('/{user}', [RoleController::class, 'destroy'])->name('roles.destroy'); 
+    });
     // volunteers page
     Route::prefix('volunteers')->group(function () {
         Route::get('/', [VolunteersController::class, 'index']);

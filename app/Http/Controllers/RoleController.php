@@ -4,11 +4,75 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+
 class RoleController extends Controller
 {
-    //
-    public function index(){
+    public function index()
+    {
         $user = Auth::user();
-        return view('admin_roleManagement',compact('user'));
+        $users = User::all();
+        return view('admin_roleManagement', compact('user', 'users'));
+    }
+
+    public function store(Request $request)
+    {
+        // Validate the incoming request data
+        $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).+$/'
+            ],
+            'role' => 'required|in:admin,staff',
+        ], [
+            'password.regex' => 'Password must contain at least one uppercase letter, one number, and one special character'
+        ]);
+        try {
+            // Apply proper capitalization to names
+            $firstName = ucwords(strtolower($request->first_name));
+            $lastName = ucwords(strtolower($request->last_name));
+
+            // Create the new user
+            $user = User::create([
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role' => $request->role,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'user' => [
+                    'id' => $user->id,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'created_at' => $user->created_at->format('Y-m-d'),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error creating user: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function destroy(User $user)
+    {
+        try {
+            $user->delete();
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error deleting user']);
+        }
     }
 }

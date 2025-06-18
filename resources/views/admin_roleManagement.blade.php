@@ -8,21 +8,28 @@
     .modal-bg {
         background: rgba(0, 0, 0, 0.5);
     }
-    
+
     .fade-in {
         animation: fadeIn 0.3s ease-in;
     }
-    
+
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
-    
+
     .filter-active {
         background-color: #3b82f6 !important;
         color: white !important;
     }
-    
+
     .role-badge {
         display: inline-flex;
         align-items: center;
@@ -31,15 +38,22 @@
         font-size: 0.75rem;
         font-weight: 500;
     }
-    
-    .role-admin { background-color: #ef4444; color: white; }
-    .role-editor { background-color: #f59e0b; color: white; }
-    .role-viewer { background-color: #10b981; color: white; }
-    
+
+
+    .role-admin {
+        background-color: #ef4444;
+        color: white;
+    }
+
+    .role-staff {
+        background-color: #f59e0b;
+        color: white;
+    }
+
     .search-container {
         position: relative;
     }
-    
+
     .search-icon {
         position: absolute;
         left: 0.75rem;
@@ -48,7 +62,7 @@
         color: #6b7280;
         pointer-events: none;
     }
-    
+
     .toast {
         position: fixed;
         top: 1rem;
@@ -61,13 +75,18 @@
         transform: translateX(100%);
         transition: transform 0.3s ease;
     }
-    
+
     .toast.show {
         transform: translateX(0);
     }
-    
-    .toast-success { background-color: #10b981; }
-    .toast-error { background-color: #ef4444; }
+
+    .toast-success {
+        background-color: #10b981;
+    }
+
+    .toast-error {
+        background-color: #ef4444;
+    }
 </style>
 @endsection
 
@@ -95,59 +114,79 @@
             </div>
         </div>
 
-        {{-- Add New Role --}}
+        {{-- Add New Role Form --}}
         <div class="mb-8 p-6 border border-gray-200 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Add New Role</h3>
+                <h3 class="text-lg font-semibold text-gray-900">Add New User</h3> {{-- Updated title --}}
                 <button type="button" id="toggle-form" class="text-blue-600 hover:text-blue-800 text-sm">
                     <span id="toggle-text">Hide Form</span>
                 </button>
             </div>
-            
-            <form id="add-role-form" class="space-y-4">
+
+            <form id="add-role-form" class="space-y-4" autocomplete="off">
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
                     <div>
-                        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                        <input type="text" name="name" id="name" required
+                        <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                        <input type="text" name="first_name" id="first_name" autocomplete="off" required
                             class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-colors">
-                        <span class="text-red-500 text-xs hidden" id="name-error"></span>
+                        <span class="text-red-500 text-xs hidden" id="first_name-error"></span>
+                    </div>
+                    <div>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                        <input type="text" name="last_name" id="last_name" autocomplete="off" required
+                            class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-colors">
+                        <span class="text-red-500 text-xs hidden" id="last_name-error"></span>
                     </div>
 
                     <div>
                         <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                        <input type="email" name="email" id="email" required
+                        <input type="email" name="email" id="email" autocomplete="off" required
                             class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-colors">
                         <span class="text-red-500 text-xs hidden" id="email-error"></span>
                     </div>
 
                     <div>
                         <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                        <input type="password" name="password" id="password" required
-                            class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-colors">
+                        <div class="relative">
+                            <input type="password" name="password" id="password" autocomplete="new-password" required
+                                class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-colors">
+                            <button type="button" id="toggleCurrentPassword" class="absolute inset-y-0 right-0 flex items-center px-3 text-sm">
+                                <svg id="currentPasswordToggle" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <!-- <p class="mt-1 text-xs text-gray-500">
+                            Must be at least 8 characters with one uppercase letter, one number, and one special character
+                        </p> -->
                         <span class="text-red-500 text-xs hidden" id="password-error"></span>
                     </div>
 
                     <div>
                         <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
-                        <input type="password" name="confirmPassword" id="confirmPassword" required
-                            class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-colors">
+                        <div class="relative">
+                            <input type="password" name="confirmPassword" id="confirmPassword" autocomplete="new-password" required
+                                class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-colors">
+                            <button type="button" id="toggleConfirmPassword" class="absolute inset-y-0 right-0 flex items-center px-3 text-sm">
+                                <svg id="currentPasswordToggle" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"></path>
+                                </svg>
+                            </button>
+                        </div>
                         <span class="text-red-500 text-xs hidden" id="confirm-password-error"></span>
                     </div>
 
                     <div class="md:col-span-2">
                         <label for="role" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                        <select name="role" id="role"
+                        <select name="role" id="role" autocomplete="off" required
                             class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-colors">
                             <option value="">Select a role</option>
-                            <option value="Admin">Admin - Full system access</option>
-                            <option value="Editor">Editor - Content management</option>
-                            <option value="Viewer">Viewer - Read-only access</option>
+                            <option value="admin">Admin - Full system access</option>
+                            <option value="staff">Staff - Limited access</option>
                         </select>
                         <span class="text-red-500 text-xs hidden" id="role-error"></span>
                     </div>
-
                 </div>
 
                 <div class="flex space-x-3">
@@ -164,12 +203,13 @@
                     </button>
                 </div>
             </form>
+
         </div>
 
         {{-- Filters and Search --}}
         <div class="mb-6 p-4 bg-gray-50 rounded-lg border">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0 sm:space-x-4">
-                
+
                 {{-- Search --}}
                 <div class="search-container flex-1 max-w-md">
                     <div class="relative">
@@ -186,14 +226,11 @@
                     <button class="filter-btn px-3 py-2 text-xs font-medium border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500" data-role="all">
                         All Roles
                     </button>
-                    <button class="filter-btn px-3 py-2 text-xs font-medium border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500" data-role="Admin">
+                    <button class="filter-btn px-3 py-2 text-xs font-medium border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500" data-role="admin">
                         Admin
                     </button>
-                    <button class="filter-btn px-3 py-2 text-xs font-medium border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500" data-role="Editor">
-                        Editor
-                    </button>
-                    <button class="filter-btn px-3 py-2 text-xs font-medium border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500" data-role="Viewer">
-                        Viewer
+                    <button class="filter-btn px-3 py-2 text-xs font-medium border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500" data-role="staff">
+                        Staff
                     </button>
                 </div>
 
@@ -218,7 +255,7 @@
                     Showing <span id="showing-count">3</span> of <span id="total-count">3</span> users
                 </div>
             </div>
-            
+
             <div class="overflow-x-auto bg-white rounded-lg border border-gray-200">
                 <table class="w-full">
                     <thead class="bg-gray-50 border-b border-gray-200">
@@ -227,23 +264,47 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Added</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="roles-tbody" class="bg-white divide-y divide-gray-200">
-                        {{-- Dynamic content will be inserted here by JavaScript --}}
+                        @foreach($users as $user)
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-8 w-8">
+                                        <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
+                                            {{ substr($user->first_name, 0, 1) }}{{ substr($user->last_name, 0, 1) }}
+                                        </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <div class="text-sm font-medium text-gray-900">{{ $user->first_name }} {{ $user->last_name }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ $user->email }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="role-badge role-{{ $user->role }}">{{ ucfirst($user->role) }}</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ $user->created_at->format('M d, Y') }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div class="flex space-x-2">
+                                    <button onclick="editUser({{ $user->id }})" class="text-blue-600 hover:text-blue-900 transition-colors">
+                                        Edit
+                                    </button>
+                                    <button onclick="deleteUser({{ $user->id }}, '{{ $user->first_name }} {{ $user->last_name }}')" class="text-red-600 hover:text-red-900 transition-colors">
+                                        Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
                     </tbody>
                 </table>
-                
-                {{-- No results message --}}
-                <div id="no-results" class="hidden text-center py-12">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2 2v-5m16 0h-2M4 13h2m-2 0l4-4m0 0l4 4m-4-4v12"></path>
-                    </svg>
-                    <p class="mt-2 text-sm text-gray-500">No users found matching your criteria.</p>
-                    <button id="clear-filters" class="mt-2 text-blue-600 hover:text-blue-800 text-sm font-medium">Clear all filters</button>
-                </div>
             </div>
         </div>
 
@@ -279,185 +340,216 @@
     </div>
 </div>
 
+
+@endsection
+@section('scripts')
 <script>
-// Sample data - replace with actual data from Laravel
-let users = [
-    { id: 1, name: 'John Doe', email: 'john.doe@example.com', role: 'Admin', dateAdded: '2023-05-15', status: 'Active' },
-    { id: 2, name: 'Jane Smith', email: 'jane.smith@example.com', role: 'Editor', dateAdded: '2023-06-20', status: 'Active' },
-    { id: 3, name: 'Mike Johnson', email: 'mike.johnson@example.com', role: 'Viewer', dateAdded: '2023-07-10', status: 'Inactive' }
-];
+    @php
+    $transformedUsers = $users -> map(function($user) {
+        return [
+            'id' => $user -> id,
+            'first_name' => $user -> first_name,
+            'last_name' => $user -> last_name,
+            'email' => $user -> email,
+            'role' => $user -> role,
+            'dateAdded' => $user -> created_at -> format('Y-m-d')
+        ];
+    });
+    @endphp
 
-let filteredUsers = [...users];
-let currentFilter = 'all';
-let currentSort = 'name-asc';
+    let users = @json($transformedUsers);
 
-// DOM Elements
-const searchInput = document.getElementById('search-input');
-const filterButtons = document.querySelectorAll('.filter-btn');
-const sortSelect = document.getElementById('sort-select');
-const rolesTableBody = document.getElementById('roles-tbody');
-const noResults = document.getElementById('no-results');
-const showingCount = document.getElementById('showing-count');
-const totalCount = document.getElementById('total-count');
-const addRoleForm = document.getElementById('add-role-form');
-const toggleFormBtn = document.getElementById('toggle-form');
-const clearFormBtn = document.getElementById('clear-form');
-const deleteModal = document.getElementById('delete-modal');
-const toast = document.getElementById('toast');
 
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    renderTable();
-    updateStats();
-    
-    // Set initial active filter
-    filterButtons[0].classList.add('filter-active');
-});
 
-// Search functionality
-searchInput.addEventListener('input', function() {
-    applyFilters();
-});
+    let filteredUsers = [...users];
+    let currentFilter = 'all';
+    let currentSort = 'name-asc';
 
-// Filter buttons
-filterButtons.forEach(btn => {
-    btn.addEventListener('click', function() {
-        // Remove active class from all buttons
-        filterButtons.forEach(b => b.classList.remove('filter-active'));
-        // Add active class to clicked button
-        this.classList.add('filter-active');
-        
-        currentFilter = this.dataset.role;
+    // DOM Elements
+    const searchInput = document.getElementById('search-input');
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const sortSelect = document.getElementById('sort-select');
+    const rolesTableBody = document.getElementById('roles-tbody');
+    const showingCount = document.getElementById('showing-count');
+    const totalCount = document.getElementById('total-count');
+    const addRoleForm = document.getElementById('add-role-form');
+    const toggleFormBtn = document.getElementById('toggle-form');
+    const clearFormBtn = document.getElementById('clear-form');
+    const deleteModal = document.getElementById('delete-modal');
+    const toast = document.getElementById('toast');
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        renderTable();
+        updateStats();
+
+        // Set initial active filter
+        filterButtons[0].classList.add('filter-active');
+    });
+
+    // Search functionality
+    searchInput.addEventListener('input', function() {
         applyFilters();
     });
-});
 
-// Sort functionality
-sortSelect.addEventListener('change', function() {
-    currentSort = this.value;
-    applyFilters();
-});
+    // Filter buttons
+    filterButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Remove active class from all buttons
+            filterButtons.forEach(b => b.classList.remove('filter-active'));
+            // Add active class to clicked button
+            this.classList.add('filter-active');
 
-// Form toggle
-toggleFormBtn.addEventListener('click', function() {
-    const form = addRoleForm;
-    const toggleText = document.getElementById('toggle-text');
-    
-    if (form.style.display === 'none') {
-        form.style.display = 'block';
-        toggleText.textContent = 'Hide Form';
-    } else {
-        form.style.display = 'none';
-        toggleText.textContent = 'Show Form';
-    }
-});
+            currentFilter = this.dataset.role;
+            applyFilters();
+        });
+    });
 
-// Clear form
-clearFormBtn.addEventListener('click', function() {
-    addRoleForm.reset();
-    clearValidationErrors();
-});
-
-// Form submission
-addRoleForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    if (validateForm()) {
-        // Simulate adding user
-        const formData = new FormData(this);
-        const newUser = {
-            id: users.length + 1,
-            name: formData.get('name'),
-            email: formData.get('email'),
-            role: formData.get('role'),
-            dateAdded: new Date().toISOString().split('T')[0],
-            status: 'Active'
-        };
-        
-        users.push(newUser);
+    // Sort functionality
+    sortSelect.addEventListener('change', function() {
+        currentSort = this.value;
         applyFilters();
-        updateStats();
-        showToast('User added successfully!', 'success');
-        this.reset();
-        clearValidationErrors();
-    }
-});
+    });
 
-// Clear filters
-document.getElementById('clear-filters').addEventListener('click', function() {
-    searchInput.value = '';
-    currentFilter = 'all';
-    currentSort = 'name-asc';
-    sortSelect.value = 'name-asc';
-    
-    // Reset filter buttons
-    filterButtons.forEach(b => b.classList.remove('filter-active'));
-    filterButtons[0].classList.add('filter-active');
-    
-    applyFilters();
-});
+    // Form toggle
+    toggleFormBtn.addEventListener('click', function() {
+        const form = addRoleForm;
+        const toggleText = document.getElementById('toggle-text');
 
-// Apply filters and search
-function applyFilters() {
-    let filtered = [...users];
-    
-    // Apply search filter
-    const searchTerm = searchInput.value.toLowerCase();
-    if (searchTerm) {
-        filtered = filtered.filter(user => 
-            user.name.toLowerCase().includes(searchTerm) ||
-            user.email.toLowerCase().includes(searchTerm)
-        );
-    }
-    
-    // Apply role filter
-    if (currentFilter !== 'all') {
-        filtered = filtered.filter(user => user.role === currentFilter);
-    }
-    
-    // Apply sorting
-    filtered.sort((a, b) => {
-        switch (currentSort) {
-            case 'name-asc':
-                return a.name.localeCompare(b.name);
-            case 'name-desc':
-                return b.name.localeCompare(a.name);
-            case 'date-asc':
-                return new Date(a.dateAdded) - new Date(b.dateAdded);
-            case 'date-desc':
-                return new Date(b.dateAdded) - new Date(a.dateAdded);
-            case 'role-asc':
-                return a.role.localeCompare(b.role);
-            default:
-                return 0;
+        if (form.style.display === 'none') {
+            form.style.display = 'block';
+            toggleText.textContent = 'Hide Form';
+        } else {
+            form.style.display = 'none';
+            toggleText.textContent = 'Show Form';
         }
     });
-    
-    filteredUsers = filtered;
-    renderTable();
-}
 
-// Render table
-function renderTable() {
-    if (filteredUsers.length === 0) {
-        rolesTableBody.innerHTML = '';
-        noResults.classList.remove('hidden');
-        showingCount.textContent = '0';
-    } else {
-        noResults.classList.add('hidden');
-        showingCount.textContent = filteredUsers.length;
-        
-        rolesTableBody.innerHTML = filteredUsers.map(user => `
+    // Clear form
+    clearFormBtn.addEventListener('click', function() {
+        addRoleForm.reset();
+        clearValidationErrors();
+    });
+
+    // Form submission
+    addRoleForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        if (validateForm()) {
+            const formData = new FormData(this);
+
+            fetch('{{ route("roles.store") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        first_name: formData.get('first_name'),
+                        last_name: formData.get('last_name'),
+                        email: formData.get('email'),
+                        password: formData.get('password'),
+                        role: formData.get('role')
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(errorData => {
+                            throw new Error(errorData.message || 'Server error');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Add new user to local array
+                        const newUser = {
+                            id: data.user.id,
+                            first_name: data.user.first_name,
+                            last_name: data.user.last_name,
+                            email: data.user.email,
+                            role: data.user.role,
+                            dateAdded: data.user.created_at
+                        };
+
+                        users.push(newUser);
+                        applyFilters();
+                        updateStats();
+                        showToast('User added successfully!', 'success');
+                        this.reset();
+                    } else {
+                        showToast(data.message || 'An error occurred', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast(error.message || 'An error occurred. Please try again.', 'error');
+                });
+        }
+    });
+    // Apply filters and search
+    function applyFilters() {
+        let filtered = [...users];
+
+        // Apply search filter
+        const searchTerm = searchInput.value.toLowerCase();
+        if (searchTerm) {
+            filtered = filtered.filter(user =>
+                (user.first_name + ' ' + user.last_name).toLowerCase().includes(searchTerm) ||
+                user.email.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        // Apply role filter
+        if (currentFilter !== 'all') {
+            filtered = filtered.filter(user => user.role === currentFilter);
+        }
+
+        // Apply sorting
+        filtered.sort((a, b) => {
+            const nameA = (a.first_name + ' ' + a.last_name).toLowerCase();
+            const nameB = (b.first_name + ' ' + b.last_name).toLowerCase();
+
+            switch (currentSort) {
+                case 'name-asc':
+                    return nameA.localeCompare(nameB);
+                case 'name-desc':
+                    return nameB.localeCompare(nameA);
+                case 'date-asc':
+                    return new Date(a.dateAdded) - new Date(b.dateAdded);
+                case 'date-desc':
+                    return new Date(b.dateAdded) - new Date(a.dateAdded);
+                case 'role-asc':
+                    return a.role.localeCompare(b.role);
+                default:
+                    return 0;
+            }
+        });
+
+        filteredUsers = filtered;
+        renderTable();
+    }
+
+    // Render table
+    function renderTable() {
+        if (filteredUsers.length === 0) {
+            rolesTableBody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No users found</td></tr>';
+            showingCount.textContent = '0';
+        } else {
+            showingCount.textContent = filteredUsers.length;
+
+            rolesTableBody.innerHTML = filteredUsers.map(user => `
             <tr class="hover:bg-gray-50 transition-colors">
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center">
                         <div class="flex-shrink-0 h-8 w-8">
                             <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
-                                ${user.name.charAt(0)}
+                                ${user.first_name.charAt(0)}${user.last_name.charAt(0)}
                             </div>
                         </div>
                         <div class="ml-3">
-                            <div class="text-sm font-medium text-gray-900">${user.name}</div>
+                            <div class="text-sm font-medium text-gray-900">${user.first_name} ${user.last_name}</div>
                         </div>
                     </div>
                 </td>
@@ -465,177 +557,229 @@ function renderTable() {
                     <div class="text-sm text-gray-900">${user.email}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="role-badge role-${user.role.toLowerCase()}">${user.role}</span>
+                    <span class="role-badge role-${user.role}">${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     ${formatDate(user.dateAdded)}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${user.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                        ${user.status}
-                    </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div class="flex space-x-2">
                         <button onclick="editUser(${user.id})" class="text-blue-600 hover:text-blue-900 transition-colors">
                             Edit
                         </button>
-                        <button onclick="deleteUser(${user.id}, '${user.name}')" class="text-red-600 hover:text-red-900 transition-colors">
+                        <button onclick="deleteUser(${user.id}, '${user.first_name} ${user.last_name}')" class="text-red-600 hover:text-red-900 transition-colors">
                             Delete
                         </button>
                     </div>
                 </td>
             </tr>
         `).join('');
-    }
-    
-    totalCount.textContent = users.length;
-}
+        }
 
-// Update statistics
-function updateStats() {
-    const totalUsers = users.length;
-    const adminCount = users.filter(user => user.role === 'Admin').length;
-    
-    document.getElementById('total-users').textContent = totalUsers;
-    document.getElementById('admin-count').textContent = adminCount;
-}
-
-// Format date
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
-    });
-}
-
-// Form validation
-function validateForm() {
-    clearValidationErrors();
-    let isValid = true;
-    
-    const name = document.getElementById('name').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    const role = document.getElementById('role').value;
-    
-    if (!name) {
-        showFieldError('name', 'Name is required');
-        isValid = false;
+        totalCount.textContent = users.length;
     }
-    
-    if (!email) {
-        showFieldError('email', 'Email is required');
-        isValid = false;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        showFieldError('email', 'Please enter a valid email address');
-        isValid = false;
-    } else if (users.some(user => user.email === email)) {
-        showFieldError('email', 'Email address already exists');
-        isValid = false;
+
+    // Update statistics
+    function updateStats() {
+        const totalUsers = users.length;
+        const adminCount = users.filter(user => user.role === 'admin').length;
+
+        document.getElementById('total-users').textContent = totalUsers;
+        document.getElementById('admin-count').textContent = adminCount;
     }
-    
-    if (!password) {
+
+    // Format date
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    }
+
+    // Form validation
+    function validateForm() {
+        clearValidationErrors();
+        let isValid = true;
+
+        const firstName = document.getElementById('first_name').value.trim();
+        const lastName = document.getElementById('last_name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const role = document.getElementById('role').value;
+
+        if (!firstName) {
+            showFieldError('first_name', 'First name is required');
+            isValid = false;
+        }
+
+        if (!lastName) {
+            showFieldError('last_name', 'Last name is required');
+            isValid = false;
+        }
+
+        if (!email) {
+            showFieldError('email', 'Email is required');
+            isValid = false;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showFieldError('email', 'Please enter a valid email address');
+            isValid = false;
+        } else if (users.some(user => user.email === email)) {
+            showFieldError('email', 'Email address already exists');
+            isValid = false;
+        }
+
+        if (!password) {
         showFieldError('password', 'Password is required');
         isValid = false;
-    } else if (password.length < 6) {
-        showFieldError('password', 'Password must be at least 6 characters');
-        isValid = false;
+        } else if (password.length < 8) {
+            showFieldError('password', 'Password must be at least 8 characters');
+            isValid = false;
+        } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9])/.test(password)) {
+            showFieldError('password', 'Password must contain at least one uppercase letter, one number, and one special character');
+            isValid = false;
+        }
+
+
+        if (!confirmPassword) {
+            showFieldError('confirm-password', 'Please confirm your password');
+            isValid = false;
+        } else if (password !== confirmPassword) {
+            showFieldError('confirm-password', 'Passwords do not match');
+            isValid = false;
+        }
+
+        if (!role) {
+            showFieldError('role', 'Please select a role');
+            isValid = false;
+        }
+
+        return isValid;
     }
-    
-    if (!confirmPassword) {
-        showFieldError('confirm-password', 'Please confirm your password');
-        isValid = false;
-    } else if (password !== confirmPassword) {
-        showFieldError('confirm-password', 'Passwords do not match');
-        isValid = false;
+
+    function showFieldError(fieldName, message) {
+        const errorElement = document.getElementById(fieldName + '-error');
+        const inputElement = document.getElementById(fieldName === 'confirm-password' ? 'confirmPassword' : fieldName);
+
+        if (errorElement && inputElement) {
+            errorElement.textContent = message;
+            errorElement.classList.remove('hidden');
+            inputElement.classList.add('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
+        }
     }
-    
-    if (!role) {
-        showFieldError('role', 'Please select a role');
-        isValid = false;
+
+    function clearValidationErrors() {
+        const errorElements = document.querySelectorAll('[id$="-error"]');
+        const inputElements = document.querySelectorAll('input, select');
+
+        errorElements.forEach(el => {
+            el.classList.add('hidden');
+            el.textContent = '';
+        });
+
+        inputElements.forEach(el => {
+            el.classList.remove('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
+        });
     }
-    
-    return isValid;
-}
 
-function showFieldError(fieldName, message) {
-    const errorElement = document.getElementById(fieldName + '-error');
-    const inputElement = document.getElementById(fieldName === 'confirm-password' ? 'confirmPassword' : fieldName);
-    
-    if (errorElement && inputElement) {
-        errorElement.textContent = message;
-        errorElement.classList.remove('hidden');
-        inputElement.classList.add('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
+    // Delete user functionality
+    function deleteUser(userId, userName) {
+        document.getElementById('delete-user-name').textContent = userName;
+        deleteModal.classList.remove('hidden');
+        deleteModal.classList.add('flex');
+
+        // Store the user ID for deletion
+        deleteModal.dataset.userId = userId;
     }
-}
 
-function clearValidationErrors() {
-    const errorElements = document.querySelectorAll('[id$="-error"]');
-    const inputElements = document.querySelectorAll('input, select');
-    
-    errorElements.forEach(el => {
-        el.classList.add('hidden');
-        el.textContent = '';
-    });
-    
-    inputElements.forEach(el => {
-        el.classList.remove('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
-    });
-}
-
-// Delete user functionality
-function deleteUser(userId, userName) {
-    document.getElementById('delete-user-name').textContent = userName;
-    deleteModal.classList.remove('hidden');
-    deleteModal.classList.add('flex');
-    
-    // Store the user ID for deletion
-    deleteModal.dataset.userId = userId;
-}
-
-// Modal event listeners
-document.getElementById('cancel-delete').addEventListener('click', function() {
-    closeDeleteModal();
-});
-
-document.getElementById('confirm-delete').addEventListener('click', function() {
-    const userId = parseInt(deleteModal.dataset.userId);
-    users = users.filter(user => user.id !== userId);
-    applyFilters();
-    updateStats();
-    closeDeleteModal();
-    showToast('User deleted successfully!', 'success');
-});
-
-function closeDeleteModal() {
-    deleteModal.classList.add('hidden');
-    deleteModal.classList.remove('flex');
-}
-
-// Edit user (placeholder)
-function editUser(userId) {
-    showToast('Edit functionality would be implemented here', 'success');
-}
-
-// Toast notification
-function showToast(message, type = 'success') {
-    toast.textContent = message;
-    toast.className = `toast toast-${type} show`;
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
-}
-
-// Close modal when clicking outside
-deleteModal.addEventListener('click', function(e) {
-    if (e.target === deleteModal) {
+    // Modal event listeners
+    document.getElementById('cancel-delete').addEventListener('click', function() {
         closeDeleteModal();
+    });
+
+    document.getElementById('confirm-delete').addEventListener('click', function() {
+        const userId = parseInt(deleteModal.dataset.userId);
+
+        fetch(`/roles/${userId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    users = users.filter(user => user.id !== userId);
+                    applyFilters();
+                    updateStats();
+                    closeDeleteModal();
+                    showToast('User deleted successfully!', 'success');
+                } else {
+                    showToast(data.message || 'Failed to delete user', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('An error occurred. Please try again.', 'error');
+            });
+    });
+
+    function closeDeleteModal() {
+        deleteModal.classList.add('hidden');
+        deleteModal.classList.remove('flex');
     }
-});
+
+    // Edit user (placeholder)
+    function editUser(userId) {
+        showToast('Edit functionality would be implemented here', 'success');
+    }
+
+    // Toast notification
+    function showToast(message, type = 'success') {
+        toast.textContent = message;
+        toast.className = `toast toast-${type} show`;
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    // Close modal when clicking outside
+    deleteModal.addEventListener('click', function(e) {
+        if (e.target === deleteModal) {
+            closeDeleteModal();
+        }
+    });
+    // Toggle password visibility functions
+    function togglePasswordVisibility(inputId, toggleButtonId) {
+        const input = document.getElementById(inputId);
+        const toggleButton = document.getElementById(toggleButtonId);
+        const icon = toggleButton.querySelector("svg");
+
+        if (input.type === "password") {
+            input.type = "text";
+            icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>`;
+        } else {
+            input.type = "password";
+            icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88">`;
+        }
+    }
+
+    // Attach event listeners for password visibility toggles
+    document.getElementById("toggleCurrentPassword")?.addEventListener("click", function() {
+        togglePasswordVisibility(
+            "password",
+            "toggleCurrentPassword"
+        );
+    });
+    document.getElementById("toggleConfirmPassword")?.addEventListener("click", function() {
+        togglePasswordVisibility(
+            "confirmPassword",
+            "toggleConfirmPassword"
+        );
+    });
 </script>
 @endsection
