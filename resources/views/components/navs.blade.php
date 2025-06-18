@@ -128,22 +128,6 @@
                 class="absolute right-0 mt-3 w-56 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden z-50"
                 style="display: none; top: 100%;">
 
-                <!-- User Info Header -->
-                <div class="px-4 py-3 bg-slate-50/50 border-b border-slate-200/50">
-                    <div class="flex items-center gap-3">
-                        <span class="relative flex h-10 w-10 overflow-hidden rounded-full bg-gradient-to-br from-blue-400 to-blue-600">
-                            @if($user->profile_picture)
-                            <img src="{{ asset('storage/' . $user->profile_picture) }}" alt="{{ $user->first_name }}" class="h-full w-full object-cover">
-                            @else
-                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ $avatarSeed }}" alt="{{ $user->first_name }}" class="h-full w-full object-cover">
-                            @endif
-                        </span>
-                        <div>
-                            <p class="font-semibold text-slate-800 text-sm">{{ $user->first_name }} {{ $user->last_name }}</p>
-                            <p class="text-xs text-slate-600">{{ $user->email ?? 'admin@baclaran.church' }}</p>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Menu Items -->
                 <div class="py-2">
