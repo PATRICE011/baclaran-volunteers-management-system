@@ -90,6 +90,7 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
         Route::prefix('role')->group(function () {
             Route::get('/', [RoleController::class, 'index']);
             Route::post('', [RoleController::class, 'store'])->name('roles.store');
+            Route::put('{user}', [RoleController::class, 'update'])->name('roles.update');
             // Route::delete('/{user}', [RoleController::class, 'destroy'])->name('roles.destroy'); 
         });
 

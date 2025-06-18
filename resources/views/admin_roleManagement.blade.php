@@ -323,7 +323,58 @@
     <div id="toast" class="toast"></div>
 
 </main>
-
+{{-- Edit Role Modal --}}
+<div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl p-6 m-4 max-w-md w-full">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Edit User Information</h3>
+            <button id="close-edit-modal" class="text-gray-400 hover:text-gray-500">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <form id="edit-user-form" class="space-y-4" autocomplete="off">
+            @csrf
+            <input type="hidden" id="edit-user-id" name="id">
+            <div>
+                <label for="edit-first-name" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                <input type="text" name="first_name" id="edit-first-name" required
+                    class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-colors">
+                <span class="text-red-500 text-xs hidden" id="edit-first-name-error"></span>
+            </div>
+            <div>
+                <label for="edit-last-name" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                <input type="text" name="last_name" id="edit-last-name" required
+                    class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-colors">
+                <span class="text-red-500 text-xs hidden" id="edit-last-name-error"></span>
+            </div>
+            <div>
+                <label for="edit-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input type="email" name="email" id="edit-email" required
+                    class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-colors">
+                <span class="text-red-500 text-xs hidden" id="edit-email-error"></span>
+            </div>
+            <div>
+                <label for="edit-role" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                <select name="role" id="edit-role" required
+                    class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-colors">
+                    <option value="admin">Admin - Full system access</option>
+                    <option value="staff">Staff - Limited access</option>
+                </select>
+                <span class="text-red-500 text-xs hidden" id="edit-role-error"></span>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button type="button" id="cancel-edit" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    Cancel
+                </button>
+                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Update User
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 {{-- Confirmation Modal --}}
 <div id="delete-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
     <div class="bg-white rounded-lg shadow-xl p-6 m-4 max-w-md w-full">
@@ -353,7 +404,7 @@
 @endsection
 @section('scripts')
 <script>
-       const storageBaseUrl = "{{ asset('storage') }}";
+    const storageBaseUrl = "{{ asset('storage') }}";
     @php
     $transformedUsers = $users -> map(function($user) {
         return [
@@ -363,15 +414,194 @@
             'email' => $user -> email,
             'role' => $user -> role,
             'dateAdded' => $user -> created_at -> format('Y-m-d'),
-            'profile_picture' => $user->profile_picture 
+            'profile_picture' => $user -> profile_picture
         ];
     });
     @endphp
 
     let users = @json($transformedUsers);
 
+    // Edit modal elements
+    const editModal = document.getElementById('edit-modal');
+    const closeEditModalBtn = document.getElementById('close-edit-modal');
+    const cancelEditBtn = document.getElementById('cancel-edit');
+    const editUserForm = document.getElementById('edit-user-form');
+    const editUserId = document.getElementById('edit-user-id');
+    const editFirstName = document.getElementById('edit-first-name');
+    const editLastName = document.getElementById('edit-last-name');
+    const editEmail = document.getElementById('edit-email');
+    const editRole = document.getElementById('edit-role');
 
+    // Error elements for edit form
+    const editFirstNameError = document.getElementById('edit-first-name-error');
+    const editLastNameError = document.getElementById('edit-last-name-error');
+    const editEmailError = document.getElementById('edit-email-error');
+    const editRoleError = document.getElementById('edit-role-error');
 
+    // Open edit modal
+    function editUser(userId) {
+        const user = users.find(u => u.id === userId);
+        if (user) {
+            editUserId.value = user.id;
+            editFirstName.value = user.first_name;
+            editLastName.value = user.last_name;
+            editEmail.value = user.email;
+            editRole.value = user.role;
+
+            // Clear previous validation errors
+            clearEditValidationErrors();
+
+            // Show modal
+            editModal.classList.remove('hidden');
+            editModal.classList.add('flex');
+        }
+    }
+
+    // Close edit modal
+    function closeEditModal() {
+        editModal.classList.add('hidden');
+        editModal.classList.remove('flex');
+    }
+
+    // Clear edit validation errors
+    function clearEditValidationErrors() {
+        const errorElements = [
+            editFirstNameError,
+            editLastNameError,
+            editEmailError,
+            editRoleError
+        ];
+
+        const inputElements = [
+            editFirstName,
+            editLastName,
+            editEmail,
+            editRole
+        ];
+
+        errorElements.forEach(el => {
+            el.classList.add('hidden');
+            el.textContent = '';
+        });
+
+        inputElements.forEach(el => {
+            el.classList.remove('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
+        });
+    }
+
+    // Validate edit form
+    function validateEditForm() {
+        clearEditValidationErrors();
+        let isValid = true;
+
+        const firstName = editFirstName.value.trim();
+        const lastName = editLastName.value.trim();
+        const email = editEmail.value.trim();
+        const role = editRole.value;
+        const userId = parseInt(editUserId.value);
+
+        if (!firstName) {
+            showEditFieldError('edit-first-name', 'First name is required');
+            isValid = false;
+        }
+
+        if (!lastName) {
+            showEditFieldError('edit-last-name', 'Last name is required');
+            isValid = false;
+        }
+
+        if (!email) {
+            showEditFieldError('edit-email', 'Email is required');
+            isValid = false;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showEditFieldError('edit-email', 'Please enter a valid email address');
+            isValid = false;
+        } else if (users.some(user => user.email === email && user.id !== userId)) {
+            showEditFieldError('edit-email', 'Email address already exists');
+            isValid = false;
+        }
+
+        if (!role) {
+            showEditFieldError('edit-role', 'Please select a role');
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    function showEditFieldError(fieldName, message) {
+        const errorElement = document.getElementById(fieldName + '-error');
+        const inputElement = document.getElementById(fieldName);
+
+        if (errorElement && inputElement) {
+            errorElement.textContent = message;
+            errorElement.classList.remove('hidden');
+            inputElement.classList.add('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
+        }
+    }
+
+    // Event listeners for closing the edit modal
+    closeEditModalBtn.addEventListener('click', closeEditModal);
+    cancelEditBtn.addEventListener('click', closeEditModal);
+    editModal.addEventListener('click', function(e) {
+        if (e.target === editModal) {
+            closeEditModal();
+        }
+    });
+
+    // Edit form submission
+    editUserForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        if (!validateEditForm()) return;
+
+        const userId = editUserId.value;
+        const formData = {
+            first_name: editFirstName.value.trim(),
+            last_name: editLastName.value.trim(),
+            email: editEmail.value.trim(),
+            role: editRole.value
+        };
+
+        fetch(`/settings/role/${userId}`, {
+                method: 'PUT',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.message || 'Server error');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Update the user in the local array
+                    const userIndex = users.findIndex(u => u.id === parseInt(userId));
+                    if (userIndex !== -1) {
+                        users[userIndex].first_name = formData.first_name;
+                        users[userIndex].last_name = formData.last_name;
+                        users[userIndex].email = formData.email;
+                        users[userIndex].role = formData.role;
+                    }
+                    applyFilters();
+                    closeEditModal();
+                    showToast('User updated successfully!', 'success');
+                } else {
+                    showToast(data.message || 'Failed to update user', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast(error.message || 'An error occurred. Please try again.', 'error');
+            });
+    });
     let filteredUsers = [...users];
     let currentFilter = 'all';
     let currentSort = 'name-asc';
@@ -543,7 +773,7 @@
     }
 
     // Render table
-      function renderTable() {
+    function renderTable() {
         if (filteredUsers.length === 0) {
             rolesTableBody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No users found</td></tr>';
             showingCount.textContent = '0';
@@ -648,8 +878,8 @@
         }
 
         if (!password) {
-        showFieldError('password', 'Password is required');
-        isValid = false;
+            showFieldError('password', 'Password is required');
+            isValid = false;
         } else if (password.length < 8) {
             showFieldError('password', 'Password must be at least 8 characters');
             isValid = false;
@@ -749,9 +979,9 @@
     }
 
     // Edit user (placeholder)
-    function editUser(userId) {
-        showToast('Edit functionality would be implemented here', 'success');
-    }
+    // function editUser(userId) {
+    //     showToast('Edit functionality would be implemented here', 'success');
+    // }
 
     // Toast notification
     function showToast(message, type = 'success') {

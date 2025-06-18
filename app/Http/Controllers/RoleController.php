@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-
+use Illuminate\Support\Facades\Validator;
 class RoleController extends Controller
 {
     public function index()
@@ -65,7 +65,44 @@ class RoleController extends Controller
             ], 500);
         }
     }
+    public function update(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $id,
+            'role' => 'required|in:admin,staff',
+        ], [
+            'email.unique' => 'This email is already in use by another account',
+        ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
+        $user = User::findOrFail($id);
+        $user->first_name = $request->first_name;
+        $user->last_name = $request->last_name;
+        $user->email = $request->email;
+        $user->role = $request->role;
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User information updated successfully',
+            'user' => [
+                'id' => $user->id,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'dateAdded' => $user->created_at->format('Y-m-d'),
+            ]
+        ]);
+    }
     public function destroy(User $user)
     {
         try {
