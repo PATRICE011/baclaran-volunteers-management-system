@@ -99,7 +99,7 @@
                     <form id="profileForm" class="space-y-4">
                         <div class="space-y-4">
                             <!-- Current User Info Display -->
-                            <div class="bg-gray-50 p-4 rounded-lg border">
+                            <!-- <div class="bg-gray-50 p-4 rounded-lg border">
                                 <h4 class="text-sm font-medium text-gray-700 mb-2">Current Information</h4>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                                     <div>
@@ -115,7 +115,7 @@
                                         <span id="current_email" class="font-medium ml-2">Loading...</span>
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
 
                             <!-- Editable Name Fields -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
