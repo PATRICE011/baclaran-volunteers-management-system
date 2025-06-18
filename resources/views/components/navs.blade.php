@@ -19,9 +19,9 @@
             @php
             function navActive($path)
             {
-                return request()->is($path) 
-                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/20' 
-                    : 'text-slate-600 hover:bg-white/60 hover:text-slate-800 hover:shadow-sm';
+            return request()->is($path)
+            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/20'
+            : 'text-slate-600 hover:bg-white/60 hover:text-slate-800 hover:shadow-sm';
             }
             @endphp
 
@@ -77,13 +77,13 @@
     <div class="flex flex-1 items-center justify-end">
         <div class="relative flex items-center gap-4">
             @php
-                // Set the avatar seed using the user's first and last name
-                $avatarSeed = strtolower($user->first_name . ' ' . $user->last_name);
+            // Set the avatar seed using the user's first and last name
+            $avatarSeed = strtolower($user->first_name . ' ' . $user->last_name);
             @endphp
-            
+
             <!-- User Profile Button -->
             <button type="button" class="group inline-flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all duration-200" @click="userMenuOpen = !userMenuOpen" aria-haspopup="true" :aria-expanded="userMenuOpen">
-                
+
                 <!-- Avatar -->
                 <div class="relative">
                     <span class="relative flex h-8 w-8 overflow-hidden rounded-full bg-gradient-to-br from-blue-400 to-blue-600 ring-1 ring-slate-200">
@@ -96,13 +96,21 @@
                     <!-- Online Status Indicator -->
                     <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border border-white rounded-full"></div>
                 </div>
-                
+
                 <!-- User Info -->
                 <div class="flex flex-col items-start">
                     <span class="text-sm font-semibold text-slate-800">{{ $user->first_name }} {{ $user->last_name }}</span>
-                    <span class="text-xs text-slate-500">Administrator</span>
+                    <span class="text-xs text-slate-500">
+                        @if($user->role == 'admin')
+                        Administrator
+                        @elseif($user->role == 'staff')
+                        Authorized Member
+                        @else
+                        {{ $user->role }}
+                        @endif
+                    </span>
                 </div>
-                
+
                 <!-- Chevron Icon -->
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 group-hover:text-slate-600 transition-all duration-200" :class="{ 'rotate-180': userMenuOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9l6 6 6-6" />
@@ -110,16 +118,16 @@
             </button>
 
             <!-- Clean Dropdown Panel -->
-            <div x-show="userMenuOpen" 
-                 x-transition:enter="transition ease-out duration-200"
-                 x-transition:enter-start="opacity-0 scale-95 translate-y-2"
-                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                 x-transition:leave="transition ease-in duration-150"
-                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                 x-transition:leave-end="opacity-0 scale-95 translate-y-2"
-                 class="absolute right-0 mt-3 w-56 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden z-50" 
-                 style="display: none; top: 100%;">
-                
+            <div x-show="userMenuOpen"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                class="absolute right-0 mt-3 w-56 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden z-50"
+                style="display: none; top: 100%;">
+
                 <!-- User Info Header -->
                 <div class="px-4 py-3 bg-slate-50/50 border-b border-slate-200/50">
                     <div class="flex items-center gap-3">
@@ -143,21 +151,21 @@
                         <i class="bx bx-cog text-slate-500"></i>
                         <span>Account Settings</span>
                     </a>
-                    
+
                     <a href="{{ url('/role') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200">
                         <i class="bx bx-shield text-slate-500"></i>
                         <span>Role Management</span>
                     </a>
-                    
+
                     <a href="{{ url('/archives') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200">
                         <i class="bx bx-archive text-slate-500"></i>
                         <span>Archives</span>
                     </a>
                 </div>
-                
+
                 <!-- Divider -->
                 <div class="border-t border-slate-200"></div>
-                
+
                 <!-- Sign Out -->
                 <div class="py-2">
                     <form action="{{ url('/logout') }}" method="POST">
@@ -185,16 +193,16 @@
     .sidebar-nav::-webkit-scrollbar {
         width: 3px;
     }
-    
+
     .sidebar-nav::-webkit-scrollbar-track {
         background: rgba(148, 163, 184, 0.1);
     }
-    
+
     .sidebar-nav::-webkit-scrollbar-thumb {
         background: rgba(148, 163, 184, 0.3);
         border-radius: 2px;
     }
-    
+
     .sidebar-nav::-webkit-scrollbar-thumb:hover {
         background: rgba(148, 163, 184, 0.5);
     }

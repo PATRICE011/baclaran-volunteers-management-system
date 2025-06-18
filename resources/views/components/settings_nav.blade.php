@@ -116,7 +116,15 @@
                 <!-- User Info -->
                 <div class="flex flex-col items-start">
                     <span class="text-sm font-semibold text-slate-800">{{ $user->first_name }} {{ $user->last_name }}</span>
-                    <span class="text-xs text-slate-500">Administrator</span>
+                    <span class="text-xs text-slate-500">
+                         @if($user->role == 'admin')
+                        Administrator
+                        @elseif($user->role == 'staff')
+                        Authorized Member
+                        @else
+                        {{ $user->role }}
+                        @endif
+                    </span>
                 </div>
 
                 <!-- Chevron Icon -->
