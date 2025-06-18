@@ -26,7 +26,7 @@
                     </div>
                 @endif
 
-                <form action="{{ url()->current() }}" method="POST" class="space-y-4">
+                <form action="{{ route('password.email') }}" method="POST" class="space-y-4">
                     @csrf
 
                     <div class="space-y-2">

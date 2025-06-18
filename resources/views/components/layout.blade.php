@@ -47,23 +47,23 @@
 
     <!-- Toastr Notifications for Session -->
     <script>
-        @if (session('success'))
-            toastr.success(
-                '{{ session('
-                                                                                        success ') }}',
-                'Success', {
-                    positionClass: 'toast-top-center',
-                    timeOut: 3000
-                });
+        @if(session('success'))
+        toastr.success(
+            '{{ session('
+            success ') }}',
+            'Success', {
+                positionClass: 'toast-top-center',
+                timeOut: 3000
+            });
         @endif
 
-        @if (session('error'))
-            toastr.error('{{ session('
-                                                                                    error ') }}',
-                'Error', {
-                    positionClass: 'toast-top-center',
-                    timeOut: 3000
-                });
+        @if(session('error'))
+        toastr.error('{{ session('
+            error ') }}',
+            'Error', {
+                positionClass: 'toast-top-center',
+                timeOut: 3000
+            });
         @endif
     </script>
 

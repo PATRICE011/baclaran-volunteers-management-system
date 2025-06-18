@@ -74,20 +74,5 @@ class AuthController extends Controller
 
         return redirect('/');
     }
-
-    // ============ FORGOT PASSWORD ========
-
-     public function getFindEmail(){
-        
-        return view('Auth.find_email');
-    }
-
-    public function getReqOt(){
-        return view ('Auth.otp');
-    }
-    
-    public function getNewPass(){
-        return view ('Auth.new_password');
-    }
     
 }

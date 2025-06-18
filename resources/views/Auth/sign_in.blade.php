@@ -73,6 +73,9 @@
 @endsection
 @section('scripts')
 <script>
+    @if(Session::has('success'))
+    toastr.success("{{ Session::get('success') }}");
+    @endif
     // Toggle password visibility functions
     function togglePasswordVisibility(inputId, toggleButtonId) {
         const input = document.getElementById(inputId);

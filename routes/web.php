@@ -11,20 +11,24 @@ use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\MinistryController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SchedulesController;
-use App\Http\Controllers\SignController;
 use App\Http\Controllers\TasksController;
 use App\Http\Controllers\VolunteersController;
 use App\Http\Controllers\AccountSettingsController;
-use App\Http\Controllers\NewPasswordController;
-use App\Http\Controllers\OtpController;
 
-Route::get('/', [AuthController::class,  'getLogin'])->name('login');
+
+Route::get('/', [AuthController::class, 'getLogin'])
+    ->name('login')
+    ->middleware('guest');
 Route::post('/login', [AuthController::class, 'login'])->name('authorizeUser');
 
 // ======== RESET PASSWORD ============
-Route::get('/find-email', [AuthController::class, 'getFindEmail']);
-Route::get('/request-otp', [AuthController::class, "getReqOt"]);
-Route::get('/make-new-password', [AuthController::class, 'getNewPass']);
+Route::get('/find-email', [ForgotPasswordController::class, 'showFindEmailForm'])->name('password.request');
+Route::post('/find-email', [ForgotPasswordController::class, 'sendResetOtp'])->name('password.email');
+Route::get('/request-otp', [ForgotPasswordController::class, 'showOtpForm'])->name('password.otp');
+Route::post('/request-otp', [ForgotPasswordController::class, 'verifyOtp'])->name('password.verify');
+Route::get('/make-new-password', [ForgotPasswordController::class, 'showNewPasswordForm'])->name('password.reset');
+Route::post('/make-new-password', [ForgotPasswordController::class, 'resetPassword'])->name('password.update');
+Route::post('/resend-otp', [ForgotPasswordController::class, 'resendOtp'])->name('password.otp.resend');
 
 Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
