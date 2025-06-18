@@ -49,9 +49,7 @@
     @if(session('success'))
     <script>
         toastr.success(
-            '{{ session('
-            success ') }}',
-            'Success', {
+            '{{ session('success') }}','Success', {
                 positionClass: 'toast-top-right',
                 timeOut: 3000
             }
@@ -62,9 +60,7 @@
     @if(session('error'))
     <script>
         toastr.error(
-            '{{ session('
-            error ') }}',
-            'Error', {
+            '{{ session('error') }}','Error', {
                 positionClass: 'toast-top-right',
                 timeOut: 3000
             }

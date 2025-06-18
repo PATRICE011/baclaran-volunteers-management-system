@@ -63,7 +63,7 @@ class ForgotPasswordController extends Controller
         // Store email in session
         Session::put('password_reset_email', $user->email);
 
-        return redirect()->route('password.otp') ->with('success', 'OTP sent to your email address');
+        return redirect()->route('password.otp')->with('success', 'OTP sent to your email address');
     }
 
     public function showOtpForm()
@@ -153,6 +153,19 @@ class ForgotPasswordController extends Controller
             ]);
         }
 
+        // Prevent resend within 60 seconds
+        $lastOtp = UserOtp::where('user_id', $user->id)
+            ->where('purpose', 'password_reset')
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if ($lastOtp && $lastOtp->created_at->diffInSeconds(Carbon::now()) < 60) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please wait 60 seconds before requesting a new OTP'
+            ]);
+        }
+
         // Delete existing unused OTP
         UserOtp::where('user_id', $user->id)
             ->where('purpose', 'password_reset')
@@ -162,7 +175,7 @@ class ForgotPasswordController extends Controller
         // Generate new OTP
         $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-        // Store new OTP
+        // Store new OTP (valid for 10 minutes)
         UserOtp::create([
             'user_id' => $user->id,
             'otp' => $otp,
@@ -180,7 +193,7 @@ class ForgotPasswordController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'New OTP has been sent.'
+            'message' => 'New OTP has been sent. Valid for 10 minutes.'
         ]);
     }
 }

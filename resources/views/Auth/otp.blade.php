@@ -62,10 +62,11 @@
             <div class="mt-4 text-center space-y-2">
                 <p class="text-sm text-muted-foreground">
                     Didn't receive the code?
-                    <button onclick="resendOTP()"
-                        class="text-primary hover:font-bold transition-all duration-300 ease-in-out">
+                    <button id="resendButton" onclick="resendOTP()"
+                        class="text-primary hover:font-bold transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed">
                         Resend OTP
                     </button>
+                    <span id="countdownText" class="text-sm text-muted-foreground">(wait <span id="countdown">60</span> seconds)</span>
                 </p>
                 <a href="{{ url('/sign-in') }}"
                     class="inline-flex items-center text-sm text-primary hover:font-bold transition-all duration-300 ease-in-out">
@@ -158,6 +159,34 @@
 </style>
 
 <script>
+    // Countdown variables
+    let countdown = 60;
+    let countdownElement = null;
+    let countdownText = null;
+    let resendButton = null;
+    let timer = null;
+
+    function startCountdown() {
+        if (resendButton && countdownText && countdownElement) {
+            resendButton.disabled = true;
+            countdownText.style.display = 'inline';
+            countdownElement.textContent = countdown;
+
+            clearInterval(timer);
+            timer = setInterval(function() {
+                countdown--;
+                countdownElement.textContent = countdown;
+
+                if (countdown <= 0) {
+                    clearInterval(timer);
+                    resendButton.disabled = false;
+                    countdownText.style.display = 'none';
+                    countdown = 60; // reset for next time
+                }
+            }, 1000);
+        }
+    }
+
     function moveToNext(current, nextId) {
         // Add filled animation
         current.classList.add('filled');
@@ -202,6 +231,10 @@
     }
 
     function resendOTP() {
+        // Disable the button immediately
+        if (resendButton) resendButton.disabled = true;
+        if (countdownText) countdownText.style.display = 'inline';
+
         fetch('{{ route('password.otp.resend') }}', {
                     method: 'POST',
                     headers: {
@@ -214,10 +247,24 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert(data.message);
+                    // Show success toastr notification
+                    toastr.success(data.message);
+                    // Restart countdown
+                    countdown = 60;
+                    startCountdown();
                 } else {
-                    alert(data.message);
+                    // Show error toastr
+                    toastr.error(data.message);
+                    // Enable button on error
+                    if (resendButton) resendButton.disabled = false;
+                    if (countdownText) countdownText.style.display = 'none';
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                toastr.error('An error occurred. Please try again.');
+                if (resendButton) resendButton.disabled = false;
+                if (countdownText) countdownText.style.display = 'none';
             });
     }
 
@@ -274,6 +321,13 @@
 
     // Initialize first input focus
     document.addEventListener('DOMContentLoaded', function() {
+        // Get countdown elements
+        countdownElement = document.getElementById('countdown');
+        countdownText = document.getElementById('countdownText');
+        resendButton = document.getElementById('resendButton');
+
+        // Initialize countdown
+        startCountdown();
         document.getElementById('otp_1').focus();
     });
 </script>
