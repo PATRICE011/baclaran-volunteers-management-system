@@ -48,25 +48,23 @@
                 </div>
             </a>
 
-            <!-- Role Management Link -->
-            <a href="{{ url('/role') }}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('role') }}">
-                <div class="flex items-center justify-center w-8 h-8 rounded-lg transition-colors duration-200 {{ request()->is('role') ? 'bg-white/20' : 'bg-slate-100 group-hover:bg-slate-200' }}">
-                    <i class="bx bx-shield text-lg {{ request()->is('role') ? 'text-white' : 'text-slate-600' }}"></i>
+            <a href="{{ url('/settings/role') }}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('settings/role') }}">
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg transition-colors duration-200 {{ request()->is('settings/role*') ? 'bg-white/20' : 'bg-slate-100 group-hover:bg-slate-200' }}">
+                    <i class="bx bx-shield text-lg {{ request()->is('settings/role*') ? 'text-white' : 'text-slate-600' }}"></i>
                 </div>
                 <div class="flex flex-col">
                     <span class="font-medium text-sm">Role Management</span>
-                    <span class="text-xs {{ request()->is('role') ? 'text-white/70' : 'text-slate-500 group-hover:text-slate-600' }}">User permissions</span>
+                    <span class="text-xs {{ request()->is('settings/role*') ? 'text-white/70' : 'text-slate-500 group-hover:text-slate-600' }}">User permissions</span>
                 </div>
             </a>
 
-            <!-- Archives Link -->
-            <a href="{{ url('/archives') }}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('archives') }}">
-                <div class="flex items-center justify-center w-8 h-8 rounded-lg transition-colors duration-200 {{ request()->is('archives') ? 'bg-white/20' : 'bg-slate-100 group-hover:bg-slate-200' }}">
-                    <i class="bx bx-archive text-lg {{ request()->is('archives') ? 'text-white' : 'text-slate-600' }}"></i>
+            <a href="{{ url('/settings/archives') }}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('settings/archives') }}">
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg transition-colors duration-200 {{ request()->is('settings/archives*') ? 'bg-white/20' : 'bg-slate-100 group-hover:bg-slate-200' }}">
+                    <i class="bx bx-archive text-lg {{ request()->is('settings/archives*') ? 'text-white' : 'text-slate-600' }}"></i>
                 </div>
                 <div class="flex flex-col">
                     <span class="font-medium text-sm">Archives</span>
-                    <span class="text-xs {{ request()->is('archives') ? 'text-white/70' : 'text-slate-500 group-hover:text-slate-600' }}">Deleted items</span>
+                    <span class="text-xs {{ request()->is('settings/archives*') ? 'text-white/70' : 'text-slate-500 group-hover:text-slate-600' }}">Deleted items</span>
                 </div>
             </a>
         </nav>
@@ -117,7 +115,7 @@
                 <div class="flex flex-col items-start">
                     <span class="text-sm font-semibold text-slate-800">{{ $user->first_name }} {{ $user->last_name }}</span>
                     <span class="text-xs text-slate-500">
-                         @if($user->role == 'admin')
+                        @if($user->role == 'admin')
                         Administrator
                         @elseif($user->role == 'staff')
                         Authorized Member

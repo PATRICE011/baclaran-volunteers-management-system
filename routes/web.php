@@ -41,14 +41,6 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::get('/tasks', [TasksController::class, 'index']);
 
 
-    Route::get('/archives', [ArchivesController::class, 'index']);
-
-    // role management
-    Route::prefix('role')->group(function () {
-        Route::get('/', [RoleController::class, 'index']);
-        Route::post('', [RoleController::class, 'store'])->name('roles.store');
-        // Route::delete('/{user}', [RoleController::class, 'destroy'])->name('roles.destroy'); 
-    });
     // volunteers page
     Route::prefix('volunteers')->group(function () {
         Route::get('/', [VolunteersController::class, 'index']);
@@ -71,7 +63,7 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
         Route::get('/stats', [MinistryController::class, 'getStats'])->name('ministries.stats');
     });
 
-    // account settings page
+    //settings page
     Route::prefix('settings')->group(function () {
         Route::get('/', [AccountSettingsController::class, 'index']);
 
@@ -91,6 +83,18 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
 
 
             Route::post('update-profile-picture', [AccountSettingsController::class, 'updateProfilePicture']);
+        });
+
+
+          // role management
+        Route::prefix('role')->group(function () {
+            Route::get('/', [RoleController::class, 'index']);
+            Route::post('', [RoleController::class, 'store'])->name('roles.store');
+            // Route::delete('/{user}', [RoleController::class, 'destroy'])->name('roles.destroy'); 
+        });
+
+        Route::prefix('archives')->group(function(){
+            Route::get('/', [ArchivesController::class, 'index']);
         });
     });
 });

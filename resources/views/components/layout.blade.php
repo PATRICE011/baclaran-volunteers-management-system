@@ -46,26 +46,32 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
     <!-- Toastr Notifications for Session -->
+    @if(session('success'))
     <script>
-        @if(session('success'))
         toastr.success(
             '{{ session('
             success ') }}',
             'Success', {
-                positionClass: 'toast-top-center',
+                positionClass: 'toast-top-right',
                 timeOut: 3000
-            });
-        @endif
+            }
+        );
+    </script>
+    @endif
 
-        @if(session('error'))
-        toastr.error('{{ session('
+    @if(session('error'))
+    <script>
+        toastr.error(
+            '{{ session('
             error ') }}',
             'Error', {
-                positionClass: 'toast-top-center',
+                positionClass: 'toast-top-right',
                 timeOut: 3000
-            });
-        @endif
+            }
+        );
     </script>
+    @endif
+
 
     {{-- Alpine.js CDN --}}
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
