@@ -12,7 +12,7 @@ class AuthController extends Controller
     // Show the login page
     public function getLogin()
     {
-        return view('Auth.login');
+        return view('Auth.sign_in');
     }
 
     // Handle the login request
@@ -64,8 +64,7 @@ class AuthController extends Controller
         }
     }
 
-    // Uncomment and use if you need a logout function
-    
+   
     public function logout(Request $request)
     {
         Auth::logout();
@@ -74,6 +73,21 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    // ============ FORGOT PASSWORD ========
+
+     public function getFindEmail(){
+        
+        return view('Auth.find_email');
+    }
+
+    public function getReqOt(){
+        return view ('Auth.otp');
+    }
+    
+    public function getNewPass(){
+        return view ('Auth.new_password');
     }
     
 }

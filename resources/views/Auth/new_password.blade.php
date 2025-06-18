@@ -82,7 +82,7 @@
                     </div>
 
                     <button type="submit" id="submitBtn" disabled
-                        class="w-full inline-flex justify-center rounded-md px-4 py-2 text-sm font-medium text-white bg-gray-400 cursor-not-allowed transition-all duration-300 ease-in-out">
+                        class="w-full inline-flex justify-center rounded-md px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-500/20 hover:from-blue-600 hover:to-blue-700 hover:shadow-blue-600/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 ease-in-out">
                         <svg id="loadingSpinner" class="hidden animate-spin -ml-1 mr-3 h-4 w-4 text-white"
                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
