@@ -49,6 +49,9 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
         Route::get('/{id}/edit', [VolunteersController::class, 'edit'])->name('volunteers.edit');
         Route::put('/{id}', [VolunteersController::class, 'update'])->name('volunteers.update');
         // Route::delete('/{id}', [VolunteersController::class, 'destroy'])->name('volunteers.destroy');
+        Route::post('/{volunteer}/archive', [VolunteersController::class, 'archive'])->name('volunteers.archive');
+        Route::post('/{volunteer}/restore', [VolunteersController::class, 'restore'])->name('volunteers.restore');
+        Route::delete('/{volunteer}/force-delete', [VolunteersController::class, 'forceDelete'])->name('volunteers.forceDelete');
     });
 
     // ministry page
@@ -86,7 +89,7 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
         });
 
 
-          // role management
+        // role management
         Route::prefix('role')->group(function () {
             Route::get('/', [RoleController::class, 'index']);
             Route::post('', [RoleController::class, 'store'])->name('roles.store');
@@ -94,7 +97,7 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
             // Route::delete('/{user}', [RoleController::class, 'destroy'])->name('roles.destroy'); 
         });
 
-        Route::prefix('archives')->group(function(){
+        Route::prefix('archives')->group(function () {
             Route::get('/', [ArchivesController::class, 'index']);
         });
     });

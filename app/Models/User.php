@@ -23,6 +23,10 @@ class User extends Authenticatable
         'password',
         'role',
         'profile_picture',
+        'is_archived',
+        'archived_at',
+        'archived_by',
+        'archive_reason'
     ];
 
     /**

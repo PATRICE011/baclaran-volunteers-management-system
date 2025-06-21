@@ -94,7 +94,12 @@
 
 @section('content')
 @include('components.settings_nav')
-<main class="flex-1 overflow-auto p-4 sm:p-6 md:ml-64" x-data="archivesManager()">
+<main class="flex-1 overflow-auto p-4 sm:p-6 md:ml-64" x-data="archivesManager({
+    volunteers: {{ Js::from($volunteers) }},
+    ministries: {{ Js::from($ministries) }},
+    tasks: {{ Js::from($tasks) }},
+    events: {{ Js::from($events) }}
+})">
     <div class="bg-white rounded-lg shadow-lg p-6">
 
         {{-- Header Section --}}
@@ -582,43 +587,32 @@
             },
 
             restoreItem(item) {
-                // Here you would make an API call to restore the item
-                console.log('Restoring item:', item);
-
-                // Remove from archived data (simulate restoration)
-                const tabData = this.data[this.tab];
-                const index = tabData.findIndex(i => i.id === item.id);
-                if (index > -1) {
-                    tabData.splice(index, 1);
-                }
-
-                this.showToastMessage('Item restored successfully!', 'success');
-            },
-
-            confirmDelete(item) {
-                this.itemToDelete = item;
-                this.showModal = true;
+                fetch(`/volunteers/${item.id}/restore`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json'
+                    }
+                }).then(() => {
+                    this.data.volunteers = this.data.volunteers.filter(v => v.id !== item.id);
+                    this.showToastMessage('Item restored successfully!', 'success');
+                });
             },
 
             deleteItem() {
                 if (this.itemToDelete) {
-                    // Here you would make an API call to permanently delete the item
-                    console.log('Deleting item:', this.itemToDelete);
-
-                    // Remove from data
-                    const tabData = this.data[this.tab];
-                    const index = tabData.findIndex(i => i.id === this.itemToDelete.id);
-                    if (index > -1) {
-                        tabData.splice(index, 1);
-                    }
-
-                    this.showToastMessage('Item deleted permanently!', 'success');
+                    fetch(`/volunteers/${this.itemToDelete.id}/force-delete`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    }).then(() => {
+                        this.data.volunteers = this.data.volunteers.filter(v => v.id !== this.itemToDelete.id);
+                        this.showToastMessage('Item permanently deleted!', 'success');
+                    });
                 }
-
                 this.showModal = false;
-                this.itemToDelete = null;
             },
-
             bulkRestore() {
                 if (this.selectedItems.length === 0) return;
 

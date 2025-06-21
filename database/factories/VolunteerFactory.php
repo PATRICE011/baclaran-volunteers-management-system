@@ -30,6 +30,10 @@ class VolunteerFactory extends Factory
             'civil_status' => Arr::random(['Single', 'Married', 'Widow/er', 'Separated', 'Church', 'Civil', 'Others']),
             'sacraments_received' => $this->faker->randomElements(['Baptism', 'First Communion', 'Confirmation'], rand(1, 3)),
             'formations_received' => $this->faker->randomElements(['BOS', 'BFF', 'YES'], rand(1, 2)),
+            'is_archived' => false,
+            'archived_at' => null,
+            'archived_by' => null,
+            'archive_reason' => null,
         ];
     }
 

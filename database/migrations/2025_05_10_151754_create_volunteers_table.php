@@ -26,6 +26,11 @@ return new class extends Migration
             $table->json('formations_received')->nullable(); // e.g. ["BOS", "BFF"]
             $table->string('profile_picture')->nullable();
             $table->timestamps();
+            // archive
+            $table->boolean('is_archived')->default(false);
+            $table->timestamp('archived_at')->nullable();
+            $table->foreignId('archived_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->text('archive_reason')->nullable();
         });
     }
 

@@ -411,23 +411,30 @@ class VolunteersController extends Controller
             return response()->json(['error' => 'Failed to update volunteer.'], 500);
         }
     }
-
-    // You might also want to add a destroy method for the delete functionality
-    public function destroy($id)
+    public function archive(Request $request, Volunteer $volunteer)
     {
-        try {
-            $volunteer = Volunteer::findOrFail($id);
-            $volunteer->delete();
+        $request->validate(['reason' => 'required|string|max:255']);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Volunteer deleted successfully'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to delete volunteer'
-            ], 500);
-        }
+        $volunteer->update([
+            'is_archived' => true,
+            'archived_at' => now(),
+            'archived_by' => auth()->id(),
+            'archive_reason' => $request->reason,
+        ]);
+        Log::info("Volunteer #{$volunteer->id} archived by user #" . auth()->id());
+
+        return response()->json(['message' => 'Volunteer archived successfully']);
+    }
+
+    public function restore(Volunteer $volunteer)
+    {
+        $volunteer->update(['is_archived' => false]);
+        return response()->json(['message' => 'Volunteer restored successfully']);
+    }
+
+    public function forceDelete(Volunteer $volunteer)
+    {
+        $volunteer->delete();
+        return response()->json(['message' => 'Volunteer permanently deleted']);
     }
 }

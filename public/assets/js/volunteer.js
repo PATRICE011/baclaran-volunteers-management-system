@@ -25,9 +25,32 @@ document.addEventListener("DOMContentLoaded", function () {
     gridBtn.addEventListener("click", () => switchView("grid"));
     listBtn.addEventListener("click", () => switchView("list"));
 });
-
-document.getElementById("ministryFilter").addEventListener("change", applyFilters);
-document.getElementById("statusFilter").addEventListener("change", applyFilters);
+function archiveVolunteer(id) {
+    const reason = prompt("Please enter archive reason:");
+    if (reason) {
+        fetch(`/volunteers/${id}/archive`, {
+            method: "POST",
+            headers: {
+                "X-CSRF-TOKEN": document.querySelector(
+                    'meta[name="csrf-token"]'
+                ).content,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ reason }),
+        }).then((response) => {
+            if (response.ok) {
+                alert("Volunteer archived successfully");
+                applyFilters(); // Refresh view
+            }
+        });
+    }
+}
+document
+    .getElementById("ministryFilter")
+    .addEventListener("change", applyFilters);
+document
+    .getElementById("statusFilter")
+    .addEventListener("change", applyFilters);
 
 // Applies active filters and refreshes the view
 async function applyFilters() {
@@ -39,7 +62,12 @@ async function applyFilters() {
         const ministryFilter = document.getElementById("ministryFilter").value;
         const statusFilter = document.getElementById("statusFilter").value;
 
-        const data = await fetchFilteredData(currentView, searchQuery, ministryFilter, statusFilter);
+        const data = await fetchFilteredData(
+            currentView,
+            searchQuery,
+            ministryFilter,
+            statusFilter
+        );
 
         if (data.success) {
             updateViewContent(currentView, data.html);
@@ -50,9 +78,15 @@ async function applyFilters() {
             url.searchParams.set("view", currentView);
             url.searchParams.delete("page");
 
-            searchQuery ? url.searchParams.set("search", searchQuery) : url.searchParams.delete("search");
-            ministryFilter ? url.searchParams.set("ministry", ministryFilter) : url.searchParams.delete("ministry");
-            statusFilter ? url.searchParams.set("status", statusFilter) : url.searchParams.delete("status");
+            searchQuery
+                ? url.searchParams.set("search", searchQuery)
+                : url.searchParams.delete("search");
+            ministryFilter
+                ? url.searchParams.set("ministry", ministryFilter)
+                : url.searchParams.delete("ministry");
+            statusFilter
+                ? url.searchParams.set("status", statusFilter)
+                : url.searchParams.delete("status");
 
             window.history.pushState({}, "", url.toString());
         }
@@ -63,7 +97,12 @@ async function applyFilters() {
 }
 
 // Sends AJAX request with current filters and returns filtered data
-async function fetchFilteredData(viewType, searchQuery = "", ministryFilter = "", statusFilter = "") {
+async function fetchFilteredData(
+    viewType,
+    searchQuery = "",
+    ministryFilter = "",
+    statusFilter = ""
+) {
     try {
         const url = new URL("/volunteers", window.location.origin);
         url.searchParams.set("view", viewType);
@@ -76,14 +115,18 @@ async function fetchFilteredData(viewType, searchQuery = "", ministryFilter = ""
             headers: {
                 "X-Requested-With": "XMLHttpRequest",
                 Accept: "application/json",
-                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+                "X-CSRF-TOKEN": document.querySelector(
+                    'meta[name="csrf-token"]'
+                ).content,
             },
             credentials: "include",
         });
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+            throw new Error(
+                errorData.message || `HTTP error! status: ${response.status}`
+            );
         }
 
         return await response.json();
@@ -99,8 +142,10 @@ function showLoadingState() {
     const gridView = document.getElementById("gridView");
     const listView = document.getElementById("listView");
 
-    if (gridView && !gridView.classList.contains("hidden")) gridView.innerHTML = loadingHTML;
-    if (listView && !listView.classList.contains("hidden")) listView.innerHTML = loadingHTML;
+    if (gridView && !gridView.classList.contains("hidden"))
+        gridView.innerHTML = loadingHTML;
+    if (listView && !listView.classList.contains("hidden"))
+        listView.innerHTML = loadingHTML;
 }
 
 // Loads and returns view content from server
@@ -115,14 +160,18 @@ async function fetchViewData(viewType, searchQuery = "") {
             headers: {
                 "X-Requested-With": "XMLHttpRequest",
                 Accept: "application/json",
-                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+                "X-CSRF-TOKEN": document.querySelector(
+                    'meta[name="csrf-token"]'
+                ).content,
             },
             credentials: "include",
         });
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+            throw new Error(
+                errorData.message || `HTTP error! status: ${response.status}`
+            );
         }
 
         return await response.json();
@@ -223,7 +272,9 @@ document.getElementById("searchInput").addEventListener("input", function () {
 
                 const url = new URL(window.location.href);
                 url.searchParams.delete("page");
-                searchQuery ? url.searchParams.set("search", searchQuery) : url.searchParams.delete("search");
+                searchQuery
+                    ? url.searchParams.set("search", searchQuery)
+                    : url.searchParams.delete("search");
                 window.history.replaceState({}, "", url);
             }
         } catch (err) {
@@ -277,7 +328,9 @@ async function loadPageData(page, viewType, searchQuery = "") {
             headers: {
                 "X-Requested-With": "XMLHttpRequest",
                 Accept: "application/json",
-                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+                "X-CSRF-TOKEN": document.querySelector(
+                    'meta[name="csrf-token"]'
+                ).content,
             },
             credentials: "include",
         });
@@ -309,7 +362,8 @@ function attachPaginationListeners() {
 
             const url = new URL(this.href);
             const page = url.searchParams.get("page");
-            const currentView = localStorage.getItem("volunteerViewType") || "grid";
+            const currentView =
+                localStorage.getItem("volunteerViewType") || "grid";
             const searchQuery = document.getElementById("searchInput").value;
 
             const currentUrl = new URL(window.location.href);

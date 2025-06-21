@@ -23,8 +23,15 @@ class Volunteer extends Model
         'sacraments_received',
         'formations_received',
         'profile_picture',
+        'is_archived',
+        'archived_at',
+        'archived_by',
+        'archive_reason'
     ];
-
+    public function archiver()
+    {
+        return $this->belongsTo(User::class, 'archived_by');
+    }
     protected $casts = [
         'sacraments_received' => 'array',
         'formations_received' => 'array',

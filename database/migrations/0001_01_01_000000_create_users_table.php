@@ -18,10 +18,15 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('role', ['admin', 'staff'])->default('staff'); 
+            $table->enum('role', ['admin', 'staff'])->default('staff');
             $table->string('profile_picture')->nullable();
             $table->rememberToken();
             $table->timestamps();
+            // archive
+            $table->boolean('is_archived')->default(false);
+            $table->timestamp('archived_at')->nullable();
+            $table->foreignId('archived_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->text('archive_reason')->nullable();
         });
     }
 
@@ -31,6 +36,5 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('users');
-       
     }
 };
