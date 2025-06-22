@@ -11,25 +11,25 @@ use Illuminate\Support\Facades\Validator;
 class RoleController extends Controller
 {
     public function index()
-{
-    $user = Auth::user();
-    // Get only non-archived users and map them
-    $nonArchivedUsers = User::where('is_archived', false)->get();
-    
-    $users = $nonArchivedUsers->map(function($user) {
-        return [
-            'id' => $user->id,
-            'first_name' => $user->first_name,
-            'last_name' => $user->last_name,
-            'email' => $user->email,
-            'role' => $user->role,
-            'dateAdded' => $user->created_at->format('Y-m-d'),
-            'profile_picture' => $user->profile_picture,
-        ];
-    });
-    
-    return view('admin_roleManagement', compact('user', 'nonArchivedUsers', 'users'));
-}
+    {
+        $user = Auth::user();
+        // Get only non-archived users and map them
+        $nonArchivedUsers = User::where('is_archived', false)->get();
+
+        $users = $nonArchivedUsers->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'dateAdded' => $user->created_at->format('Y-m-d'),
+                'profile_picture' => $user->profile_picture,
+            ];
+        });
+
+        return view('admin_roleManagement', compact('user', 'nonArchivedUsers', 'users'));
+    }
 
     public function store(Request $request)
     {
@@ -118,15 +118,7 @@ class RoleController extends Controller
             ]
         ]);
     }
-    // public function destroy(User $user)
-    // {
-    //     try {
-    //         $user->delete();
-    //         return response()->json(['success' => true]);
-    //     } catch (\Exception $e) {
-    //         return response()->json(['success' => false, 'message' => 'Error deleting user']);
-    //     }
-    // }
+
     public function archive(User $user)
     {
         $user->archive(request('reason'));
@@ -134,6 +126,67 @@ class RoleController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'User archived successfully'
+        ]);
+    }
+
+    public function restore(User $user)
+    {
+        try {
+            $user->restore(); // This will set is_archived to false
+            return response()->json([
+                'success' => true,
+                'message' => 'User restored successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error restoring user: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function forceDelete(User $user)
+    {
+        try {
+            $user->forceDelete(); // Permanent deletion
+            return response()->json([
+                'success' => true,
+                'message' => 'User permanently deleted'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting user: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    // RoleController.php
+    public function bulkForceDelete(Request $request)
+    {
+        $ids = $request->input('ids');
+        $count = User::where('is_archived', true)
+            ->whereIn('id', $ids)
+            ->forceDelete();
+
+        return response()->json([
+            'success' => true,
+            'deleted_count' => $count,
+            'message' => "$count user(s) permanently deleted"
+        ]);
+    }
+
+    public function bulkRestore(Request $request)
+    {
+        $ids = $request->input('ids');
+        $count = User::where('is_archived', true)
+            ->whereIn('id', $ids)
+            ->update(['is_archived' => false]);
+
+        return response()->json([
+            'success' => true,
+            'restored_count' => $count,
+            'message' => "$count user(s) restored successfully"
         ]);
     }
 }

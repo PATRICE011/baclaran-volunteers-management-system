@@ -52,6 +52,8 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
         Route::post('/{volunteer}/archive', [VolunteersController::class, 'archive'])->name('volunteers.archive');
         Route::post('/{volunteer}/restore', [VolunteersController::class, 'restore'])->name('volunteers.restore');
         Route::delete('/{volunteer}/force-delete', [VolunteersController::class, 'forceDelete'])->name('volunteers.forceDelete');
+    
+    
     });
 
     // ministry page
@@ -94,14 +96,15 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
             Route::get('/', [RoleController::class, 'index']);
             Route::post('', [RoleController::class, 'store'])->name('roles.store');
             Route::put('{user}', [RoleController::class, 'update'])->name('roles.update');
-            // Route::delete('/{user}', [RoleController::class, 'destroy'])->name('roles.destroy'); 
-            // routes/web.php
-            // Archive routes
-            Route::post('/{user}/archive', [RoleController::class, 'archive'])
-                ->name('users.archive');
 
-            Route::post('/{user}/restore', [RoleController::class, 'restore'])
-                ->name('users.restore');
+
+            Route::post('/{user}/archive', [RoleController::class, 'archive'])->name('users.archive');
+
+            Route::post('/{user}/restore', [RoleController::class, 'restore'])->name('users.restore');
+            Route::delete('/{user}/force-delete', [RoleController::class, 'forceDelete'])->name('users.forceDelete');
+
+            Route::post('/bulk-restore', [RoleController::class, 'bulkRestore'])->name('users.bulkRestore');
+            Route::post('/bulk-force-delete', [RoleController::class, 'bulkForceDelete'])->name('users.bulkForceDelete');
         });
 
         Route::prefix('archives')->group(function () {

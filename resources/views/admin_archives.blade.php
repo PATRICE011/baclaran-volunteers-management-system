@@ -328,7 +328,7 @@
                                 </td>
                                 <td class="border border-gray-200 p-3" x-text="item.archived_by"></td>
                                 <td class="border border-gray-200 p-3">
-                                     <div class="flex items-center space-x-2">
+                                    <div class="flex items-center space-x-2">
                                         <button @click="restoreItem(item)" class="inline-flex items-center px-3 py-2 text-sm border border-gray-300 bg-white text-gray-700 rounded-lg hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all">
                                             <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
@@ -530,10 +530,8 @@
     </div>
 
     {{-- Confirmation Modal --}}
-    <div x-show="showModal"
-        x-cloak
-        class="fixed inset-0 z-50 overflow-y-auto modal-bg"
-        @click.self="showModal = false">
+    <div x-show="showModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto modal-bg"
+        @click.self="showModal = false; itemToDelete = null">
         <div class="flex items-center justify-center min-h-screen px-4">
             <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 fade-in" @click.stop>
                 <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
@@ -548,7 +546,7 @@
                 </p>
 
                 <div class="flex gap-3 justify-end">
-                    <button @click="showModal = false"
+                    <button @click="showModal = false; itemToDelete = null"
                         class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         Cancel
                     </button>
@@ -592,7 +590,35 @@
             </div>
         </div>
     </div>
+    {{-- Bulk Delete Confirmation Modal --}}
+    <div x-show="showBulkDeleteModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto modal-bg"
+        @click.self="showBulkDeleteModal = false">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 fade-in" @click.stop>
+                <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
 
+                <h3 class="text-lg font-semibold text-gray-900 text-center mb-2">Confirm Bulk Delete</h3>
+                <p class="text-sm text-gray-600 text-center mb-6">
+                    Are you sure you want to permanently delete <span class="font-semibold" x-text="selectedItems.length"></span> selected items? This action cannot be undone.
+                </p>
+
+                <div class="flex gap-3 justify-end">
+                    <button @click="showBulkDeleteModal = false"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Cancel
+                    </button>
+                    <button @click="confirmBulkDelete()"
+                        class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 
 <script>
@@ -603,6 +629,7 @@
             selectedReason: '',
             selectedItems: [],
             showModal: false,
+            showBulkDeleteModal: false,
             itemToDelete: null,
             showToast: false,
             toastMessage: '',
@@ -656,80 +683,200 @@
             },
 
             restoreItem(item) {
-                fetch(`/volunteers/${item.id}/restore`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Content-Type': 'application/json'
-                    }
-                }).then(() => {
-                    this.data.volunteers = this.data.volunteers.filter(v => v.id !== item.id);
-                    this.showToastMessage('Item restored successfully!', 'success');
-                });
+                let url;
+                const itemId = item.id;
+
+                if (this.tab === 'roles') {
+                    url = `/settings/role/${itemId}/restore`;
+                } else if (this.tab === 'volunteers') {
+                    url = `/volunteers/${itemId}/restore`;
+                } else if (this.tab === 'ministries') {
+                    url = `/ministries/${itemId}/restore`;
+                } else {
+                    return;
+                }
+
+                fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Remove from UI
+                            const tabData = this.data[this.tab];
+                            const index = tabData.findIndex(i => i.id === itemId);
+                            if (index > -1) {
+                                tabData.splice(index, 1);
+                            }
+                            this.showToastMessage('Item restored successfully!', 'success');
+                        } else {
+                            this.showToastMessage(data.message || 'Error restoring item', 'error');
+                        }
+                    });
             },
 
             deleteItem() {
-                if (this.itemToDelete) {
-                    fetch(`/volunteers/${this.itemToDelete.id}/force-delete`, {
+                if (!this.itemToDelete) return;
+
+                let url;
+                const itemId = this.itemToDelete.id;
+
+                // Determine URL based on current tab
+                if (this.tab === 'roles') {
+                    url = `/settings/role/${itemId}/force-delete`;
+                } else if (this.tab === 'volunteers') {
+                    url = `/volunteers/${itemId}/force-delete`;
+                } else if (this.tab === 'ministries') {
+                    url = `/ministries/${itemId}/force-delete`;
+                } else {
+                    return;
+                }
+
+                fetch(url, {
                         method: 'DELETE',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         }
-                    }).then(() => {
-                        this.data.volunteers = this.data.volunteers.filter(v => v.id !== this.itemToDelete.id);
-                        this.showToastMessage('Item permanently deleted!', 'success');
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Remove item from local data array
+                            const tabData = this.data[this.tab];
+                            const index = tabData.findIndex(item => item.id === itemId);
+                            if (index > -1) {
+                                tabData.splice(index, 1);
+                            }
+
+                            // Also remove from selected items if present
+                            const selectedIndex = this.selectedItems.indexOf(itemId);
+                            if (selectedIndex > -1) {
+                                this.selectedItems.splice(selectedIndex, 1);
+                            }
+
+                            this.showToastMessage('Item deleted permanently!', 'success');
+                        } else {
+                            this.showToastMessage(data.message || 'Error deleting item', 'error');
+                        }
+                        this.showModal = false;
+                        this.itemToDelete = null;
                     });
-                }
-                this.showModal = false;
             },
             bulkRestore() {
                 if (this.selectedItems.length === 0) return;
 
-                // Here you would make an API call to restore multiple items
-                console.log('Bulk restoring items:', this.selectedItems);
+                const endpoints = {
+                    'roles': '/settings/role/bulk-restore',
 
-                // Remove selected items from data
-                const tabData = this.data[this.tab];
-                this.selectedItems.forEach(itemId => {
-                    const index = tabData.findIndex(i => i.id === itemId);
-                    if (index > -1) {
-                        tabData.splice(index, 1);
-                    }
-                });
+                };
 
-                this.showToastMessage(`${this.selectedItems.length} items restored successfully!`, 'success');
-                this.selectedItems = [];
+                fetch(endpoints[this.tab], {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            ids: this.selectedItems
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            const tabData = this.data[this.tab];
+                            this.selectedItems.forEach(itemId => {
+                                const index = tabData.findIndex(i => i.id === itemId);
+                                if (index > -1) tabData.splice(index, 1);
+                            });
+
+                            this.showToastMessage(
+                                `${data.restored_count} items restored successfully!`,
+                                'success'
+                            );
+                        } else {
+                            this.showToastMessage(
+                                data.message || 'Error restoring items',
+                                'error'
+                            );
+                        }
+                        this.selectedItems = [];
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        this.showToastMessage('Failed to restore items. Please try again.', 'error');
+                        this.selectedItems = [];
+                    });
             },
 
             bulkDelete() {
-                if (this.selectedItems.length === 0) return;
-
-                // Here you would make an API call to delete multiple items
-                console.log('Bulk deleting items:', this.selectedItems);
-
-                // Remove selected items from data
-                const tabData = this.data[this.tab];
-                this.selectedItems.forEach(itemId => {
-                    const index = tabData.findIndex(i => i.id === itemId);
-                    if (index > -1) {
-                        tabData.splice(index, 1);
-                    }
-                });
-
-                this.showToastMessage(`${this.selectedItems.length} items deleted permanently!`, 'success');
-                this.selectedItems = [];
+                // Instead of performing the delete immediately, show confirmation modal
+                this.showBulkDeleteModal = true;
             },
 
-            showToastMessage(message, type = 'success') {
-                this.toastMessage = message;
-                this.toastType = type;
-                this.showToast = true;
+            confirmBulkDelete() {
+                // Close the confirmation modal
+                this.showBulkDeleteModal = false;
 
-                // Auto hide after 3 seconds
-                setTimeout(() => {
-                    this.showToast = false;
-                }, 3000);
-            }
+                if (this.selectedItems.length === 0) return;
+
+                const endpoints = {
+                    'roles': '/settings/role/bulk-force-delete',
+                    // Add other endpoints here when ready
+                };
+
+                fetch(endpoints[this.tab], {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            ids: this.selectedItems
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            const tabData = this.data[this.tab];
+                            this.selectedItems.forEach(itemId => {
+                                const index = tabData.findIndex(i => i.id === itemId);
+                                if (index > -1) tabData.splice(index, 1);
+                            });
+
+                            this.showToastMessage(
+                                `${data.deleted_count} items deleted permanently!`,
+                                'success'
+                            );
+                        } else {
+                            this.showToastMessage(
+                                data.message || 'Error deleting items',
+                                'error'
+                            );
+                        }
+                        this.selectedItems = [];
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        this.showToastMessage('Failed to delete items. Please try again.', 'error');
+                        this.selectedItems = [];
+                    });
+            },
         }
     }
 </script>
