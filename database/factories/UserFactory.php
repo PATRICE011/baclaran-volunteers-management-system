@@ -32,7 +32,7 @@ class UserFactory extends Factory
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
             'role' => 'staff', // Default role is 'staff'
-            'profile_picture' => fake()->imageUrl(400, 400), // Optional profile picture
+            
             'is_archived' => false, // Default to not archived
             'archived_at' => null, // Set to null unless archived
             'archived_by' => null, // Set to null unless archived
