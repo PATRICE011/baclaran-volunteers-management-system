@@ -95,6 +95,7 @@
 @section('content')
 @include('components.settings_nav')
 <main class="flex-1 overflow-auto p-4 sm:p-6 md:ml-64" x-data="archivesManager({
+    roles: {{ Js::from($roles ?? []) }},
     volunteers: {{ Js::from($volunteers) }},
     ministries: {{ Js::from($ministries) }},
     tasks: {{ Js::from($tasks) }},
@@ -106,7 +107,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
             <div>
                 <h2 class="text-2xl font-bold text-gray-900 mb-2">Archives</h2>
-                <p class="text-sm text-gray-600">Manage archived volunteers, ministries, tasks, and events</p>
+                <p class="text-sm text-gray-600">Manage archived roles, volunteers, ministries, tasks, and events</p>
             </div>
 
             {{-- Search and Filters --}}
@@ -128,12 +129,27 @@
                     <option value="merged">Merged</option>
                     <option value="ended">Ended</option>
                     <option value="completed">Completed</option>
+                    <option value="restructured">Restructured</option>
                 </select>
             </div>
         </div>
 
         {{-- Statistics Cards --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+            <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-indigo-600">Roles</p>
+                        <p class="text-2xl font-bold text-indigo-900" x-text="getTabCount('roles')">0</p>
+                    </div>
+                    <div class="p-3 bg-indigo-500 rounded-full">
+                        <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.012-3a7.5 7.5 0 11-10.024 0M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
             <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
                 <div class="flex items-center justify-between">
                     <div>
@@ -194,6 +210,16 @@
         {{-- Tabs --}}
         <div class="border-b mb-6">
             <div class="flex space-x-1 overflow-x-auto">
+                <button @click="tab = 'roles'"
+                    :class="tab === 'roles' ? 'border-b-2 border-blue-600 text-blue-600 font-semibold' : 'text-gray-500 hover:text-gray-700'"
+                    class="tab-indicator px-6 py-3 whitespace-nowrap transition-colors duration-200">
+                    <span class="flex items-center gap-2">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.012-3a7.5 7.5 0 11-10.024 0M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        Roles
+                    </span>
+                </button>
                 <button @click="tab = 'volunteers'"
                     :class="tab === 'volunteers' ? 'border-b-2 border-blue-600 text-blue-600 font-semibold' : 'text-gray-500 hover:text-gray-700'"
                     class="tab-indicator px-6 py-3 whitespace-nowrap transition-colors duration-200">
@@ -254,6 +280,84 @@
                         Clear Selection
                     </button>
                 </div>
+            </div>
+        </div>
+
+        {{-- Roles Tab --}}
+        <div x-show="tab === 'roles'" x-cloak>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse table-hover">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="border border-gray-200 p-3 text-left">
+                                <input type="checkbox" @change="toggleAll($event)" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            </th>
+                            <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Role Name</th>
+                            <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Permissions</th>
+                            <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Archived Date</th>
+                            <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Reason</th>
+                            <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Archived By</th>
+                            <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="item in getFilteredItems('roles')" :key="item.id">
+                            <tr>
+                                <td class="border border-gray-200 p-3">
+                                    <input type="checkbox" :value="item.id" x-model="selectedItems">
+                                </td>
+                                <td class="border border-gray-200 p-3">
+                                    <div class="flex items-center gap-3">
+                                        {{-- Profile icon --}}
+                                        <div>
+                                            <p class="font-medium text-gray-900" x-text="item.name"></p>
+                                            <p class="text-sm text-gray-500" x-text="item.description"></p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="border border-gray-200 p-3">
+                                    <div class="flex flex-wrap gap-1">
+                                        <template x-for="permission in item.permissions">
+                                            <span class="badge badge-info" x-text="permission"></span>
+                                        </template>
+                                    </div>
+                                </td>
+                                <td class="border border-gray-200 p-3" x-text="formatDate(item.archived_date)"></td>
+                                <td class="border border-gray-200 p-3">
+                                    <span class="badge badge-warning" x-text="item.reason"></span>
+                                </td>
+                                <td class="border border-gray-200 p-3" x-text="item.archived_by"></td>
+                                <td class="border border-gray-200 p-3">
+                                     <div class="flex items-center space-x-2">
+                                        <button @click="restoreItem(item)" class="inline-flex items-center px-3 py-2 text-sm border border-gray-300 bg-white text-gray-700 rounded-lg hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all">
+                                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                            </svg>
+                                            Restore
+                                        </button>
+                                        <button @click="confirmDelete(item)" class="inline-flex items-center px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                        <tr x-show="getFilteredItems('roles').length === 0">
+                            <td colspan="7" class="border border-gray-200 p-8">
+                                <div class="empty-state">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.012-3a7.5 7.5 0 11-10.024 0M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                    <h3 class="text-lg font-medium mb-2">No archived roles found</h3>
+                                    <p class="text-sm">No roles match your current search criteria.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -492,9 +596,9 @@
 </main>
 
 <script>
-    function archivesManager() {
+    function archivesManager(initialData) {
         return {
-            tab: 'volunteers',
+            tab: 'roles',
             searchQuery: '',
             selectedReason: '',
             selectedItems: [],
@@ -504,45 +608,8 @@
             toastMessage: '',
             toastType: 'success',
 
-            // Sample data - replace with actual data from your backend
-            data: {
-                volunteers: [{
-                        id: 1,
-                        name: 'John Smith',
-                        email: 'john.smith@email.com',
-                        archived_date: '2023-10-15',
-                        reason: 'Moved to another city',
-                        archived_by: 'Admin User'
-                    },
-                    {
-                        id: 2,
-                        name: 'Sarah Johnson',
-                        email: 'sarah.johnson@email.com',
-                        archived_date: '2023-11-20',
-                        reason: 'No longer available on weekends',
-                        archived_by: 'Ministry Leader'
-                    }
-                ],
-                ministries: [{
-                        id: 3,
-                        name: 'Youth Ministry',
-                        description: 'Ministry for young people',
-                        archived_date: '2023-09-05',
-                        reason: 'Merged with Children\'s Ministry',
-                        archived_by: 'Pastor'
-                    },
-                    {
-                        id: 4,
-                        name: 'Community Outreach',
-                        description: 'Outreach programs for the community',
-                        archived_date: '2023-12-01',
-                        reason: 'Program ended',
-                        archived_by: 'Admin User'
-                    }
-                ],
-                tasks: [],
-                events: []
-            },
+            // Use the initial data passed from the server
+            data: initialData,
 
             getTabCount(tabName) {
                 return this.data[tabName].length;
@@ -554,7 +621,8 @@
                 // Filter by search query
                 if (this.searchQuery) {
                     items = items.filter(item =>
-                        item.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                        (item.name && item.name.toLowerCase().includes(this.searchQuery.toLowerCase())) ||
+                        (item.description && item.description.toLowerCase().includes(this.searchQuery.toLowerCase())) ||
                         (item.reason && item.reason.toLowerCase().includes(this.searchQuery.toLowerCase()))
                     );
                 }
@@ -570,6 +638,7 @@
             },
 
             formatDate(dateString) {
+                if (!dateString) return 'N/A';
                 const date = new Date(dateString);
                 return date.toLocaleDateString('en-US', {
                     year: 'numeric',

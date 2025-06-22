@@ -95,6 +95,13 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
             Route::post('', [RoleController::class, 'store'])->name('roles.store');
             Route::put('{user}', [RoleController::class, 'update'])->name('roles.update');
             // Route::delete('/{user}', [RoleController::class, 'destroy'])->name('roles.destroy'); 
+            // routes/web.php
+            // Archive routes
+            Route::post('/{user}/archive', [RoleController::class, 'archive'])
+                ->name('users.archive');
+
+            Route::post('/{user}/restore', [RoleController::class, 'restore'])
+                ->name('users.restore');
         });
 
         Route::prefix('archives')->group(function () {

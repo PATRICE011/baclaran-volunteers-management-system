@@ -36,6 +36,7 @@ class Volunteer extends Model
         'sacraments_received' => 'array',
         'formations_received' => 'array',
         'date_of_birth' => 'date',
+        'archived_at' => 'datetime', 
     ];
     protected $appends = ['profile_picture_url'];
 

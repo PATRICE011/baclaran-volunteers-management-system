@@ -10,13 +10,12 @@ class UserSeeder extends Seeder
 {
     public function run()
     {
-        // Create an Admin user
         User::create([
             'first_name' => 'John',
             'last_name' => 'Doe',
             'email' => 'admin@example.com',
-            'password' => Hash::make('adminpassword'), // Use a hashed password
-            'role' => 'admin',  // Set role to admin
+            'password' => Hash::make('adminpassword'),
+            'role' => 'admin',
         ]);
 
         // Create a Staff user
@@ -24,12 +23,9 @@ class UserSeeder extends Seeder
             'first_name' => 'Jane',
             'last_name' => 'Smith',
             'email' => 'staff@example.com',
-            'password' => Hash::make('staffpassword'), // Use a hashed password
-            'role' => 'staff', // Set role to staff
+            'password' => Hash::make('staffpassword'),
+            'role' => 'staff',
         ]);
 
-        // Optionally, create multiple random users (staff) using Faker
-        // \App\Models\User::factory(10)->create();  
-    }
 }
-
+}

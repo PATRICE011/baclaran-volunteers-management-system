@@ -28,7 +28,7 @@ return new class extends Migration
             $table->timestamps();
             // archive
             $table->boolean('is_archived')->default(false);
-            $table->timestamp('archived_at')->nullable();
+            $table->dateTime('archived_at')->nullable();
             $table->foreignId('archived_by')->nullable()->constrained('users')->onDelete('set null');
             $table->text('archive_reason')->nullable();
         });

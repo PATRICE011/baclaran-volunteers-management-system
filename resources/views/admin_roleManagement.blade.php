@@ -268,7 +268,7 @@
                         </tr>
                     </thead>
                     <tbody id="roles-tbody" class="bg-white divide-y divide-gray-200">
-                        @foreach($users as $user)
+                        @foreach($nonArchivedUsers as $user)
                         <tr class="hover:bg-gray-50 transition-colors">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
@@ -305,8 +305,9 @@
                                     <button onclick="editUser({{ $user->id }})" class="text-blue-600 hover:text-blue-900 transition-colors">
                                         Edit
                                     </button>
-                                    <button onclick="deleteUser({{ $user->id }}, '{{ $user->first_name }} {{ $user->last_name }}')" class="text-red-600 hover:text-red-900 transition-colors">
-                                        Delete
+                                    <button onclick="archiveUser({{ $user->id }}, '{{ $user->first_name }} {{ $user->last_name }}')"
+                                        class="text-red-600 hover:text-red-900 transition-colors">
+                                        Archive
                                     </button>
                                 </div>
                             </td>
@@ -375,52 +376,42 @@
         </form>
     </div>
 </div>
-{{-- Confirmation Modal --}}
-<div id="delete-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+
+<!-- archive modal -->
+<div id="archive-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
     <div class="bg-white rounded-lg shadow-xl p-6 m-4 max-w-md w-full">
         <div class="flex items-center mb-4">
             <div class="flex-shrink-0">
-                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
                 </svg>
             </div>
             <div class="ml-3">
-                <h3 class="text-lg font-medium text-gray-900">Confirm Deletion</h3>
+                <h3 class="text-lg font-medium text-gray-900">Archive User</h3>
             </div>
         </div>
-        <p class="text-sm text-gray-500 mb-6">Are you sure you want to delete <span id="delete-user-name" class="font-medium"></span>? This action cannot be undone.</p>
+        <p class="text-sm text-gray-500 mb-4">Are you sure you want to archive <span id="archive-user-name" class="font-medium"></span>?</p>
+        <div class="mb-4">
+            <label for="archive-reason" class="block text-sm font-medium text-gray-700 mb-1">Reason for archiving</label>
+            <textarea id="archive-reason" rows="3" class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-colors" placeholder="Enter reason..."></textarea>
+        </div>
         <div class="flex space-x-3 justify-end">
-            <button id="cancel-delete" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
+            <button id="cancel-archive" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
                 Cancel
             </button>
-            <button id="confirm-delete" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
-                Delete User
+            <button id="confirm-archive" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                Archive User
             </button>
         </div>
     </div>
 </div>
 
-
 @endsection
 @section('scripts')
+
 <script>
     const storageBaseUrl = "{{ asset('storage') }}";
-    @php
-    $transformedUsers = $users -> map(function($user) {
-        return [
-            'id' => $user -> id,
-            'first_name' => $user -> first_name,
-            'last_name' => $user -> last_name,
-            'email' => $user -> email,
-            'role' => $user -> role,
-            'dateAdded' => $user -> created_at -> format('Y-m-d'),
-            'profile_picture' => $user -> profile_picture
-        ];
-    });
-    @endphp
-
-    let users = @json($transformedUsers);
-
+    let users = @json($users);
     // Edit modal elements
     const editModal = document.getElementById('edit-modal');
     const closeEditModalBtn = document.getElementById('close-edit-modal');
@@ -602,6 +593,61 @@
                 showToast(error.message || 'An error occurred. Please try again.', 'error');
             });
     });
+
+    function archiveUser(userId, userName) {
+        document.getElementById('archive-user-name').textContent = userName;
+        const archiveModal = document.getElementById('archive-modal');
+        archiveModal.classList.remove('hidden');
+        archiveModal.classList.add('flex');
+        archiveModal.dataset.userId = userId;
+        // Store the user ID and name for later removal
+        archiveModal.dataset.userName = userName;
+    }
+
+    // Close Archive Modal
+    document.getElementById('cancel-archive').addEventListener('click', function() {
+        document.getElementById('archive-modal').classList.add('hidden');
+        document.getElementById('archive-reason').value = ''; // Clear the reason
+    });
+
+    // Confirm Archive
+    document.getElementById('confirm-archive').addEventListener('click', function() {
+        const userId = document.getElementById('archive-modal').dataset.userId;
+        const userName = document.getElementById('archive-modal').dataset.userName;
+        const reason = document.getElementById('archive-reason').value;
+
+        fetch(`/settings/role/${userId}/archive`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    reason: reason
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove user from the users array
+                    users = users.filter(user => user.id !== parseInt(userId));
+
+                    // Re-apply filters and re-render
+                    applyFilters();
+                    updateStats();
+
+                    showToast('User archived successfully!', 'success');
+                } else {
+                    showToast(data.message || 'Failed to archive user', 'error');
+                }
+                document.getElementById('archive-modal').classList.add('hidden');
+            })
+            .catch(error => {
+                showToast('An error occurred. Please try again.', 'error');
+                document.getElementById('archive-modal').classList.add('hidden');
+            });
+    });
     let filteredUsers = [...users];
     let currentFilter = 'all';
     let currentSort = 'name-asc';
@@ -781,7 +827,7 @@
             showingCount.textContent = filteredUsers.length;
 
             rolesTableBody.innerHTML = filteredUsers.map(user => `
-            <tr class="hover:bg-gray-50 transition-colors">
+            <tr class="hover:bg-gray-50 transition-colors" data-user-id="${user.id}">
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center">
                         <div class="flex-shrink-0 h-8 w-8">
@@ -812,8 +858,9 @@
                         <button onclick="editUser(${user.id})" class="text-blue-600 hover:text-blue-900 transition-colors">
                             Edit
                         </button>
-                        <button onclick="deleteUser(${user.id}, '${user.first_name} ${user.last_name}')" class="text-red-600 hover:text-red-900 transition-colors">
-                            Delete
+                        <button onclick="archiveUser(${user.id}, '${user.first_name} ${user.last_name}')"
+                            class="text-red-600 hover:text-red-900 transition-colors">
+                            Archive
                         </button>
                     </div>
                 </td>
@@ -930,59 +977,6 @@
         });
     }
 
-    // Delete user functionality
-    function deleteUser(userId, userName) {
-        document.getElementById('delete-user-name').textContent = userName;
-        deleteModal.classList.remove('hidden');
-        deleteModal.classList.add('flex');
-
-        // Store the user ID for deletion
-        deleteModal.dataset.userId = userId;
-    }
-
-    // Modal event listeners
-    document.getElementById('cancel-delete').addEventListener('click', function() {
-        closeDeleteModal();
-    });
-
-    document.getElementById('confirm-delete').addEventListener('click', function() {
-        const userId = parseInt(deleteModal.dataset.userId);
-
-        fetch(`/roles/${userId}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    users = users.filter(user => user.id !== userId);
-                    applyFilters();
-                    updateStats();
-                    closeDeleteModal();
-                    showToast('User deleted successfully!', 'success');
-                } else {
-                    showToast(data.message || 'Failed to delete user', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('An error occurred. Please try again.', 'error');
-            });
-    });
-
-    function closeDeleteModal() {
-        deleteModal.classList.add('hidden');
-        deleteModal.classList.remove('flex');
-    }
-
-    // Edit user (placeholder)
-    // function editUser(userId) {
-    //     showToast('Edit functionality would be implemented here', 'success');
-    // }
-
     // Toast notification
     function showToast(message, type = 'success') {
         toast.textContent = message;
@@ -992,13 +986,6 @@
             toast.classList.remove('show');
         }, 3000);
     }
-
-    // Close modal when clicking outside
-    deleteModal.addEventListener('click', function(e) {
-        if (e.target === deleteModal) {
-            closeDeleteModal();
-        }
-    });
     // Toggle password visibility functions
     function togglePasswordVisibility(inputId, toggleButtonId) {
         const input = document.getElementById(inputId);

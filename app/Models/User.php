@@ -47,8 +47,8 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'archived_at' => 'datetime', 
     ];
-
     /**
      * Get the user's full name.
      *
@@ -89,5 +89,28 @@ class User extends Authenticatable
     {
         return $this->role === $role;
     }
-
+    public function archive($reason)
+    {
+        $this->update([
+            'is_archived' => true,
+            'archived_at' => now(),
+            'archived_by' => auth()->id(),
+            'archive_reason' => $reason
+        ]);
+    }
+    public function archiver()
+    {
+        return $this->belongsTo(User::class, 'archived_by')->withDefault([
+            'full_name' => 'System'
+        ]);
+    }
+    public function restore()
+    {
+        $this->update([
+            'is_archived' => false,
+            'archived_at' => null,
+            'archived_by' => null,
+            'archive_reason' => null
+        ]);
+    }
 }
