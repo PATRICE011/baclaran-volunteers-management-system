@@ -22,7 +22,7 @@ class MinistrySeeder extends Seeder
             [
                 'ministry_name' => 'Liturgical Ministries',
                 'parent_id' => null,
-                'ministry_type' => 'LITURGICAL',
+                'ministry_type' => 'PARISH MINISTRIES',
             ],
             [
                 'ministry_name' => 'Pastoral Ministries',

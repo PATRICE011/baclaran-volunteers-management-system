@@ -623,7 +623,7 @@
 </main>
 
 <script>
-    function archivesManager(initialData) {
+     function archivesManager(initialData) {
         return {
             tab: 'roles',
             searchQuery: '',
@@ -683,6 +683,24 @@
                 }
             },
 
+            // ADDED: Toast message function
+            showToastMessage(message, type) {
+                this.toastMessage = message;
+                this.toastType = type;
+                this.showToast = true;
+                
+                // Auto hide after 3 seconds
+                setTimeout(() => {
+                    this.showToast = false;
+                }, 3000);
+            },
+
+            // ADDED: Confirm delete method
+            confirmDelete(item) {
+                this.itemToDelete = item;
+                this.showModal = true;
+            },
+
             restoreItem(item) {
                 let url;
                 const itemId = item.id;
@@ -691,6 +709,8 @@
                     url = `/settings/role/${itemId}/restore`;
                 } else if (this.tab === 'volunteers') {
                     url = `/volunteers/${itemId}/restore`;
+                } else if (this.tab === 'ministries') {
+                    url = `/ministries/${itemId}/restore`;
                 } else {
                     return;
                 }
@@ -717,7 +737,6 @@
                     });
             },
 
-
             deleteItem() {
                 if (!this.itemToDelete) return;
 
@@ -728,6 +747,8 @@
                     url = `/settings/role/${itemId}/force-delete`;
                 } else if (this.tab === 'volunteers') {
                     url = `/volunteers/${itemId}/force-delete`;
+                } else if (this.tab === 'ministries') {
+                    url = `/ministries/${itemId}/force-delete`;
                 } else {
                     return;
                 }
@@ -755,12 +776,14 @@
                         this.itemToDelete = null;
                     });
             },
+
             bulkRestore() {
                 if (this.selectedItems.length === 0) return;
 
                 const endpoints = {
                     'roles': '/settings/role/bulk-restore',
-                    'volunteers': '/volunteers/bulk-restore'
+                    'volunteers': '/volunteers/bulk-restore',
+                    'ministries': '/ministries/bulk-restore'
                 };
 
                 fetch(endpoints[this.tab], {
@@ -806,7 +829,8 @@
 
                 const endpoints = {
                     'roles': '/settings/role/bulk-force-delete',
-                    'volunteers': '/volunteers/bulk-force-delete'
+                    'volunteers': '/volunteers/bulk-force-delete',
+                    'ministries': '/ministries/bulk-force-delete'
                 };
 
                 fetch(endpoints[this.tab], {

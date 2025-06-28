@@ -50,7 +50,7 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
         Route::put('/{id}', [VolunteersController::class, 'update'])->name('volunteers.update');
         // Route::delete('/{id}', [VolunteersController::class, 'destroy'])->name('volunteers.destroy');
         Route::post('/{volunteer}/archive', [VolunteersController::class, 'archive'])->name('volunteers.archive');
-        Route::post('/{volunteer}/restore', [VolunteersController::class, 'restore'])->name('volunteers.restore');
+        Route::post('/{volunteer}/restore', [VolunteersController::class, 'restore']);
         Route::delete('/{volunteer}/force-delete', [VolunteersController::class, 'forceDelete'])->name('volunteers.forceDelete');
         Route::post('/bulk-restore', [VolunteersController::class, 'bulkRestore'])->name('volunteers.bulkRestore');
         Route::post('/bulk-force-delete', [VolunteersController::class, 'bulkForceDelete'])->name('volunteers.bulkForceDelete');

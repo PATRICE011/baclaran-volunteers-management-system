@@ -23,7 +23,7 @@ class VolunteersController extends Controller
 
             // Build the base query, including eager-loaded relations
             $query = Volunteer::with(['detail.ministry', 'timelines', 'affiliations'])
-            ->where('is_archived', false);
+                ->where('is_archived', false);
 
 
             // Search filter
@@ -433,16 +433,36 @@ class VolunteersController extends Controller
         ]);
     }
 
-    public function restore(Volunteer $volunteer)
-    {
+   public function restore(Volunteer $volunteer)
+{
+    try {
         $volunteer->update(['is_archived' => false]);
-        return response()->json(['message' => 'Volunteer restored successfully']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Volunteer restored successfully'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error restoring volunteer: ' . $e->getMessage()
+        ]);
     }
+}
 
     public function forceDelete(Volunteer $volunteer)
     {
-        $volunteer->delete();
-        return response()->json(['message' => 'Volunteer permanently deleted']);
+        try {
+            $volunteer->forceDelete();
+            return response()->json([
+                'success' => true,
+                'message' => 'User permanently deleted'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting user: ' . $e->getMessage()
+            ]);
+        }
     }
 
 
