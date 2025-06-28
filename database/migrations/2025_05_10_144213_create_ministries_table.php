@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('ministry_name');
             $table->unsignedBigInteger('parent_id')->nullable();
-            $table->enum('ministry_type', ['LITURGICAL', 'PASTORAL', 'SOCIAL_MISSION', 'SUB_GROUP']);
+            $table->enum('ministry_type', ['PARISH', 'PASTORAL', 'SOCIAL_MISSION', 'SUB_GROUP']);
             $table->timestamps();
             $table->softDeletes();
 

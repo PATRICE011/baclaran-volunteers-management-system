@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('volunteer_id')->constrained()->onDelete('cascade');
             $table->foreignId('ministry_id')->nullable()->constrained('ministries')->onDelete('set null');
-            $table->string('line_group')->nullable(); // RMM, RYM, RCCOM etc
+            $table->string('line_group')->nullable();
             $table->string('applied_month_year')->nullable();
             $table->string('regular_years_month')->nullable();
             $table->string('full_name');

@@ -20,9 +20,9 @@ class MinistrySeeder extends Seeder
         // Insert main ministry categories
         $mainCategories = [
             [
-                'ministry_name' => 'Liturgical Ministries',
+                'ministry_name' => 'Parish Ministries', // Changed from Liturgical
                 'parent_id' => null,
-                'ministry_type' => 'PARISH MINISTRIES',
+                'ministry_type' => 'PARISH', // Changed from LITURGICAL
             ],
             [
                 'ministry_name' => 'Pastoral Ministries',
@@ -39,55 +39,55 @@ class MinistrySeeder extends Seeder
         DB::table('ministries')->insert($mainCategories);
 
         // Get dynamically assigned IDs
-        $liturgicalId = DB::table('ministries')->where('ministry_name', 'Liturgical Ministries')->value('id');
+        $parishId = DB::table('ministries')->where('ministry_name', 'Parish Ministries')->value('id'); // Renamed
         $pastoralId = DB::table('ministries')->where('ministry_name', 'Pastoral Ministries')->value('id');
         $socialId = DB::table('ministries')->where('ministry_name', 'Social Mission Apostolate')->value('id');
 
-        // Insert Liturgical Ministries
-        $liturgicalMinistries = [
+        // Insert Parish Ministries (formerly Liturgical)
+        $parishMinistries = [ // Renamed variable
             [
                 'ministry_name' => 'Ministry of Lectors, Commentators, and Psalmists',
-                'parent_id' => $liturgicalId,
-                'ministry_type' => 'LITURGICAL',
+                'parent_id' => $parishId, // Updated variable
+                'ministry_type' => 'PARISH', // Changed from LITURGICAL
             ],
             [
                 'ministry_name' => 'Mother Butler Guild',
-                'parent_id' => $liturgicalId,
-                'ministry_type' => 'LITURGICAL',
+                'parent_id' => $parishId, // Updated variable
+                'ministry_type' => 'PARISH', // Changed from LITURGICAL
             ],
             [
                 'ministry_name' => 'Our Mother of Perpetual Help Altar Servers',
-                'parent_id' => $liturgicalId,
-                'ministry_type' => 'LITURGICAL',
+                'parent_id' => $parishId, // Updated variable
+                'ministry_type' => 'PARISH', // Changed from LITURGICAL
             ],
             [
                 'ministry_name' => 'Extraordinary Ministers of Holy Communion',
-                'parent_id' => $liturgicalId,
-                'ministry_type' => 'LITURGICAL',
+                'parent_id' => $parishId, // Updated variable
+                'ministry_type' => 'PARISH', // Changed from LITURGICAL
             ],
             [
                 'ministry_name' => 'Social Communication and Media Ministry',
-                'parent_id' => $liturgicalId,
-                'ministry_type' => 'LITURGICAL',
+                'parent_id' => $parishId, // Updated variable
+                'ministry_type' => 'PARISH', // Changed from LITURGICAL
             ],
             [
                 'ministry_name' => 'Ministry of Ushers and Greeters',
-                'parent_id' => $liturgicalId,
-                'ministry_type' => 'LITURGICAL',
+                'parent_id' => $parishId, // Updated variable
+                'ministry_type' => 'PARISH', // Changed from LITURGICAL
             ],
             [
                 'ministry_name' => 'Ministry of Collectors',
-                'parent_id' => $liturgicalId,
-                'ministry_type' => 'LITURGICAL',
+                'parent_id' => $parishId, // Updated variable
+                'ministry_type' => 'PARISH', // Changed from LITURGICAL
             ],
             [
                 'ministry_name' => 'Redemptorist Music Ministry',
-                'parent_id' => $liturgicalId,
-                'ministry_type' => 'LITURGICAL',
+                'parent_id' => $parishId, // Updated variable
+                'ministry_type' => 'PARISH', // Changed from LITURGICAL
             ],
         ];
 
-        DB::table('ministries')->insert($liturgicalMinistries);
+        DB::table('ministries')->insert($parishMinistries); // Updated variable
 
         // Get Redemptorist Music Ministry ID
         $rmmId = DB::table('ministries')->where('ministry_name', 'Redemptorist Music Ministry')->value('id');
