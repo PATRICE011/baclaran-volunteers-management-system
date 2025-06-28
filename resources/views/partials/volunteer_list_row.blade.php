@@ -70,8 +70,11 @@
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
             <button class="text-blue-600 hover:text-blue-900 mr-3" onclick="openProfile('{{ $volunteer->id }}'); event.stopPropagation();">View</button>
-            <button class="text-blue-600 hover:text-blue-900 mr-3" onclick="editVolunteer('{{ $volunteer->id }}'); event.stopPropagation();">Edit</button>
-            <button class="text-red-600 hover:text-red-900" onclick="archiveVolunteer('{{ $volunteer->id }}'); event.stopPropagation();">Archive</button>
+            <button
+              class="text-red-600 hover:text-red-900"
+              onclick="openArchiveModal('{{ $volunteer->id }}'); event.stopPropagation();">
+              Archive
+            </button>
           </td>
         </tr>
         @empty

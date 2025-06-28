@@ -46,6 +46,30 @@
     #field-email_address-display {
         scrollbar-width: thin;
     }
+    #archive-modal {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    
+    #archive-modal.active {
+        opacity: 1;
+        pointer-events: all;
+    }
+    
+    #archive-modal .modal-container {
+        transform: translateY(-20px);
+        transition: transform 0.3s ease;
+    }
+    
+    #archive-modal.active .modal-container {
+        transform: translateY(0);
+    }
+   
+
 </style>
 @endsection
 
@@ -478,9 +502,6 @@
 </div>
 </div>
 
-
-<!-- Profile Modal -->
-<!-- Outer overlay -->
 <div id="profileModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-40 z-50">
     <!-- Modal Box -->
     <div class="w-full mx-4 sm:mx-auto p-6 relative max-h-[90vh] overflow-y-auto rounded-lg bg-white shadow-lg" style="max-width: 44rem;">
@@ -512,7 +533,41 @@
         </div>
     </div>
 </div>
+
+
 </div>
+<div id="archive-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50">
+    <div class="modal-container bg-white rounded-lg shadow-xl p-6 m-4 max-w-md w-full">
+        <div class="flex items-center mb-4">
+            <div class="flex-shrink-0">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                </svg>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-lg font-medium text-gray-900">Archive Volunteer</h3>
+            </div>
+        </div>
+        <div class="mb-4">
+            <label for="archive-reason" class="block text-sm font-medium text-gray-700 mb-1">
+                Reason for archiving
+            </label>
+            <textarea id="archive-reason" rows="3"
+                class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-colors"
+                placeholder="Enter reason..."></textarea>
+        </div>
+        <div class="flex space-x-3 justify-end">
+            <button id="cancel-archive" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">
+                Cancel
+            </button>
+            <button id="confirm-archive" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                Archive
+            </button>
+        </div>
+    </div>
+</div>
+
+
 
 @endsection
 
@@ -520,6 +575,8 @@
 <script src="{{ asset('assets/js/volunteer.js') }}"></script>
 <script src="{{ asset('assets/js/add_volunteer.js') }}"></script>
 <script src="{{ asset('assets/js/edit_volunteer.js') }}"></script>
+<script src="{{ asset('assets/js/archive_volunteer.js') }}"></script>
 {{-- Alpine.js CDN --}}
 <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @endsection

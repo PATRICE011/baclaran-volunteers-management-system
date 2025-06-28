@@ -28,15 +28,11 @@ class Volunteer extends Model
         'archived_by',
         'archive_reason'
     ];
-    public function archiver()
-    {
-        return $this->belongsTo(User::class, 'archived_by');
-    }
     protected $casts = [
         'sacraments_received' => 'array',
         'formations_received' => 'array',
         'date_of_birth' => 'date',
-        'archived_at' => 'datetime', 
+        'archived_at' => 'datetime',
     ];
     protected $appends = ['profile_picture_url'];
 
@@ -78,5 +74,31 @@ class Volunteer extends Model
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
+    }
+    public function archiver()
+    {
+        return $this->belongsTo(User::class, 'archived_by')->withDefault([
+            'full_name' => 'System'
+        ]);
+    }
+
+    public function archive($reason)
+    {
+        $this->update([
+            'is_archived' => true,
+            'archived_at' => now(),
+            'archived_by' => auth()->id(),
+            'archive_reason' => $reason
+        ]);
+    }
+
+    public function restore()
+    {
+        $this->update([
+            'is_archived' => false,
+            'archived_at' => null,
+            'archived_by' => null,
+            'archive_reason' => null
+        ]);
     }
 }

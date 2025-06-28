@@ -371,6 +371,7 @@
                                 <input type="checkbox" @change="toggleAll($event)" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                             </th>
                             <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Name</th>
+                            <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Email</th>
                             <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Archived Date</th>
                             <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Reason</th>
                             <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Archived By</th>
@@ -385,15 +386,15 @@
                                 </td>
                                 <td class="border border-gray-200 p-3">
                                     <div class="flex items-center gap-3">
-                                        <div class="h-8 w-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                                        <!-- <div class="h-8 w-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
                                             <span x-text="item.name.charAt(0).toUpperCase()"></span>
-                                        </div>
+                                        </div> -->
                                         <div>
                                             <p class="font-medium text-gray-900" x-text="item.name"></p>
-                                            <p class="text-sm text-gray-500" x-text="item.email"></p>
                                         </div>
                                     </div>
                                 </td>
+                                <td class="border border-gray-200 p-3 text-sm text-gray-700" x-text="item.email"></td>
                                 <td class="border border-gray-200 p-3 text-sm text-gray-700" x-text="formatDate(item.archived_date)"></td>
                                 <td class="border border-gray-200 p-3">
                                     <span class="badge badge-warning" x-text="item.reason"></span>
@@ -418,10 +419,10 @@
                             </tr>
                         </template>
                         <tr x-show="getFilteredItems('volunteers').length === 0">
-                            <td colspan="6" class="border border-gray-200 p-8">
+                            <td colspan="7" class="border border-gray-200 p-8">
                                 <div class="empty-state">
                                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
                                     </svg>
                                     <h3 class="text-lg font-medium mb-2">No archived volunteers found</h3>
                                     <p class="text-sm">No volunteers match your current search criteria.</p>
@@ -690,8 +691,6 @@
                     url = `/settings/role/${itemId}/restore`;
                 } else if (this.tab === 'volunteers') {
                     url = `/volunteers/${itemId}/restore`;
-                } else if (this.tab === 'ministries') {
-                    url = `/ministries/${itemId}/restore`;
                 } else {
                     return;
                 }
@@ -706,7 +705,6 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            // Remove from UI
                             const tabData = this.data[this.tab];
                             const index = tabData.findIndex(i => i.id === itemId);
                             if (index > -1) {
@@ -719,19 +717,17 @@
                     });
             },
 
+
             deleteItem() {
                 if (!this.itemToDelete) return;
 
                 let url;
                 const itemId = this.itemToDelete.id;
 
-                // Determine URL based on current tab
                 if (this.tab === 'roles') {
                     url = `/settings/role/${itemId}/force-delete`;
                 } else if (this.tab === 'volunteers') {
                     url = `/volunteers/${itemId}/force-delete`;
-                } else if (this.tab === 'ministries') {
-                    url = `/ministries/${itemId}/force-delete`;
                 } else {
                     return;
                 }
@@ -745,19 +741,12 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            // Remove item from local data array
                             const tabData = this.data[this.tab];
                             const index = tabData.findIndex(item => item.id === itemId);
                             if (index > -1) {
                                 tabData.splice(index, 1);
                             }
-
-                            // Also remove from selected items if present
-                            const selectedIndex = this.selectedItems.indexOf(itemId);
-                            if (selectedIndex > -1) {
-                                this.selectedItems.splice(selectedIndex, 1);
-                            }
-
+                            this.selectedItems = this.selectedItems.filter(id => id !== itemId);
                             this.showToastMessage('Item deleted permanently!', 'success');
                         } else {
                             this.showToastMessage(data.message || 'Error deleting item', 'error');
@@ -771,7 +760,7 @@
 
                 const endpoints = {
                     'roles': '/settings/role/bulk-restore',
-
+                    'volunteers': '/volunteers/bulk-restore'
                 };
 
                 fetch(endpoints[this.tab], {
@@ -785,12 +774,7 @@
                             ids: this.selectedItems
                         })
                     })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        return response.json();
-                    })
+                    .then(response => response.json())
                     .then(data => {
                         if (data.success) {
                             const tabData = this.data[this.tab];
@@ -798,7 +782,6 @@
                                 const index = tabData.findIndex(i => i.id === itemId);
                                 if (index > -1) tabData.splice(index, 1);
                             });
-
                             this.showToastMessage(
                                 `${data.restored_count} items restored successfully!`,
                                 'success'
@@ -810,28 +793,20 @@
                             );
                         }
                         this.selectedItems = [];
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        this.showToastMessage('Failed to restore items. Please try again.', 'error');
-                        this.selectedItems = [];
                     });
             },
 
             bulkDelete() {
-                // Instead of performing the delete immediately, show confirmation modal
                 this.showBulkDeleteModal = true;
             },
 
             confirmBulkDelete() {
-                // Close the confirmation modal
                 this.showBulkDeleteModal = false;
-
                 if (this.selectedItems.length === 0) return;
 
                 const endpoints = {
                     'roles': '/settings/role/bulk-force-delete',
-                    // Add other endpoints here when ready
+                    'volunteers': '/volunteers/bulk-force-delete'
                 };
 
                 fetch(endpoints[this.tab], {
@@ -845,12 +820,7 @@
                             ids: this.selectedItems
                         })
                     })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        return response.json();
-                    })
+                    .then(response => response.json())
                     .then(data => {
                         if (data.success) {
                             const tabData = this.data[this.tab];
@@ -858,7 +828,6 @@
                                 const index = tabData.findIndex(i => i.id === itemId);
                                 if (index > -1) tabData.splice(index, 1);
                             });
-
                             this.showToastMessage(
                                 `${data.deleted_count} items deleted permanently!`,
                                 'success'
@@ -870,13 +839,8 @@
                             );
                         }
                         this.selectedItems = [];
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        this.showToastMessage('Failed to delete items. Please try again.', 'error');
-                        this.selectedItems = [];
                     });
-            },
+            }
         }
     }
 </script>

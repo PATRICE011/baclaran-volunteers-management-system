@@ -22,7 +22,8 @@ class VolunteersController extends Controller
             $user = auth()->user();
 
             // Build the base query, including eager-loaded relations
-            $query = Volunteer::with(['detail.ministry', 'timelines', 'affiliations']);
+            $query = Volunteer::with(['detail.ministry', 'timelines', 'affiliations'])
+            ->where('is_archived', false);
 
 
             // Search filter
@@ -411,9 +412,11 @@ class VolunteersController extends Controller
             return response()->json(['error' => 'Failed to update volunteer.'], 500);
         }
     }
-    public function archive(Request $request, Volunteer $volunteer)
+    public function archive(Request $request, $id)
     {
         $request->validate(['reason' => 'required|string|max:255']);
+
+        $volunteer = Volunteer::findOrFail($id);
 
         $volunteer->update([
             'is_archived' => true,
@@ -421,9 +424,13 @@ class VolunteersController extends Controller
             'archived_by' => auth()->id(),
             'archive_reason' => $request->reason,
         ]);
+
         Log::info("Volunteer #{$volunteer->id} archived by user #" . auth()->id());
 
-        return response()->json(['message' => 'Volunteer archived successfully']);
+        return response()->json([
+            'success' => true, // Add this property
+            'message' => 'Volunteer archived successfully'
+        ]);
     }
 
     public function restore(Volunteer $volunteer)
@@ -436,5 +443,34 @@ class VolunteersController extends Controller
     {
         $volunteer->delete();
         return response()->json(['message' => 'Volunteer permanently deleted']);
+    }
+
+
+    public function bulkRestore(Request $request)
+    {
+        $ids = $request->input('ids');
+        $count = Volunteer::where('is_archived', true)
+            ->whereIn('id', $ids)
+            ->update(['is_archived' => false]);
+
+        return response()->json([
+            'success' => true,
+            'restored_count' => $count,
+            'message' => "$count volunteer(s) restored successfully"
+        ]);
+    }
+
+    public function bulkForceDelete(Request $request)
+    {
+        $ids = $request->input('ids');
+        $count = Volunteer::where('is_archived', true)
+            ->whereIn('id', $ids)
+            ->forceDelete();
+
+        return response()->json([
+            'success' => true,
+            'deleted_count' => $count,
+            'message' => "$count volunteer(s) permanently deleted"
+        ]);
     }
 }
