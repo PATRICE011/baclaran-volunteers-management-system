@@ -164,7 +164,7 @@
                 </div>
             </div>
 
-            <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
+            <!-- <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-green-600">Ministries</p>
@@ -176,7 +176,7 @@
                         </svg>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4">
                 <div class="flex items-center justify-between">
@@ -230,7 +230,7 @@
                         Volunteers
                     </span>
                 </button>
-                <button @click="tab = 'ministries'"
+                <!-- <button @click="tab = 'ministries'"
                     :class="tab === 'ministries' ? 'border-b-2 border-blue-600 text-blue-600 font-semibold' : 'text-gray-500 hover:text-gray-700'"
                     class="tab-indicator px-6 py-3 whitespace-nowrap transition-colors duration-200">
                     <span class="flex items-center gap-2">
@@ -239,7 +239,7 @@
                         </svg>
                         Ministries
                     </span>
-                </button>
+                </button> -->
                 <button @click="tab = 'tasks'"
                     :class="tab === 'tasks' ? 'border-b-2 border-blue-600 text-blue-600 font-semibold' : 'text-gray-500 hover:text-gray-700'"
                     class="tab-indicator px-6 py-3 whitespace-nowrap transition-colors duration-200">
