@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->text('description')->nullable();
-            $table->foreignId('volunteer_id')->constrained()->onDelete('cascade'); // assigned to a volunteer
+            $table->foreignId('volunteer_id')->constrained()->onDelete('cascade'); 
             $table->date('due_date')->nullable();
             $table->enum('status', ['To Do', 'In Progress', 'Completed'])->default('To Do');
             $table->timestamps();
