@@ -10,11 +10,10 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\MinistryController;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\SchedulesController;
 use App\Http\Controllers\TasksController;
 use App\Http\Controllers\VolunteersController;
 use App\Http\Controllers\AccountSettingsController;
-
+use App\Http\Controllers\EventController;
 
 Route::get('/', [AuthController::class, 'getLogin'])
     ->name('login')
@@ -34,13 +33,18 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
-    Route::get('/schedule', [SchedulesController::class, 'index']);
+   
 
-
-    Route::get('/attendance', [AttendanceController::class, 'index']);
+ 
     Route::get('/tasks', [TasksController::class, 'index']);
-
-
+    // attendance tracking page
+    Route::prefix('attendance')->group(function(){
+         Route::get('/', [AttendanceController::class, 'index']);
+    });
+    // event and attendance tracking page
+      Route::prefix('event')->group(function(){
+        Route::get('/', [EventController::class, 'index']);
+     });
     // volunteers page
     Route::prefix('volunteers')->group(function () {
         Route::get('/', [VolunteersController::class, 'index']);

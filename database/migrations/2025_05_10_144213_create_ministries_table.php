@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('ministry_name');
             $table->unsignedBigInteger('parent_id')->nullable();
             $table->enum('ministry_type', ['PARISH', 'PASTORAL', 'SOCIAL_MISSION', 'SUB_GROUP']);
+            $table->unsignedInteger('max_members')->nullable();
+            $table->unsignedInteger('required_attendance_per_month')->nullable();
             $table->timestamps();
             $table->softDeletes();
 

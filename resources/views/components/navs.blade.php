@@ -43,22 +43,26 @@
                 <span class="font-medium">Ministries</span>
             </a>
 
-            <!-- Schedule Link -->
-            <a href="{{ url('/schedule') }}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('schedule') }}">
+            <!-- Tasks Link -->
+             <a href="{{ url('/event') }}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('event') }}">
+                <i class="bx bx-calendar text-lg"></i>
+                <span class="font-medium">Events</span>
+            </a> 
+            <a href="{{ url('/tasks') }}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('tasks') }}">
+                <i class="bx bx-list-check text-lg"></i>
+                <span class="font-medium">Tasks</span>
+            </a>
+
+                <!-- Schedule Link -->
+            <!-- <a href="{{ url('/schedule') }}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('schedule') }}">
                 <i class="bx bx-calendar text-lg"></i>
                 <span class="font-medium">Schedule</span>
-            </a>
+            </a> -->
 
             <!-- Attendance Link -->
             <a href="{{ url('/attendance') }}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('attendance') }}">
                 <i class="bx bx-check-circle text-lg"></i>
-                <span class="font-medium">Attendance</span>
-            </a>
-
-            <!-- Tasks Link -->
-            <a href="{{ url('/tasks') }}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('tasks') }}">
-                <i class="bx bx-list-check text-lg"></i>
-                <span class="font-medium">Tasks</span>
+                <span class="font-medium">Track Attendance</span>
             </a>
         </nav>
     </div>

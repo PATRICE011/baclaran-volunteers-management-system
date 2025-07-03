@@ -16,6 +16,8 @@ class Ministry extends Model
         'ministry_name',
         'parent_id',
         'ministry_type',
+        'max_members', 
+        'required_attendance_per_month',
     ];
 
     /**
@@ -32,7 +34,7 @@ class Ministry extends Model
     /**
      * Get the parent ministry that this ministry belongs to.
      */
-     public function volunteers()
+    public function volunteers()
     {
         return $this->hasManyThrough(Volunteer::class, VolunteerDetail::class);
     }
@@ -96,12 +98,12 @@ class Ministry extends Model
     {
         $path = [$this->ministry_name];
         $parent = $this->parent;
-        
+
         while ($parent) {
             array_unshift($path, $parent->ministry_name);
             $parent = $parent->parent;
         }
-        
+
         return implode(' > ', $path);
     }
 }

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('applied_month_year')->nullable();
             $table->string('regular_years_month')->nullable();
             $table->string('full_name');
-            $table->enum('volunteer_status', ['Active', 'Inactive']);
+            $table->enum('volunteer_status', ['Active', 'Inactive','On-Leave']);
             $table->timestamps();
         });
     }
