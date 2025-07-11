@@ -33,18 +33,30 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
-   
 
- 
+
+
     Route::get('/tasks', [TasksController::class, 'index']);
     // attendance tracking page
-    Route::prefix('attendance')->group(function(){
-         Route::get('/', [AttendanceController::class, 'index']);
+    Route::prefix('attendance')->group(function () {
+        Route::get('/', [AttendanceController::class, 'index']);
     });
     // event and attendance tracking page
-      Route::prefix('event')->group(function(){
-        Route::get('/', [EventController::class, 'index']);
-     });
+    // ... existing routes ...
+
+    Route::prefix('event')->group(function () {
+        Route::get('/', [EventController::class, 'index'])->name('events.index');
+        Route::post('/', [EventController::class, 'store'])->name('events.store');
+        Route::get('/create', [EventController::class, 'create'])->name('events.create');
+        Route::get('/{event}', [EventController::class, 'show'])->name('events.show');
+        Route::put('/{event}', [EventController::class, 'update'])->name('events.update');
+        Route::delete('/{event}', [EventController::class, 'destroy'])->name('events.destroy');
+        Route::get('/{event}/attendance', [EventController::class, 'showAttendance'])->name('events.attendance');
+        Route::post('/{event}/attendance', [EventController::class, 'saveAttendance'])->name('events.attendance.save');
+        Route::post('/{event}/archive', [EventController::class, 'archive'])->name('events.archive');
+        Route::post('/{event}/restore', [EventController::class, 'restore'])->name('events.restore');
+        Route::get('/volunteers/list', [EventController::class, 'getVolunteers'])->name('events.volunteers');
+    });
     // volunteers page
     Route::prefix('volunteers')->group(function () {
         Route::get('/', [VolunteersController::class, 'index']);

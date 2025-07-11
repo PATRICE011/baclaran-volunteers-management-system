@@ -36,10 +36,15 @@ class Volunteer extends Model
     ];
     protected $appends = ['profile_picture_url'];
 
+    // Volunteer.php (getProfilePictureUrlAttribute)
     public function getProfilePictureUrlAttribute()
     {
-        return $this->profile_picture ?:
-            'https://api.dicebear.com/7.x/avataaars/svg?seed=' . urlencode($this->detail->full_name);
+        if ($this->profile_picture) {
+            return asset('storage/' . $this->profile_picture);
+        }
+
+        return 'https://api.dicebear.com/7.x/avataaars/svg?seed=' .
+            urlencode($this->detail->full_name ?? 'default');
     }
     public function detail()
     {
@@ -63,14 +68,6 @@ class Volunteer extends Model
     {
         return $this->hasMany(OtherAffiliation::class);
     }
-
-    public function events(): BelongsToMany
-    {
-        return $this->belongsToMany(Event::class)
-            ->withPivot('attendance_status', 'checked_in_at')
-            ->withTimestamps();
-    }
-
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
@@ -100,5 +97,11 @@ class Volunteer extends Model
             'archived_by' => null,
             'archive_reason' => null
         ]);
+    }
+    public function events(): BelongsToMany
+    {
+        return $this->belongsToMany(Event::class, 'event_volunteer')
+            ->withPivot('attendance_status', 'checked_in_at')
+            ->withTimestamps();
     }
 }

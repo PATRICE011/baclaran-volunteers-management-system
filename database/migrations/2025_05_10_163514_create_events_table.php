@@ -18,6 +18,8 @@ return new class extends Migration
             $table->time('start_time');
             $table->time('end_time');
             $table->text('description')->nullable();
+            $table->foreignId('ministry_id')->nullable()->constrained()->onDelete('set null');
+            $table->boolean('is_archived')->default(false);
             $table->timestamps();
         });
     }

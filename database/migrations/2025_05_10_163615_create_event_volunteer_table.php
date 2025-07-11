@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('event_id')->constrained()->onDelete('cascade');
             $table->foreignId('volunteer_id')->constrained()->onDelete('cascade');
-            $table->enum('attendance_status', ['Present', 'Absent', 'Pending'])->default('Pending');
+            $table->enum('attendance_status', ['present', 'absent', 'pending'])->default('pending');
             $table->timestamp('checked_in_at')->nullable();
-            $table->timestamps(); // created_at / updated_at
+            $table->timestamps();
         });
     }
 

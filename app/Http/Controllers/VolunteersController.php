@@ -433,21 +433,21 @@ class VolunteersController extends Controller
         ]);
     }
 
-   public function restore(Volunteer $volunteer)
-{
-    try {
-        $volunteer->update(['is_archived' => false]);
-        return response()->json([
-            'success' => true,
-            'message' => 'Volunteer restored successfully'
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Error restoring volunteer: ' . $e->getMessage()
-        ]);
+    public function restore(Volunteer $volunteer)
+    {
+        try {
+            $volunteer->update(['is_archived' => false]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Volunteer restored successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error restoring volunteer: ' . $e->getMessage()
+            ]);
+        }
     }
-}
 
     public function forceDelete(Volunteer $volunteer)
     {
