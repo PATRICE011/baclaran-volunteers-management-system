@@ -16,7 +16,7 @@ class Ministry extends Model
         'ministry_name',
         'parent_id',
         'ministry_type',
-        'max_members', 
+        'max_members',
         'required_attendance_per_month',
     ];
 
@@ -34,10 +34,22 @@ class Ministry extends Model
     /**
      * Get the parent ministry that this ministry belongs to.
      */
+    // In Ministry.php
     public function volunteers()
     {
-        return $this->hasManyThrough(Volunteer::class, VolunteerDetail::class);
+        return $this->belongsToMany(Volunteer::class, 'volunteer_details', 'ministry_id', 'volunteer_id')
+            ->using(VolunteerDetail::class)
+            ->withPivot(['volunteer_status', 'line_group', 'applied_month_year', 'regular_years_month']);
     }
+
+    public function volunteerDetails()
+{
+    return $this->hasMany(VolunteerDetail::class, 'ministry_id')
+        ->where('volunteer_status', 'Active')
+        ->whereHas('volunteer', function($q) {
+            $q->where('is_archived', false);
+        });
+}
     public function parent(): BelongsTo
     {
         return $this->belongsTo(Ministry::class, 'parent_id');
@@ -51,17 +63,7 @@ class Ministry extends Model
         return $this->hasMany(Ministry::class, 'parent_id');
     }
 
-    /**
-     * Get all volunteer details for this ministry.
-     */
-    public function volunteerDetails(): HasMany
-    {
-        return $this->hasMany(VolunteerDetail::class);
-    }
 
-    /**
-     * Scope a query to only include main ministries (no parent).
-     */
     public function scopeMainMinistries($query)
     {
         return $query->whereNull('parent_id');

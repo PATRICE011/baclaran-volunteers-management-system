@@ -232,15 +232,7 @@
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                                     <textarea id="addDescription" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="Enter event description"></textarea>
                                 </div>
-                                <!-- <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Ministry</label>
-                                    <select id="addMinistry" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                        <option value="">Select Ministry</option>
-                                        @foreach($ministries as $ministry)
-                                        <option value="{{ $ministry->id }}">{{ $ministry->ministry_name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div> -->
+
                             </div>
                         </div>
                     </div>
@@ -265,13 +257,30 @@
                                 </svg>
                                 <input type="text" id="attendeeSearch" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="Search attendees..." oninput="filterAttendees()">
                             </div>
-
+                            <!-- Ministry Filter -->
                             <!-- Ministry Filter -->
                             <div class="mb-4">
                                 <select id="ministryFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" onchange="filterAttendees()">
                                     <option value="">All Ministries</option>
                                     @foreach($ministries as $ministry)
-                                    <option value="{{ $ministry->id }}">{{ $ministry->ministry_name }}</option>
+                                    @if($ministry->parent_id === null)
+                                    <optgroup label="{{ $ministry->ministry_name }}">
+                                        @foreach($ministry->children as $child)
+                                        <option value="{{ $child->id }}"
+                                            data-count="{{ $child->active_volunteers_count ?? 0 }}">
+                                            ({{ $child->volunteerDetails->count() }}) {{ $child->ministry_name }}
+                                        </option>
+                                        @if($child->children->count() > 0)
+                                        @foreach($child->children as $grandchild)
+                                        <option value="{{ $grandchild->id }}"
+                                            data-count="{{ $grandchild->active_volunteers_count ?? 0 }}">
+                                            &nbsp;&nbsp;→ ({{ $grandchild->volunteerDetails->count() }}) {{ $grandchild->ministry_name }}
+                                        </option>
+                                        @endforeach
+                                        @endif
+                                        @endforeach
+                                    </optgroup>
+                                    @endif
                                     @endforeach
                                 </select>
                             </div>
@@ -428,65 +437,36 @@
                             </div>
 
                             <!-- Ministry Filter -->
+                            <!-- Ministry Filter -->
                             <div class="mb-4">
                                 <select id="ministryFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" onchange="filterAttendees()">
                                     <option value="">All Ministries</option>
                                     @foreach($ministries as $ministry)
-                                    <option value="{{ $ministry->id }}">{{ $ministry->ministry_name }}</option>
+                                    @if($ministry->parent_id === null)
+                                    <optgroup label="{{ $ministry->ministry_name }}">
+                                        @foreach($ministry->children as $child)
+                                        @if($child->children->count() > 0)
+                                        @foreach($child->children as $grandchild)
+                                        <option value="{{ $grandchild->id }}">
+                                            ({{ $grandchild->active_volunteers_count ?? 0 }}) {{ $grandchild->ministry_name }}
+                                        </option>
+                                        @endforeach
+                                        @else
+                                        <option value="{{ $child->id }}">
+                                            ({{ $child->active_volunteers_count ?? 0 }}) {{ $child->ministry_name }}
+                                        </option>
+                                        @endif
+                                        @endforeach
+                                    </optgroup>
+                                    @endif
                                     @endforeach
                                 </select>
                             </div>
-
                             <!-- Attendees List -->
                             <div class="max-h-80 overflow-y-auto border border-gray-300 rounded-lg p-3 bg-white" style="scrollbar-width: thin;">
                                 <div id="attendeesList">
-                                    <!-- Original attendees with updated styling -->
-                                    <div class="attendee-item flex items-center p-2 hover:bg-gray-50 rounded-lg transition-colors duration-150" data-name="John Doe" data-ministry="Worship">
-                                        <input type="checkbox" id="attendee1" name="attendees[]" value="1" class="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" onchange="updateAttendeeCount()">
-                                        <label for="attendee1" class="flex items-center flex-1 cursor-pointer">
-                                            <img class="w-10 h-10 rounded-full mr-3 object-cover" src="https://randomuser.me/api/portraits/men/32.jpg" alt="John Doe">
-                                            <div class="flex-1">
-                                                <div class="text-sm font-medium text-gray-900">John Doe</div>
-                                                <div class="text-xs text-gray-500">Ministry: Worship</div>
-                                            </div>
-                                        </label>
-                                    </div>
-
-                                    <div class="attendee-item flex items-center p-2 hover:bg-gray-50 rounded-lg transition-colors duration-150" data-name="Jane Smith" data-ministry="Hospitality">
-                                        <input type="checkbox" id="attendee2" name="attendees[]" value="2" class="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" onchange="updateAttendeeCount()">
-                                        <label for="attendee2" class="flex items-center flex-1 cursor-pointer">
-                                            <img class="w-10 h-10 rounded-full mr-3 object-cover" src="https://randomuser.me/api/portraits/women/44.jpg" alt="Jane Smith">
-                                            <div class="flex-1">
-                                                <div class="text-sm font-medium text-gray-900">Jane Smith</div>
-                                                <div class="text-xs text-gray-500">Ministry: Hospitality</div>
-                                            </div>
-                                        </label>
-                                    </div>
-
-                                    <div class="attendee-item flex items-center p-2 hover:bg-gray-50 rounded-lg transition-colors duration-150" data-name="Robert Johnson" data-ministry="Ushering">
-                                        <input type="checkbox" id="attendee3" name="attendees[]" value="3" class="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" onchange="updateAttendeeCount()">
-                                        <label for="attendee3" class="flex items-center flex-1 cursor-pointer">
-                                            <img class="w-10 h-10 rounded-full mr-3 object-cover" src="https://randomuser.me/api/portraits/men/62.jpg" alt="Robert Johnson">
-                                            <div class="flex-1">
-                                                <div class="text-sm font-medium text-gray-900">Robert Johnson</div>
-                                                <div class="text-xs text-gray-500">Ministry: Ushering</div>
-                                            </div>
-                                        </label>
-                                    </div>
-
-                                    <div class="attendee-item flex items-center p-2 hover:bg-gray-50 rounded-lg transition-colors duration-150" data-name="Sarah Williams" data-ministry="Children">
-                                        <input type="checkbox" id="attendee4" name="attendees[]" value="4" class="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" onchange="updateAttendeeCount()">
-                                        <label for="attendee4" class="flex items-center flex-1 cursor-pointer">
-                                            <img class="w-10 h-10 rounded-full mr-3 object-cover" src="https://randomuser.me/api/portraits/women/68.jpg" alt="Sarah Williams">
-                                            <div class="flex-1">
-                                                <div class="text-sm font-medium text-gray-900">Sarah Williams</div>
-                                                <div class="text-xs text-gray-500">Ministry: Children</div>
-                                            </div>
-                                        </label>
-                                    </div>
+                                    <!-- Will be populated by JavaScript -->
                                 </div>
-
-                                <!-- No results message -->
                                 <div id="noResults" class="text-center py-8 text-gray-500 hidden">
                                     <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h10a2 2 0 012 2v14a2 2 0 01-2 2z"></path>
@@ -684,14 +664,17 @@
     // Add this global variable at the top of the script
     let selectedVolunteers = new Set();
 
-    // Update fetchVolunteers function
+    // Fetch volunteers with search and ministry filters
     function fetchVolunteers(search = '', ministry = '') {
+        // Show loading state
+        $('#attendeesList').html('<div class="text-center py-4">Loading volunteers...</div>');
+
         $.ajax({
             url: "{{ route('events.volunteers') }}",
             method: 'GET',
             data: {
-                search,
-                ministry
+                search: search,
+                ministry: ministry
             },
             success: function(response) {
                 $('#attendeesList').empty();
@@ -700,34 +683,64 @@
                     response.forEach(function(volunteer) {
                         const isChecked = selectedVolunteers.has(volunteer.id.toString());
                         $('#attendeesList').append(`
-                        <div class="attendee-item flex items-center p-2 hover:bg-gray-50 rounded-lg transition-colors duration-150" 
-                             data-name="${volunteer.full_name}" 
-                             data-ministry="${volunteer.ministry}">
-                            <input type="checkbox" id="attendee${volunteer.id}" 
-                                   name="attendees[]" value="${volunteer.id}" 
-                                   class="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" 
-                                   onchange="updateAttendeeCount()"
-                                   ${isChecked ? 'checked' : ''}>
-                            <label for="attendee${volunteer.id}" class="flex items-center flex-1 cursor-pointer">
-                                <img class="w-10 h-10 rounded-full mr-3 object-cover" 
-                                     src="${volunteer.profile_picture}" 
-                                     alt="${volunteer.full_name}">
-                                <div class="flex-1">
-                                    <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
-                                    <div class="text-xs text-gray-500">${volunteer.ministry}</div>
-                                </div>
-                            </label>
-                        </div>
+                    <div class="attendee-item flex items-center p-2 hover:bg-gray-50 rounded-lg transition-colors duration-150" 
+                         data-name="${volunteer.full_name}" 
+                         data-ministry="${volunteer.ministry}">
+                        <input type="checkbox" id="attendee_${volunteer.id}" 
+                               name="attendees[]" value="${volunteer.id}" 
+                               class="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" 
+                               onchange="updateAttendeeCount()"
+                               ${isChecked ? 'checked' : ''}>
+                        <label for="attendee_${volunteer.id}" class="flex items-center flex-1 cursor-pointer">
+                            <img class="w-10 h-10 rounded-full mr-3 object-cover" 
+                                 src="${volunteer.profile_picture || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(volunteer.full_name) + '&background=random'}" 
+                                 alt="${volunteer.full_name}">
+                            <div class="flex-1">
+                                <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
+                                <div class="text-xs text-gray-500">${volunteer.ministry}</div>
+                            </div>
+                        </label>
+                    </div>
                     `);
                     });
                     $('#noResults').addClass('hidden');
                 } else {
+                    const selectedOption = $('#ministryFilter option:selected');
+                    const expectedCount = selectedOption.data('count') || 0;
+
+                    if (expectedCount > 0) {
+                        // Show message about potential data inconsistency
+                        $('#noResults').html(`
+                        <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        <p class="text-sm">No volunteers found, but expected ${expectedCount}</p>
+                        <p class="text-xs text-gray-400 mt-2">This may indicate a data consistency issue</p>
+                    `);
+                    } else {
+                        // Regular "no results" message
+                        $('#noResults').html(`
+                        <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h10a2 2 0 012 2v14a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p class="text-sm">No volunteers found</p>
+                    `);
+                    }
                     $('#noResults').removeClass('hidden');
                 }
+            },
+            error: function(xhr) {
+                console.error('Error fetching volunteers:', xhr.responseText);
+                $('#noResults').html(`
+                <svg class="w-12 h-12 mx-auto mb-4 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-sm text-red-500">Error loading volunteers</p>
+                <p class="text-xs text-gray-400">Please try again or contact support</p>
+            `).removeClass('hidden');
             }
         });
     }
-
     // Modal Functions
     function openAddModal() {
         document.getElementById('addModal').classList.remove('hidden');
@@ -1013,14 +1026,8 @@
 
     function updateAttendeeCount() {
         const checkedBoxes = document.querySelectorAll('input[name="attendees[]"]:checked');
-        const count = checkedBoxes.length;
-        document.getElementById('attendeeCount').textContent = `${count} selected`;
-
-        // Update selected volunteers set
-        selectedVolunteers.clear();
-        checkedBoxes.forEach(checkbox => {
-            selectedVolunteers.add(checkbox.value);
-        });
+        selectedVolunteers = new Set(Array.from(checkedBoxes).map(cb => cb.value));
+        document.getElementById('attendeeCount').textContent = `${checkedBoxes.length} selected`;
     }
 
     // Initialize count on page load

@@ -14,9 +14,25 @@ class EventController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $ministries = Ministry::all();
 
-        // Update these queries to exclude archived events
+        // Load ministries with active volunteer counts for sub-ministries only
+        $ministries = Ministry::with([
+            'children.children' => function ($query) {
+                $query->withCount([
+                    'volunteerDetails as active_volunteers_count' => function ($q) {
+                        $q->whereHas('volunteer', function ($q) {
+                            $q->where('is_archived', false);
+                        })
+                            ->where('volunteer_status', 'Active');
+                    }
+                ]);
+            }
+        ])
+            ->whereNull('parent_id')
+            ->get();
+
+
+        // Rest of your existing code...
         $events = Event::withCount('volunteers')
             ->with(['ministry', 'volunteers' => function ($query) {
                 $query->with('detail.ministry')->take(3);
@@ -25,7 +41,6 @@ class EventController extends Controller
             ->orderBy('date', 'desc')
             ->paginate(10);
 
-        // Only count non-archived events
         $totalEvents = Event::where('is_archived', false)->count();
         $upcomingEvents = Event::where('is_archived', false)
             ->where('date', '>=', today())
@@ -153,32 +168,49 @@ class EventController extends Controller
     }
 
 
-   public function getVolunteers(Request $request)
-{
-    $search = $request->input('search');
-    $ministry = $request->input('ministry');
+    public function getVolunteers(Request $request)
+    {
+        $search = $request->input('search');
+        $ministry = $request->input('ministry');
 
-    $volunteers = Volunteer::with('detail.ministry')
-        ->when($search, function ($query) use ($search) {
+        $query = Volunteer::query()
+            ->with(['detail.ministry'])
+            ->where('is_archived', false)
+            ->whereHas('detail', function ($q) use ($ministry) {
+                $q->where('volunteer_status', 'Active');
+                if ($ministry) {
+                    $q->where('ministry_id', $ministry);
+                }
+            });
+
+        if ($search) {
             $query->whereHas('detail', function ($q) use ($search) {
                 $q->where('full_name', 'like', "%{$search}%");
             });
-        })
-        ->when($ministry, function ($query) use ($ministry) {
-            $query->whereHas('detail', function ($q) use ($ministry) {
-                $q->where('ministry_id', $ministry);
-            });
-        })
-        ->get()
-        ->map(function ($volunteer) {
-            return [
-                'id' => $volunteer->id,
-                'full_name' => $volunteer->detail->full_name ?? 'No Name',
-                'ministry' => $volunteer->detail->ministry->ministry_name ?? 'No Ministry',
-                'profile_picture' => $volunteer->profile_picture_url,
-            ];
-        });
+        }
 
-    return response()->json($volunteers);
-}
+        $volunteers = $query->get()
+            ->map(function ($volunteer) {
+                return [
+                    'id' => $volunteer->id,
+                    'full_name' => $volunteer->detail->full_name ?? 'No Name',
+                    'ministry' => $volunteer->detail->ministry->ministry_name ?? 'No Ministry',
+                    'profile_picture' => $volunteer->profile_picture_url,
+                ];
+            });
+
+        return response()->json($volunteers);
+    }
+
+    public function getTotalActiveVolunteers()
+    {
+        return Volunteer::where('is_archived', false)
+            ->whereHas('detail', function ($q) {
+                $q->where('volunteer_status', 'Active')
+                    ->whereHas('ministry', function ($q) {
+                        $q->whereNotNull('parent_id'); // Only count volunteers in non-parent ministries
+                    });
+            })
+            ->count();
+    }
 }
