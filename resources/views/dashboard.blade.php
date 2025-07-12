@@ -314,19 +314,26 @@ $current = request()->is('dashboard') ? 'active' : '';
             });
         });
 
-        // Initialize Chart.js with real data if available
+        // Initialize Chart.js with real attendance data
         const ctx = document.getElementById('volunteerChart').getContext('2d');
+        const attendanceData = @json($metrics['attendanceData']);
+
         new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                labels: Object.keys(attendanceData),
                 datasets: [{
-                    label: 'Active Volunteers',
-                    data: [85, 92, 78, 98], // Replace with real data if available
+                    label: 'Volunteers Present at Events',
+                    data: Object.values(attendanceData),
                     borderColor: 'rgb(59, 130, 246)',
                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    tension: 0.4,
-                    fill: true
+                    tension: 0.3,
+                    fill: true,
+                    pointBackgroundColor: 'rgb(59, 130, 246)',
+                    pointBorderColor: '#fff',
+                    pointHoverRadius: 5,
+                    pointHitRadius: 10,
+                    pointBorderWidth: 2
                 }]
             },
             options: {
@@ -335,21 +342,49 @@ $current = request()->is('dashboard') ? 'active' : '';
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.raw}`;
+                            }
+                        }
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Volunteers',
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
                         grid: {
                             display: true,
-                            color: 'rgba(0, 0, 0, 0.1)'
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            precision: 0
                         }
                     },
                     x: {
+                        title: {
+                            display: true,
+                            text: 'Last 30 Days',
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
                         grid: {
                             display: false
                         }
                     }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
                 }
             }
         });

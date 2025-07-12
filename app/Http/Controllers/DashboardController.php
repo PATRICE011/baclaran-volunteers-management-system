@@ -17,6 +17,7 @@ class DashboardController extends Controller
         $user = Auth::user();
 
         // Get counts from models
+        $attendanceData = $this->getVolunteerAttendanceData();
         $totalVolunteers = Volunteer::count();
         $activeVolunteers = Volunteer::where('is_archived', false)
             ->whereHas('detail', function ($query) {
@@ -102,25 +103,52 @@ class DashboardController extends Controller
             'activeMinistries' => $activeMinistries,
             'recentVolunteers' => $recentVolunteers,
             'upcomingTasks' => $upcomingTasks,
-            'ministryData' => $parentMinistries
+            'ministryData' => $parentMinistries,
+            'attendanceData' => $attendanceData // Add this line
         ];
 
         return view('dashboard', compact('user', 'metrics'));
     }
+   private function getVolunteerAttendanceData()
+{
+    // Get the start and end dates for the last 30 days
+    $endDate = now();
+    $startDate = now()->subDays(30);
 
-    private function getInitials($name)
-    {
-        $words = explode(' ', $name);
-        $initials = '';
+    // Initialize result with all weeks set to empty arrays
+    $result = [
+        'Week 1' => [],
+        'Week 2' => [],
+        'Week 3' => [],
+        'Week 4' => []
+    ];
 
-        foreach ($words as $word) {
-            $initials .= strtoupper(substr($word, 0, 1));
-            if (strlen($initials) >= 2) break;
+    // Get all event_volunteer records where attendance is present in the last 30 days
+    $attendanceRecords = \DB::table('event_volunteer')
+        ->join('events', 'event_volunteer.event_id', '=', 'events.id')
+        ->where('attendance_status', 'present')
+        ->whereBetween('events.date', [$startDate, $endDate])
+        ->select('events.date', 'event_volunteer.volunteer_id')
+        ->get();
+
+    // Group by week and track unique volunteers
+    foreach ($attendanceRecords as $record) {
+        $date = Carbon::parse($record->date);
+        $daysDiff = $date->diffInDays($startDate);
+        
+        // Calculate week number (1-4)
+        $weekNumber = min(max(floor($daysDiff / 7) + 1, 1), 4);
+        $weekKey = 'Week ' . $weekNumber;
+        
+        // Track unique volunteers per week
+        if (!in_array($record->volunteer_id, $result[$weekKey])) {
+            $result[$weekKey][] = $record->volunteer_id;
         }
-
-        return $initials;
     }
 
+    // Convert arrays to counts
+    return array_map('count', $result);
+}
     private function getMinistryColor($ministryName)
     {
         // Simple color mapping based on ministry name
