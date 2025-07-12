@@ -32,17 +32,36 @@ class DashboardController extends Controller
         $taskCompletionRate = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
 
         // Get parent ministries with volunteer counts
+
         $parentMinistries = Ministry::whereNull('parent_id')
-            ->withCount(['volunteerDetails as volunteers_count'])
+            ->with(['children' => function ($query) {
+                $query->with(['children' => function ($subQuery) {
+                    $subQuery->withCount(['volunteers as volunteers_count' => function ($q) {
+                        $q->where('is_archived', false);
+                    }]);
+                }])
+                    ->withCount(['volunteers as volunteers_count' => function ($q) {
+                        $q->where('is_archived', false);
+                    }]);
+            }])
             ->get()
             ->map(function ($ministry) {
+                // Count volunteers in direct children
+                $directChildrenVolunteers = $ministry->children->sum('volunteers_count');
+
+                // Count volunteers in grandchildren (sub-sub-ministries)
+                $grandChildrenVolunteers = $ministry->children->reduce(function ($carry, $child) {
+                    return $carry + $child->children->sum('volunteers_count');
+                }, 0);
+
+                $totalVolunteers = $directChildrenVolunteers + $grandChildrenVolunteers;
+
                 return [
                     'name' => $ministry->ministry_name,
-                    'volunteers' => $ministry->volunteers_count,
+                    'volunteers' => $totalVolunteers,
                     'color' => $this->getMinistryColor($ministry->ministry_name)
                 ];
             });
-
         // Recent volunteers (active, not archived)
         $recentVolunteers = Volunteer::with('detail.ministry')
             ->where('is_archived', false)

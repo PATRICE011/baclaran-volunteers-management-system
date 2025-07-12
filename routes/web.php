@@ -32,8 +32,12 @@ Route::post('/resend-otp', [ForgotPasswordController::class, 'resendOtp'])->name
 Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index']);
-
+    // 
     // Task Management Routes
+     Route::prefix('attendance')->group(function () {
+        Route::get('/', [AttendanceController::class, 'index']);
+    });
+    
     Route::prefix('tasks')->group(function () {
         Route::get('/', [TasksController::class, 'index'])->name('tasks.index');
         Route::post('/', [TasksController::class, 'store'])->name('tasks.store');
