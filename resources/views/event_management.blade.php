@@ -120,7 +120,7 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $event->date->format('M j, Y') }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {{ \Carbon\Carbon::parse($event->start_time)->format('g:i A') }} - 
+                                    {{ \Carbon\Carbon::parse($event->start_time)->format('g:i A') }} -
                                     {{ \Carbon\Carbon::parse($event->end_time)->format('g:i A') }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -128,14 +128,14 @@
                                     $now = now();
                                     $eventDate = \Carbon\Carbon::parse($event->date);
                                     if ($eventDate->isPast()) {
-                                        $statusClass = 'bg-gray-100 text-gray-800';
-                                        $status = 'Past';
+                                    $statusClass = 'bg-gray-100 text-gray-800';
+                                    $status = 'Past';
                                     } elseif ($eventDate->isToday()) {
-                                        $statusClass = 'bg-green-100 text-green-800';
-                                        $status = 'Today';
+                                    $statusClass = 'bg-green-100 text-green-800';
+                                    $status = 'Today';
                                     } else {
-                                        $statusClass = 'bg-blue-100 text-blue-800';
-                                        $status = 'Upcoming';
+                                    $statusClass = 'bg-blue-100 text-blue-800';
+                                    $status = 'Upcoming';
                                     }
                                     @endphp
                                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $statusClass }}">{{ $status }}</span>
@@ -393,7 +393,7 @@
     function openAddModal() {
         document.getElementById('addModal').classList.remove('hidden');
         document.body.classList.add('overflow-hidden');
-        
+
         // Set today's date as default
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('addDate').value = today;
@@ -410,13 +410,17 @@
         fetch(`/events/${eventId}`)
             .then(response => response.json())
             .then(event => {
+                // Format date for input type="date"
+                const eventDate = new Date(event.date);
+                const formattedDate = eventDate.toISOString().split('T')[0];
+
                 // Populate form fields
                 document.getElementById('editEventId').value = event.id;
                 document.getElementById('editTitle').value = event.title;
-                document.getElementById('editDate').value = event.date;
+                document.getElementById('editDate').value = formattedDate; // Use formatted date
                 document.getElementById('editStartTime').value = event.start_time;
                 document.getElementById('editEndTime').value = event.end_time;
-                document.getElementById('editDescription').value = event.description;
+                document.getElementById('editDescription').value = event.description || '';
 
                 // Show modal
                 document.getElementById('editModal').classList.remove('hidden');
@@ -440,12 +444,12 @@
             .then(volunteers => {
                 const tableBody = document.getElementById('attendanceTableBody');
                 tableBody.innerHTML = '';
-                
+
                 volunteers.forEach(volunteer => {
                     const row = document.createElement('tr');
                     row.className = 'attendance-row hover:bg-gray-50 transition-colors duration-150';
                     row.dataset.volunteerId = volunteer.id;
-                    
+
                     row.innerHTML = `
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
@@ -473,13 +477,13 @@
                             </select>
                         </td>
                     `;
-                    
+
                     tableBody.appendChild(row);
                 });
-                
+
                 // Update summary counts
                 updateAttendanceSummary();
-                
+
                 // Show modal
                 document.getElementById('attendanceModal').classList.remove('hidden');
                 document.body.classList.add('overflow-hidden');
@@ -521,29 +525,29 @@
 
         // Send AJAX request
         fetch("{{ route('events.store') }}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': "{{ csrf_token() }}"
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showAlert('Event added successfully!', 'success');
-                closeAddModal();
-                // Reload the page to show the new event
-                window.location.reload();
-            } else {
-                showAlert(data.message || 'Error adding event', 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showAlert('Error adding event', 'error');
-        });
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Event added successfully!', 'success');
+                    closeAddModal();
+                    // Reload the page to show the new event
+                    window.location.reload();
+                } else {
+                    showAlert(data.message || 'Error adding event', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error adding event', 'error');
+            });
     }
 
     function updateEvent() {
@@ -571,54 +575,54 @@
 
         // Send AJAX request
         fetch(`/events/${eventId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': "{{ csrf_token() }}"
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showAlert('Event updated successfully!', 'success');
-                closeEditModal();
-                // Reload the page to show the updated event
-                window.location.reload();
-            } else {
-                showAlert(data.message || 'Error updating event', 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showAlert('Error updating event', 'error');
-        });
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Event updated successfully!', 'success');
+                    closeEditModal();
+                    // Reload the page to show the updated event
+                    window.location.reload();
+                } else {
+                    showAlert(data.message || 'Error updating event', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error updating event', 'error');
+            });
     }
 
     function archiveEvent(eventId) {
         if (confirm('Are you sure you want to archive this event?')) {
             fetch(`/events/${eventId}/archive`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': "{{ csrf_token() }}"
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showAlert('Event archived successfully!', 'success');
-                    window.location.reload();
-                } else {
-                    showAlert(data.message || 'Error archiving event', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showAlert('Error archiving event', 'error');
-            });
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert('Event archived successfully!', 'success');
+                        window.location.reload();
+                    } else {
+                        showAlert(data.message || 'Error archiving event', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('Error archiving event', 'error');
+                });
         }
     }
 
@@ -658,37 +662,37 @@
     function saveAttendance() {
         const eventId = document.getElementById('attendanceModal').dataset.eventId;
         const attendance = {};
-        
+
         document.querySelectorAll('.attendance-select').forEach(select => {
             const volunteerId = select.dataset.volunteerId;
             attendance[volunteerId] = select.value;
         });
 
         fetch(`/events/${eventId}/attendance/save`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': "{{ csrf_token() }}"
-            },
-            body: JSON.stringify({
-                attendance: attendance,
-                _token: "{{ csrf_token() }}"
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({
+                    attendance: attendance,
+                    _token: "{{ csrf_token() }}"
+                })
             })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showAlert('Attendance saved successfully!', 'success');
-                closeAttendanceModal();
-            } else {
-                showAlert(data.message || 'Error saving attendance', 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showAlert('Error saving attendance', 'error');
-        });
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Attendance saved successfully!', 'success');
+                    closeAttendanceModal();
+                } else {
+                    showAlert(data.message || 'Error saving attendance', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error saving attendance', 'error');
+            });
     }
 
     // Alert System
@@ -698,7 +702,7 @@
             'error': 'error',
             'warning': 'warning',
             'info': 'info'
-        }[type] || 'info';
+        } [type] || 'info';
 
         toastr[toastrType](message, '', {
             positionClass: 'toast-top-right',
