@@ -15,15 +15,44 @@ class Event extends Model
         'start_time',
         'end_time',
         'ministry_id',
-        'is_archived'
+        'is_archived',
+        'archived_at',
+        'archived_by',
+        'archive_reason'
     ];
 
     protected $casts = [
         'date' => 'date',
         'start_time' => 'datetime:H:i',
         'end_time' => 'datetime:H:i',
+        'archived_at' => 'datetime',
     ];
+    public function archive($reason)
+    {
+        $this->update([
+            'is_archived' => true,
+            'archived_at' => now(),
+            'archived_by' => auth()->id(),
+            'archive_reason' => $reason
+        ]);
+    }
 
+    public function restore()
+    {
+        $this->update([
+            'is_archived' => false,
+            'archived_at' => null,
+            'archived_by' => null,
+            'archive_reason' => null
+        ]);
+    }
+
+    public function archiver()
+    {
+        return $this->belongsTo(User::class, 'archived_by')->withDefault([
+            'full_name' => 'System'
+        ]);
+    }
     public function ministry(): BelongsTo
     {
         return $this->belongsTo(Ministry::class);

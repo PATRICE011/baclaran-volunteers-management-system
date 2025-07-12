@@ -96,16 +96,6 @@ class EventController extends Controller
         ]);
     }
 
-    public function archive(Event $event)
-    {
-        $event->update(['is_archived' => true]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Event archived successfully!'
-        ]);
-    }
-
     public function getEventVolunteers(Event $event)
     {
         $volunteers = $event->volunteers()
@@ -204,6 +194,75 @@ class EventController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Volunteer removed from event successfully'
+        ]);
+    }
+    public function archive(Event $event)
+    {
+        $event->archive(request('reason'));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Event archived successfully!'
+        ]);
+    }
+
+    public function restore(Event $event)
+    {
+        try {
+            $event->restore();
+            return response()->json([
+                'success' => true,
+                'message' => 'Event restored successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error restoring event: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function forceDelete(Event $event)
+    {
+        try {
+            $event->forceDelete();
+            return response()->json([
+                'success' => true,
+                'message' => 'Event permanently deleted'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting event: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function bulkRestore(Request $request)
+    {
+        $ids = $request->input('ids');
+        $count = Event::where('is_archived', true)
+            ->whereIn('id', $ids)
+            ->update(['is_archived' => false]);
+
+        return response()->json([
+            'success' => true,
+            'restored_count' => $count,
+            'message' => "$count event(s) restored successfully"
+        ]);
+    }
+
+    public function bulkForceDelete(Request $request)
+    {
+        $ids = $request->input('ids');
+        $count = Event::where('is_archived', true)
+            ->whereIn('id', $ids)
+            ->forceDelete();
+
+        return response()->json([
+            'success' => true,
+            'deleted_count' => $count,
+            'message' => "$count event(s) permanently deleted"
         ]);
     }
 }

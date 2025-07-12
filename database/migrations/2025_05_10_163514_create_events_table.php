@@ -19,7 +19,11 @@ return new class extends Migration
             $table->time('end_time');
             $table->text('description')->nullable();
             $table->foreignId('ministry_id')->nullable()->constrained()->onDelete('set null');
+              // archive fields
             $table->boolean('is_archived')->default(false);
+            $table->dateTime('archived_at')->nullable();  // Add the column properly
+            $table->foreignId('archived_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->text('archive_reason')->nullable();
             $table->timestamps();
         });
     }

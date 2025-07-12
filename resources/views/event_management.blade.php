@@ -481,6 +481,35 @@
             </div>
         </div>
     </div>
+    <!-- Archive Reason Modal -->
+    <div id="archiveReasonModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-10 mx-auto p-6 border w-full max-w-md shadow-lg rounded-2xl bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-semibold text-gray-900">Archive Event</h3>
+                    <button onclick="closeArchiveReasonModal()" class="text-gray-400 hover:text-gray-600 transition-colors duration-150">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Reason for Archiving *</label>
+                    <textarea id="archiveReason" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="Enter the reason for archiving this event..." required></textarea>
+                </div>
+
+                <div class="flex space-x-3 pt-6 border-t border-gray-200">
+                    <button type="button" onclick="confirmArchive()" class="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 font-medium">
+                        Archive Event
+                    </button>
+                    <button type="button" onclick="closeArchiveReasonModal()" class="flex-1 bg-gray-300 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-400 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 font-medium">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -490,15 +519,15 @@
         const alertIcon = document.getElementById('alertIcon');
         const alertTitle = document.getElementById('alertTitle');
         const alertMessage = document.getElementById('alertMessage');
-        
+
         // Clear previous icon
         alertIcon.innerHTML = '';
-        
+
         // Set icon and colors based on type
         let iconColor = '';
         let iconPath = '';
-        
-        switch(type) {
+
+        switch (type) {
             case 'success':
                 iconColor = 'text-green-600';
                 iconPath = 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z';
@@ -519,26 +548,26 @@
                 iconPath = 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
                 alertTitle.textContent = 'Information';
         }
-        
+
         // Create and append the icon
         const iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         iconSvg.setAttribute('class', `w-8 h-8 ${iconColor}`);
         iconSvg.setAttribute('fill', 'none');
         iconSvg.setAttribute('stroke', 'currentColor');
         iconSvg.setAttribute('viewBox', '0 0 24 24');
-        
+
         const iconPathElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         iconPathElement.setAttribute('stroke-linecap', 'round');
         iconPathElement.setAttribute('stroke-linejoin', 'round');
         iconPathElement.setAttribute('stroke-width', '2');
         iconPathElement.setAttribute('d', iconPath);
-        
+
         iconSvg.appendChild(iconPathElement);
         alertIcon.appendChild(iconSvg);
-        
+
         // Set message
         alertMessage.textContent = message;
-        
+
         // Show modal
         alertModal.classList.remove('hidden');
         document.body.classList.add('overflow-hidden');
@@ -968,31 +997,64 @@
                 showAlert('Error updating event', 'error');
             });
     }
+    // Archive Reason Modal Functions
+    let archiveEventId = null;
+
+    function openArchiveReasonModal(eventId) {
+        archiveEventId = eventId;
+        document.getElementById('archiveReasonModal').classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+        document.getElementById('archiveReason').value = ''; // Clear previous reason
+    }
+
+    function closeArchiveReasonModal() {
+        document.getElementById('archiveReasonModal').classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+        archiveEventId = null;
+    }
+
+    function confirmArchive() {
+        const reason = document.getElementById('archiveReason').value.trim();
+
+        if (!reason) {
+            showAlert('Please enter a reason for archiving this event', 'error');
+            return;
+        }
+
+        if (!archiveEventId) {
+            showAlert('No event selected for archiving', 'error');
+            return;
+        }
+
+        fetch(`/events/${archiveEventId}/archive`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({
+                    reason: reason
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Event archived successfully!', 'success');
+                    closeArchiveReasonModal();
+                    window.location.reload();
+                } else {
+                    showAlert(data.message || 'Error archiving event', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error archiving event', 'error');
+            });
+    }
 
     function archiveEvent(eventId) {
-        showConfirm('Are you sure you want to archive this event?', () => {
-            fetch(`/events/${eventId}/archive`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': "{{ csrf_token() }}"
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showAlert('Event archived successfully!', 'success');
-                        window.location.reload();
-                    } else {
-                        showAlert(data.message || 'Error archiving event', 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showAlert('Error archiving event', 'error');
-                });
-        });
+        openArchiveReasonModal(eventId);
     }
 
     // Attendance Functions

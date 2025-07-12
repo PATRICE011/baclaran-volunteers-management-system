@@ -6,13 +6,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Volunteer;
 use App\Models\User;
+use App\Models\Event;
 
 class ArchivesController extends Controller
 {
-
-    // ArchivesController.php
-    // app/Http/Controllers/ArchivesController.php
-
     public function index()
     {
         $user = Auth::user();
@@ -46,16 +43,32 @@ class ArchivesController extends Controller
                 ];
             });
 
+        $archivedEvents = Event::where('is_archived', true)
+            ->with('archiver')
+            ->get()
+            ->map(function ($event) {
+                return [
+                    'id' => $event->id,
+                    'name' => $event->title,
+                    'description' => $event->description,
+                    'date' => $event->date?->format('Y-m-d'),
+                    'start_time' => $event->start_time,
+                    'end_time' => $event->end_time,
+                    'archived_date' => $event->archived_at?->format('Y-m-d'),
+                    'reason' => $event->archive_reason,
+                    'archived_by' => $event->archiver->full_name ?? 'Unknown',
+                ];
+            });
+
         return view('admin_archives', [
             'roles' => $archivedRoles,
             'volunteers' => $archivedVolunteers,
-            'ministries' => [],
-            'tasks' => [],
-            'events' => [],
+            'ministries' => [], // Keep empty for now unless you implement ministry archiving
+            'tasks' => [], // Keep empty for now unless you implement task archiving
+            'events' => $archivedEvents,
             'user' => $user,
         ]);
     }
-
 
     private function getPermissionsForRole($role)
     {

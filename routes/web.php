@@ -48,8 +48,13 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
         Route::post('/', [EventController::class, 'store'])->name('events.store');
 
         // Volunteer search route (outside the {event} group since it's not specific to one event)
-         Route::get('/volunteers/search', [EventController::class, 'searchVolunteers'])->name('events.volunteers.search');
+        Route::get('/volunteers/search', [EventController::class, 'searchVolunteers'])->name('events.volunteers.search');
 
+        Route::post('/{event}/restore', [EventController::class, 'restore'])->name('events.restore');
+        Route::delete('/{event}/force-delete', [EventController::class, 'forceDelete'])->name('events.forceDelete');
+
+        Route::post('/bulk-restore', [EventController::class, 'bulkRestore'])->name('events.bulkRestore');
+        Route::post('/bulk-force-delete', [EventController::class, 'bulkForceDelete'])->name('events.bulkForceDelete');
         // Single event operations
         Route::prefix('{event}')->group(function () {
             Route::get('/', [EventController::class, 'show'])->name('events.show');
