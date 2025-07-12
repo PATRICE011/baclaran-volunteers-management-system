@@ -40,6 +40,12 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
         Route::get('/{task}/edit', [TasksController::class, 'edit'])->name('tasks.edit');
         Route::put('/{task}', [TasksController::class, 'update'])->name('tasks.update');
         Route::delete('/{task}', [TasksController::class, 'destroy'])->name('tasks.destroy');
+
+        Route::post('/{task}/archive', [TasksController::class, 'archive'])->name('tasks.archive');
+        Route::post('/{task}/restore', [TasksController::class, 'restore'])->name('tasks.restore');
+        Route::delete('/{task}/force-delete', [TasksController::class, 'forceDelete'])->name('tasks.forceDelete');
+        Route::post('/bulk-restore', [TasksController::class, 'bulkRestore'])->name('tasks.bulkRestore');
+        Route::post('/bulk-force-delete', [TasksController::class, 'bulkForceDelete'])->name('tasks.bulkForceDelete');
     });
 
     // Event routes - Modified to match our new implementation

@@ -12,10 +12,41 @@ class Task extends Model
         'description',
         'due_date',
         'status',
+        'is_archived',
+        'archived_at',
+        'archived_by',
+        'archive_reason'
     ];
-
+    protected $casts = [
+        'archived_at' => 'datetime',
+    ];
     public function volunteer(): BelongsTo
     {
         return $this->belongsTo(Volunteer::class);
+    }
+    // In your Task model
+    public function archive($reason)
+    {
+        $this->update([
+            'is_archived' => true,
+            'archived_at' => now(),
+            'archived_by' => auth()->id(),
+            'archive_reason' => $reason
+        ]);
+    }
+    public function archiver()
+    {
+        return $this->belongsTo(User::class, 'archived_by')->withDefault([
+            'full_name' => 'System'
+        ]);
+    }
+    public function restore()
+    {
+        $this->update([
+            'is_archived' => false,
+            'archived_at' => null,
+            'archived_by' => null,
+            'archive_reason' => null
+        ]);
     }
 }

@@ -11,7 +11,7 @@ class TasksController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $query = Task::query();
+        $query = Task::where('is_archived', false);
 
         // Search functionality (both title and description)
         if ($request->has('search') && !empty($request->search)) {
@@ -29,10 +29,10 @@ class TasksController extends Controller
 
         $tasks = $query->orderBy('created_at', 'desc')->paginate(12);
 
-        $totalTasks = Task::count();
-        $todoTasks = Task::where('status', 'To Do')->count();
-        $inProgressTasks = Task::where('status', 'In Progress')->count();
-        $completedTasks = Task::where('status', 'Completed')->count();
+        $totalTasks = Task::where('is_archived', false)->count();
+        $todoTasks = Task::where('status', 'To Do')->where('is_archived', false)->count();
+        $inProgressTasks = Task::where('status', 'In Progress')->where('is_archived', false)->count();
+        $completedTasks = Task::where('status', 'Completed')->where('is_archived', false)->count();
 
         return view('admin_tasks', compact(
             'tasks',
@@ -60,7 +60,10 @@ class TasksController extends Controller
 
         Task::create($request->all());
 
-        return redirect()->route('tasks.index')->with('success', 'Task created successfully!');
+        return response()->json([
+            'success' => true,
+            'message' => 'Task created successfully!'
+        ]);
     }
 
     public function update(Request $request, Task $task)
@@ -74,12 +77,78 @@ class TasksController extends Controller
 
         $task->update($request->all());
 
-        return redirect()->route('tasks.index')->with('success', 'Task updated successfully!');
+        return response()->json([
+            'success' => true,
+            'message' => 'Task updated successfully!'
+        ]);
     }
 
     public function destroy(Task $task)
     {
-        $task->delete();
-        return redirect()->route('tasks.index')->with('success', 'Task deleted successfully!');
+        // Change from delete to archive
+        $task->archive(request('reason'));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Task archived successfully'
+        ]);
+    }
+
+    public function archive(Task $task)
+    {
+        $task->archive(request('reason'));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Task archived successfully'
+        ]);
+    }
+
+    public function restore(Task $task)
+    {
+        $task->restore();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Task restored successfully'
+        ]);
+    }
+
+    public function forceDelete(Task $task)
+    {
+        $task->forceDelete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Task permanently deleted'
+        ]);
+    }
+
+    public function bulkRestore(Request $request)
+    {
+        $ids = $request->input('ids');
+        $count = Task::where('is_archived', true)
+            ->whereIn('id', $ids)
+            ->update(['is_archived' => false]);
+
+        return response()->json([
+            'success' => true,
+            'restored_count' => $count,
+            'message' => "$count task(s) restored successfully"
+        ]);
+    }
+
+    public function bulkForceDelete(Request $request)
+    {
+        $ids = $request->input('ids');
+        $count = Task::where('is_archived', true)
+            ->whereIn('id', $ids)
+            ->forceDelete();
+
+        return response()->json([
+            'success' => true,
+            'deleted_count' => $count,
+            'message' => "$count task(s) permanently deleted"
+        ]);
     }
 }

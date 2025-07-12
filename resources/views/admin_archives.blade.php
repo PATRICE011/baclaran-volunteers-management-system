@@ -507,18 +507,86 @@
         </div>
 
         {{-- Tasks Tab --}}
+        {{-- Tasks Tab --}}
         <div x-show="tab === 'tasks'" x-cloak>
-            <div class="empty-state">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                </svg>
-                <h3 class="text-lg font-medium mb-2">No archived tasks</h3>
-                <p class="text-sm">Archived tasks will appear here once they are moved to the archive.</p>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse table-hover">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="border border-gray-200 p-3 text-left">
+                                <input type="checkbox" @change="toggleAll($event)" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            </th>
+                            <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Task Title</th>
+                            <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Status</th>
+                            <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Due Date</th>
+                            <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Archived Date</th>
+                            <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Reason</th>
+                            <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Archived By</th>
+                            <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="item in getFilteredItems('tasks')" :key="item.id">
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="border border-gray-200 p-3">
+                                    <input type="checkbox" :value="item.id" x-model="selectedItems" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                </td>
+                                <td class="border border-gray-200 p-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-gray-900" x-text="item.title"></p>
+                                            <p class="text-sm text-gray-500" x-text="item.description"></p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="border border-gray-200 p-3 text-sm text-gray-700" x-text="item.status"></td>
+                                <td class="border border-gray-200 p-3 text-sm text-gray-700" x-text="formatDate(item.due_date)"></td>
+                                <td class="border border-gray-200 p-3 text-sm text-gray-700" x-text="formatDate(item.archived_date)"></td>
+                                <td class="border border-gray-200 p-3">
+                                    <span class="badge badge-warning" x-text="item.reason"></span>
+                                </td>
+                                <td class="border border-gray-200 p-3 text-sm text-gray-700" x-text="item.archived_by"></td>
+                                <td class="border border-gray-200 p-3">
+                                    <div class="flex items-center space-x-2">
+                                        <button @click="restoreItem(item)" class="inline-flex items-center px-3 py-2 text-sm border border-gray-300 bg-white text-gray-700 rounded-lg hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all">
+                                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                            </svg>
+                                            Restore
+                                        </button>
+                                        <button @click="confirmDelete(item)" class="inline-flex items-center px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                        <tr x-show="getFilteredItems('tasks').length === 0">
+                            <td colspan="8" class="border border-gray-200 p-8">
+                                <div class="empty-state">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                    </svg>
+                                    <h3 class="text-lg font-medium mb-2">No archived tasks found</h3>
+                                    <p class="text-sm">No tasks match your current search criteria.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
         {{-- Events Tab --}}
-          <div x-show="tab === 'events'" x-cloak>
+        <div x-show="tab === 'events'" x-cloak>
             <div class="overflow-x-auto">
                 <table class="w-full border-collapse table-hover">
                     <thead class="bg-gray-50">
@@ -688,7 +756,7 @@
 </main>
 
 <script>
-     function archivesManager(initialData) {
+    function archivesManager(initialData) {
         return {
             tab: 'roles',
             searchQuery: '',
@@ -753,7 +821,7 @@
                 this.toastMessage = message;
                 this.toastType = type;
                 this.showToast = true;
-                
+
                 // Auto hide after 3 seconds
                 setTimeout(() => {
                     this.showToast = false;
@@ -776,8 +844,10 @@
                     url = `/volunteers/${itemId}/restore`;
                 } else if (this.tab === 'ministries') {
                     url = `/ministries/${itemId}/restore`;
-                }else if (this.tab === 'events') {
+                } else if (this.tab === 'events') {
                     url = `/events/${itemId}/restore`;
+                } else if (this.tab === 'tasks') {
+                    url = `/tasks/${itemId}/restore`;
                 } else {
                     return;
                 }
@@ -816,8 +886,10 @@
                     url = `/volunteers/${itemId}/force-delete`;
                 } else if (this.tab === 'ministries') {
                     url = `/ministries/${itemId}/force-delete`;
-                 } else if (this.tab === 'events') {
+                } else if (this.tab === 'events') {
                     url = `/events/${itemId}/force-delete`;
+                } else if (this.tab === 'tasks') {
+                    url = `/tasks/${itemId}/force-delete`;
                 } else {
                     return;
                 }
@@ -853,7 +925,8 @@
                     'roles': '/settings/role/bulk-restore',
                     'volunteers': '/volunteers/bulk-restore',
                     'ministries': '/ministries/bulk-restore',
-                    'events': '/events/bulk-restore'
+                    'events': '/events/bulk-restore',
+                    'tasks': '/tasks/bulk-restore',
                 };
 
                 fetch(endpoints[this.tab], {
@@ -901,7 +974,8 @@
                     'roles': '/settings/role/bulk-force-delete',
                     'volunteers': '/volunteers/bulk-force-delete',
                     'ministries': '/ministries/bulk-force-delete',
-                    'events': '/events/bulk-force-delete'
+                    'events': '/events/bulk-force-delete',
+                    'tasks': '/tasks/bulk-force-delete',
                 };
 
                 fetch(endpoints[this.tab], {

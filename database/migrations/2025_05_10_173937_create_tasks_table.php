@@ -17,6 +17,11 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->date('due_date')->nullable();
             $table->enum('status', ['To Do', 'In Progress', 'Completed'])->default('To Do');
+            // archive fields
+            $table->boolean('is_archived')->default(false);
+            $table->dateTime('archived_at')->nullable();  // Add the column properly
+            $table->foreignId('archived_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->text('archive_reason')->nullable();
             $table->timestamps();
         });
     }

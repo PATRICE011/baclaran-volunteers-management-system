@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Volunteer;
 use App\Models\User;
 use App\Models\Event;
+use App\Models\Task;
+use Illuminate\Support\Carbon;
 
 class ArchivesController extends Controller
 {
@@ -60,16 +62,31 @@ class ArchivesController extends Controller
                 ];
             });
 
+        // In ArchivesController.php
+        $archivedTasks = Task::where('is_archived', true)
+            ->with('archiver')
+            ->get()
+            ->map(function ($task) {
+                return [
+                    'id' => $task->id,
+                    'title' => $task->title,
+                    'description' => $task->description,
+                    'status' => $task->status,
+                    'due_date' => $task->due_date ? Carbon::parse($task->due_date)->format('Y-m-d') : null,
+                    'archived_date' => $task->archived_at ? Carbon::parse($task->archived_at)->format('Y-m-d') : null,
+                    'reason' => $task->archive_reason,
+                    'archived_by' => $task->archiver->full_name ?? 'Unknown',
+                ];
+            });
         return view('admin_archives', [
             'roles' => $archivedRoles,
             'volunteers' => $archivedVolunteers,
             'ministries' => [], // Keep empty for now unless you implement ministry archiving
-            'tasks' => [], // Keep empty for now unless you implement task archiving
+            'tasks' => $archivedTasks,
             'events' => $archivedEvents,
             'user' => $user,
         ]);
     }
-
     private function getPermissionsForRole($role)
     {
         // Map roles to permissions (customize as needed)

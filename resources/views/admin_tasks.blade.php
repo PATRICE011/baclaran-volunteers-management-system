@@ -149,10 +149,10 @@
             <!-- Tasks Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 @foreach($tasks as $task)
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200 task-card" data-task-id="{{ $task->id }}">
                     <div class="flex items-start justify-between mb-4">
                         <div class="flex-1">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ $task->title }}</h3>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2 task-title">{{ $task->title }}</h3>
                             <p class="text-gray-600 text-sm">{{ $task->description }}</p>
                         </div>
                         <div class="ml-4">
@@ -181,7 +181,7 @@
                         <div class="flex items-center">
                             <span class="text-xs text-gray-500">Created: {{ $task->created_at->format('M d, Y') }}</span>
                         </div>
-                        <div class="flex space-x-2">
+                        <div class="flex space-x-2 task-actions">
                             <button onclick="editTask({{ $task->id }})" class="text-blue-600 hover:text-blue-800">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -312,101 +312,230 @@
         </div>
     </div>
 </div>
+
+<!-- Archive Task Modal -->
+<div id="archiveTaskModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+        <div class="flex items-center mb-4 p-6 border-b">
+            <div class="flex-shrink-0">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                </svg>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-lg font-medium text-gray-900">Archive Task</h3>
+            </div>
+        </div>
+        <div class="p-6">
+            <p class="text-sm text-gray-500 mb-4">Are you sure you want to archive "<span id="archiveTaskTitle" class="font-medium"></span>"?</p>
+            <div class="mb-4">
+                <label for="archiveReason" class="block text-sm font-medium text-gray-700 mb-1">Reason for archiving</label>
+                <textarea id="archiveReason" rows="3" class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-colors" placeholder="Enter reason..."></textarea>
+            </div>
+            <div class="flex space-x-3 justify-end">
+                <button onclick="closeArchiveModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    Cancel
+                </button>
+                <button onclick="confirmArchiveTask()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Archive Task
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="fixed top-4 right-4 z-50 hidden">
+    <div class="bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center">
+        <span id="toast-message"></span>
+        <button onclick="hideToast()" class="ml-4">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+</div>
 @endsection
 
 @section('scripts')
 <script>
-    // Automatic filter submission
+    // DOM Elements
+    const searchForm = document.getElementById('searchForm');
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const taskForm = document.getElementById('taskForm');
+    let taskToArchive = null;
+
+    // Toast Notification Functions
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+
+        // Set message and style
+        toastMessage.textContent = message;
+        toast.className = `fixed top-4 right-4 z-50 flex items-center px-4 py-2 rounded-lg shadow-lg ${
+            type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+        }`;
+
+        // Show toast
+        toast.classList.remove('hidden');
+
+        // Auto-hide after 3 seconds
+        setTimeout(hideToast, 3000);
+    }
+
+    function hideToast() {
+        document.getElementById('toast').classList.add('hidden');
+    }
+
+    // Modal Functions
+    function openAddModal() {
+        document.getElementById('taskModal').classList.remove('hidden');
+        document.getElementById('modalTitle').textContent = 'Add New Task';
+        document.getElementById('taskForm').reset();
+        document.getElementById('formMethod').value = 'POST';
+        document.getElementById('taskForm').action = "{{ route('tasks.store') }}";
+    }
+
+    function closeModal() {
+        document.getElementById('taskModal').classList.add('hidden');
+    }
+
+    function closeArchiveModal() {
+        document.getElementById('archiveTaskModal').classList.add('hidden');
+        document.getElementById('archiveReason').value = '';
+        taskToArchive = null;
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.add('hidden');
+    }
+
+    // Task Functions
+    function editTask(taskId) {
+        fetch(`/tasks/${taskId}/edit`)
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(task => {
+                document.getElementById('taskModal').classList.remove('hidden');
+                document.getElementById('modalTitle').textContent = 'Edit Task';
+                document.getElementById('taskId').value = task.id;
+                document.getElementById('taskTitle').value = task.title;
+                document.getElementById('taskDescription').value = task.description;
+                document.getElementById('taskDueDate').value = task.due_date ? task.due_date.split(' ')[0] : '';
+                document.getElementById('taskStatus').value = task.status;
+                document.getElementById('formMethod').value = 'PUT';
+                document.getElementById('taskForm').action = `/tasks/${task.id}`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Failed to load task data', 'error');
+            });
+    }
+
+    function deleteTask(taskId, taskTitle) {
+        taskToArchive = taskId;
+        document.getElementById('archiveTaskTitle').textContent = taskTitle;
+        document.getElementById('archiveTaskModal').classList.remove('hidden');
+    }
+
+    function confirmArchiveTask() {
+        const reason = document.getElementById('archiveReason').value;
+
+        fetch(`/tasks/${taskToArchive}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    reason: reason
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message || 'Task archived successfully');
+                    document.querySelector(`[data-task-id="${taskToArchive}"]`).remove();
+                } else {
+                    showToast(data.message || 'Failed to archive task', 'error');
+                }
+                closeArchiveModal();
+            })
+            .catch(error => {
+                showToast('An error occurred. Please try again.', 'error');
+                closeArchiveModal();
+            });
+    }
+
+    // Handle Task Form Submission
+    taskForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const method = this.querySelector('input[name="_method"]')?.value || 'POST';
+        const url = this.action;
+
+        fetch(url, {
+            method: method,
+            body: formData,
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message);
+                closeModal();
+                // Reload the page to see the new/updated task
+                window.location.reload();
+            } else {
+                showToast(data.message || 'Operation failed', 'error');
+            }
+        })
+        .catch(error => {
+            showToast('An error occurred. Please try again.', 'error');
+        });
+    });
+
+    // Search and Filter Functions
+    function debounce(func, wait) {
+        let timeout;
+        return function() {
+            const context = this, args = arguments;
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                func.apply(context, args);
+            }, wait);
+        };
+    }
+
+    // Event Listeners
     document.addEventListener('DOMContentLoaded', function() {
-        const searchForm = document.getElementById('searchForm');
-        const searchInput = document.getElementById('searchInput');
-        const statusFilter = document.getElementById('statusFilter');
-
-        // Debounce function to prevent too many requests
-        function debounce(func, wait) {
-            let timeout;
-            return function() {
-                const context = this,
-                    args = arguments;
-                clearTimeout(timeout);
-                timeout = setTimeout(() => {
-                    func.apply(context, args);
-                }, wait);
-            };
-        }
-
-        // Submit form when search input changes (with debounce)
+        // Search input with debounce
         searchInput.addEventListener('input', debounce(function() {
             searchForm.submit();
         }, 500));
 
-        // Submit form when status filter changes
+        // Status filter change
         statusFilter.addEventListener('change', function() {
             searchForm.submit();
         });
 
-        // Modal Functions
-        function openAddModal() {
-            document.getElementById('taskModal').classList.remove('hidden');
-            document.getElementById('modalTitle').textContent = 'Add New Task';
-            document.getElementById('taskForm').reset();
-            document.getElementById('formMethod').value = 'POST';
-            document.getElementById('taskForm').action = "{{ route('tasks.store') }}";
-        }
-
-        function closeModal() {
-            document.getElementById('taskModal').classList.add('hidden');
-        }
-
-        function editTask(taskId) {
-            fetch(`/tasks/${taskId}/edit`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(task => {
-                    document.getElementById('taskModal').classList.remove('hidden');
-                    document.getElementById('modalTitle').textContent = 'Edit Task';
-                    document.getElementById('taskId').value = task.id;
-                    document.getElementById('taskTitle').value = task.title;
-                    document.getElementById('taskDescription').value = task.description;
-                    document.getElementById('taskDueDate').value = task.due_date ? task.due_date.split(' ')[0] : '';
-                    document.getElementById('taskStatus').value = task.status;
-                    document.getElementById('formMethod').value = 'PUT';
-                    document.getElementById('taskForm').action = `/tasks/${task.id}`;
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    toastr.error('Failed to load task data');
-                });
-        }
-
-        function deleteTask(taskId) {
-            document.getElementById('deleteModal').classList.remove('hidden');
-            document.getElementById('deleteForm').action = `/tasks/${taskId}`;
-        }
-
-        function closeDeleteModal() {
-            document.getElementById('deleteModal').classList.add('hidden');
-        }
-
-        // Close modal when clicking outside
+        // Modal close on outside click
         document.getElementById('taskModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
+            if (e.target === this) closeModal();
         });
 
-        // Close delete modal when clicking outside
         document.getElementById('deleteModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeDeleteModal();
-            }
+            if (e.target === this) closeDeleteModal();
         });
 
-        // Handle escape key to close modals
+        // Escape key to close modals
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 if (!document.getElementById('taskModal').classList.contains('hidden')) {
@@ -414,6 +543,9 @@
                 }
                 if (!document.getElementById('deleteModal').classList.contains('hidden')) {
                     closeDeleteModal();
+                }
+                if (!document.getElementById('archiveTaskModal').classList.contains('hidden')) {
+                    closeArchiveModal();
                 }
             }
         });
