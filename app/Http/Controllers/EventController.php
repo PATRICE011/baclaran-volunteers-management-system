@@ -142,4 +142,68 @@ class EventController extends Controller
             'message' => 'Attendance saved successfully!'
         ]);
     }
+    public function searchVolunteers(Request $request)
+    {
+        $request->validate([
+            'q' => 'required|string|min:1',
+            'event_id' => 'required|exists:events,id'
+        ]);
+
+        $searchTerm = $request->query('q');
+        $eventId = $request->query('event_id');
+
+        try {
+            $volunteers = Volunteer::with(['detail.ministry'])
+                ->whereHas('detail', function ($q) use ($searchTerm) {
+                    $q->where('full_name', 'like', "%{$searchTerm}%");
+                })
+                ->whereDoesntHave('events', function ($q) use ($eventId) {
+                    $q->where('event_id', $eventId);
+                })
+                ->where('is_archived', false)
+                ->limit(10)
+                ->get()
+                ->map(function ($volunteer) {
+                    return [
+                        'id' => $volunteer->id,
+                        'full_name' => $volunteer->detail->full_name ?? 'No Name',
+                        'ministry_name' => $volunteer->detail->ministry->ministry_name ?? 'No Ministry',
+                        'profile_picture_url' => $volunteer->profile_picture_url ?? '/images/default-profile.png',
+                    ];
+                });
+
+            return response()->json($volunteers->toArray());
+        } catch (\Exception $e) {
+            return response()->json([], 500);
+        }
+    }
+    public function addVolunteer(Event $event, Volunteer $volunteer)
+    {
+        if ($event->volunteers()->where('volunteer_id', $volunteer->id)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Volunteer is already assigned to this event'
+            ]);
+        }
+
+        $event->volunteers()->attach($volunteer->id, [
+            'attendance_status' => 'pending',
+            'checked_in_at' => null
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Volunteer added to event successfully'
+        ]);
+    }
+
+    public function removeVolunteer(Event $event, Volunteer $volunteer)
+    {
+        $event->volunteers()->detach($volunteer->id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Volunteer removed from event successfully'
+        ]);
+    }
 }

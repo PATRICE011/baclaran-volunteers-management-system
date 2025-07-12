@@ -47,6 +47,9 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
         Route::get('/', [EventController::class, 'index'])->name('events.index');
         Route::post('/', [EventController::class, 'store'])->name('events.store');
 
+        // Volunteer search route (outside the {event} group since it's not specific to one event)
+         Route::get('/volunteers/search', [EventController::class, 'searchVolunteers'])->name('events.volunteers.search');
+
         // Single event operations
         Route::prefix('{event}')->group(function () {
             Route::get('/', [EventController::class, 'show'])->name('events.show');
@@ -55,6 +58,10 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
 
             // Volunteer-related routes
             Route::get('/volunteers', [EventController::class, 'getEventVolunteers'])->name('events.volunteers');
+
+            // New volunteer management routes
+            Route::post('/volunteers/{volunteer}', [EventController::class, 'addVolunteer'])->name('events.volunteers.add');
+            Route::delete('/volunteers/{volunteer}', [EventController::class, 'removeVolunteer'])->name('events.volunteers.remove');
 
             // Attendance routes
             Route::prefix('attendance')->group(function () {

@@ -307,6 +307,7 @@
     </div>
 
     <!-- Attendance Check Modal -->
+    <!-- Enhanced Attendance Check Modal -->
     <div id="attendanceModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
         <div class="relative my-8 mx-auto p-6 border w-11/12 md:w-3/5 lg:w-1/2 shadow-lg rounded-2xl bg-white max-w-4xl">
             <div class="mt-3">
@@ -319,8 +320,8 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-xl font-semibold text-gray-900">Attendance Check</h3>
-                            <p class="text-sm text-gray-500">Mark attendance for event attendees</p>
+                            <h3 class="text-xl font-semibold text-gray-900">Attendance Management</h3>
+                            <p class="text-sm text-gray-500">Manage attendance for this event</p>
                         </div>
                     </div>
                     <button onclick="closeAttendanceModal()" class="text-gray-400 hover:text-gray-600 transition-colors duration-200 hover:bg-gray-100 p-2 rounded-full">
@@ -330,6 +331,33 @@
                     </button>
                 </div>
 
+                <!-- Search and Add Volunteer Section -->
+                <div class="mb-6 bg-gray-50 p-4 rounded-lg">
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <div class="flex-1 relative">
+                            <input type="text" id="volunteerSearch" placeholder="Search volunteers to add..."
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            <div id="searchLoading" class="absolute right-3 top-2.5 hidden">
+                                <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Search Results -->
+                    <div id="searchResults" class="mt-4 hidden max-h-60 overflow-y-auto border border-gray-200 rounded-lg">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <tbody id="searchResultsBody" class="bg-white divide-y divide-gray-200">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
                 <!-- Quick Actions -->
                 <div class="mb-6 flex flex-wrap gap-2">
                     <button type="button" onclick="markAllAs('present')" class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium hover:bg-green-200 transition-all duration-200">
@@ -344,7 +372,7 @@
                 </div>
 
                 <!-- Attendance Summary -->
-                <div class="mb-6 grid grid-cols-2 gap-4">
+                <div class="mb-6 grid grid-cols-3 gap-4">
                     <div class="bg-green-50 p-4 rounded-lg text-center">
                         <div class="text-2xl font-bold text-green-600" id="presentCount">0</div>
                         <div class="text-sm text-green-600">Present</div>
@@ -352,6 +380,10 @@
                     <div class="bg-red-50 p-4 rounded-lg text-center">
                         <div class="text-2xl font-bold text-red-600" id="absentCount">0</div>
                         <div class="text-sm text-red-600">Absent</div>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg text-center">
+                        <div class="text-2xl font-bold text-blue-600" id="totalCount">0</div>
+                        <div class="text-sm text-blue-600">Total Volunteers</div>
                     </div>
                 </div>
 
@@ -363,6 +395,7 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attendee</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ministry</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attendance</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200" id="attendanceTableBody">
@@ -389,6 +422,140 @@
 </div>
 
 <script>
+    // Search Volunteers
+    // Search Volunteers with debounce
+    let searchTimeout;
+    document.getElementById('volunteerSearch').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            const searchTerm = this.value.trim();
+            if (searchTerm.length >= 1) { // Only search if at least 1 character
+                searchVolunteers();
+            } else {
+                document.getElementById('searchResults').classList.add('hidden');
+            }
+        }, 300); // 300ms delay
+    });
+
+    function searchVolunteers() {
+        const searchTerm = document.getElementById('volunteerSearch').value.trim();
+        const eventId = document.getElementById('attendanceModal').dataset.eventId;
+
+        fetch(`/events/volunteers/search?q=${encodeURIComponent(searchTerm)}&event_id=${eventId}`, {
+                headers: {
+                    'Accept': 'application/json',
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const resultsBody = document.getElementById('searchResultsBody');
+                resultsBody.innerHTML = '';
+
+                if (!Array.isArray(data)) {
+                    throw new Error('Invalid data format received');
+                }
+
+                if (data.length === 0) {
+                    resultsBody.innerHTML = '<tr><td colspan="2" class="px-6 py-4 text-center text-gray-500">No volunteers found</td></tr>';
+                } else {
+                    data.forEach(volunteer => {
+                        const row = document.createElement('tr');
+                        row.className = 'hover:bg-gray-50';
+                        row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <img class="w-8 h-8 rounded-full mr-3" src="${volunteer.profile_picture_url || '/images/default-profile.png'}" alt="${volunteer.full_name}">
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
+                                <div class="text-xs text-gray-500">${volunteer.ministry_name}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                        <button onclick="addVolunteerToEvent(${volunteer.id})" class="text-blue-600 hover:text-blue-900 px-3 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors duration-200">
+                            Add
+                        </button>
+                    </td>
+                `;
+                        resultsBody.appendChild(row);
+                    });
+                }
+
+                document.getElementById('searchResults').classList.remove('hidden');
+            })
+            .catch(error => {
+                console.error('Error searching volunteers:', error);
+                showAlert('Error searching volunteers. Please try again.', 'error');
+                document.getElementById('searchResults').classList.add('hidden');
+            });
+    }
+    // Add Volunteer to Event
+    function addVolunteerToEvent(volunteerId) {
+        const eventId = document.getElementById('attendanceModal').dataset.eventId;
+
+        fetch(`/events/${eventId}/volunteers/${volunteerId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Volunteer added successfully', 'success');
+                    // Refresh the attendance list
+                    openAttendanceModal(eventId);
+                    document.getElementById('searchResults').classList.add('hidden');
+                    document.getElementById('volunteerSearch').value = '';
+                } else {
+                    showAlert(data.message || 'Error adding volunteer', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error adding volunteer:', error);
+                showAlert('Error adding volunteer', 'error');
+            });
+    }
+
+    // Remove Volunteer from Event
+    function removeVolunteerFromEvent(volunteerId) {
+        if (!confirm('Are you sure you want to remove this volunteer from the event?')) {
+            return;
+        }
+
+        const eventId = document.getElementById('attendanceModal').dataset.eventId;
+
+        fetch(`/events/${eventId}/volunteers/${volunteerId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Volunteer removed successfully', 'success');
+                    // Refresh the attendance list
+                    openAttendanceModal(eventId);
+                } else {
+                    showAlert(data.message || 'Error removing volunteer', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error removing volunteer:', error);
+                showAlert('Error removing volunteer', 'error');
+            });
+    }
+
     // Search Functionality
     document.getElementById('searchInput').addEventListener('input', function() {
         const searchTerm = this.value.toLowerCase();
@@ -484,7 +651,6 @@
     }
 
     function openAttendanceModal(eventId) {
-        // Fetch volunteers for this event
         fetch(`/events/${eventId}/volunteers`)
             .then(response => response.json())
             .then(volunteers => {
@@ -497,32 +663,39 @@
                     row.dataset.volunteerId = volunteer.id;
 
                     row.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <img class="w-10 h-10 rounded-full mr-3 object-cover" 
-                                     src="${volunteer.profile_picture_url}" 
-                                     alt="${volunteer.full_name}">
-                                <div>
-                                    <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
-                                    <div class="text-xs text-gray-500">ID: ${volunteer.id}</div>
-                                </div>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <img class="w-10 h-10 rounded-full mr-3 object-cover" 
+                                 src="${volunteer.profile_picture_url}" 
+                                 alt="${volunteer.full_name}">
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
+                                <div class="text-xs text-gray-500">ID: ${volunteer.id}</div>
                             </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
-                                ${volunteer.ministry_name}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <select class="attendance-select px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" 
-                                    data-volunteer-id="${volunteer.id}"
-                                    onchange="updateAttendanceSummary()">
-                                <option value="">Select Status</option>
-                                <option value="present" ${volunteer.pivot.attendance_status === 'present' ? 'selected' : ''}>✅ Present</option>
-                                <option value="absent" ${volunteer.pivot.attendance_status === 'absent' ? 'selected' : ''}>❌ Absent</option>
-                            </select>
-                        </td>
-                    `;
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                            ${volunteer.ministry_name}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <select class="attendance-select px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" 
+                                data-volunteer-id="${volunteer.id}"
+                                onchange="updateAttendanceSummary()">
+                            <option value="">Select Status</option>
+                            <option value="present" ${volunteer.pivot.attendance_status === 'present' ? 'selected' : ''}>✅ Present</option>
+                            <option value="absent" ${volunteer.pivot.attendance_status === 'absent' ? 'selected' : ''}>❌ Absent</option>
+                        </select>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                        <button onclick="removeVolunteerFromEvent(${volunteer.id})" class="text-red-600 hover:text-red-900 p-1 rounded transition-colors duration-150">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    </td>
+                `;
 
                     tableBody.appendChild(row);
                 });
@@ -540,6 +713,7 @@
                 showAlert('Error loading volunteer data', 'error');
             });
     }
+
 
     function closeAttendanceModal() {
         document.getElementById('attendanceModal').classList.add('hidden');
@@ -677,7 +851,8 @@
         const selects = document.querySelectorAll('.attendance-select');
         const counts = {
             present: 0,
-            absent: 0
+            absent: 0,
+            total: selects.length
         };
 
         selects.forEach(select => {
@@ -687,6 +862,7 @@
 
         document.getElementById('presentCount').textContent = counts.present;
         document.getElementById('absentCount').textContent = counts.absent;
+        document.getElementById('totalCount').textContent = counts.total;
     }
 
     function markAllAs(status) {
