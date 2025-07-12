@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Task;
-
+use Carbon\Carbon;
 class TasksController extends Controller
 {
     public function index(Request $request)
@@ -68,14 +68,19 @@ class TasksController extends Controller
 
     public function update(Request $request, Task $task)
     {
-        $request->validate([
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'due_date' => 'nullable|date',
+            'due_date' => 'nullable|date_format:Y-m-d',
             'status' => 'required|in:To Do,In Progress,Completed',
         ]);
 
-        $task->update($request->all());
+        // Format the date before saving
+        if ($request->has('due_date') && $request->due_date) {
+            $validated['due_date'] = Carbon::createFromFormat('Y-m-d', $request->due_date);
+        }
+
+        $task->update($validated);
 
         return response()->json([
             'success' => true,

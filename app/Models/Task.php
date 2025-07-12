@@ -18,6 +18,7 @@ class Task extends Model
         'archive_reason'
     ];
     protected $casts = [
+        'due_date' => 'date:Y-m-d',
         'archived_at' => 'datetime',
     ];
     public function volunteer(): BelongsTo

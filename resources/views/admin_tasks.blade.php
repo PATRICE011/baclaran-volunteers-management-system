@@ -187,11 +187,13 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                 </svg>
                             </button>
-                            <button onclick="deleteTask({{ $task->id }})" class="text-red-600 hover:text-red-800">
+                            <button onclick="deleteTask({{ $task->id }}, '{{ addslashes($task->title) }}')" class="text-red-600 hover:text-red-800">
+                                <!-- SVG icon -->
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>
                             </button>
+
                         </div>
                     </div>
                 </div>
@@ -345,7 +347,7 @@
 </div>
 
 <!-- Toast Notification -->
-<div id="toast" class="fixed top-4 right-4 z-50 hidden">
+<!-- <div id="toast" class="fixed top-4 right-4 z-50 hidden">
     <div class="bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center">
         <span id="toast-message"></span>
         <button onclick="hideToast()" class="ml-4">
@@ -354,9 +356,10 @@
             </svg>
         </button>
     </div>
-</div>
+</div> -->
 @endsection
 
+<!-- In admin_tasks.blade.php -->
 @section('scripts')
 <script>
     // DOM Elements
@@ -365,28 +368,6 @@
     const statusFilter = document.getElementById('statusFilter');
     const taskForm = document.getElementById('taskForm');
     let taskToArchive = null;
-
-    // Toast Notification Functions
-    function showToast(message, type = 'success') {
-        const toast = document.getElementById('toast');
-        const toastMessage = document.getElementById('toast-message');
-
-        // Set message and style
-        toastMessage.textContent = message;
-        toast.className = `fixed top-4 right-4 z-50 flex items-center px-4 py-2 rounded-lg shadow-lg ${
-            type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-        }`;
-
-        // Show toast
-        toast.classList.remove('hidden');
-
-        // Auto-hide after 3 seconds
-        setTimeout(hideToast, 3000);
-    }
-
-    function hideToast() {
-        document.getElementById('toast').classList.add('hidden');
-    }
 
     // Modal Functions
     function openAddModal() {
@@ -424,14 +405,19 @@
                 document.getElementById('taskId').value = task.id;
                 document.getElementById('taskTitle').value = task.title;
                 document.getElementById('taskDescription').value = task.description;
-                document.getElementById('taskDueDate').value = task.due_date ? task.due_date.split(' ')[0] : '';
+
+                // Format date correctly for input[type=date]
+                const dueDate = task.due_date ? new Date(task.due_date) : null;
+                document.getElementById('taskDueDate').value = dueDate ?
+                    dueDate.toISOString().split('T')[0] : '';
+
                 document.getElementById('taskStatus').value = task.status;
                 document.getElementById('formMethod').value = 'PUT';
                 document.getElementById('taskForm').action = `/tasks/${task.id}`;
             })
             .catch(error => {
                 console.error('Error:', error);
-                showToast('Failed to load task data', 'error');
+                toastr.error('Failed to load task data');
             });
     }
 
@@ -447,7 +433,7 @@
         fetch(`/tasks/${taskToArchive}`, {
                 method: 'DELETE',
                 headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
@@ -455,18 +441,23 @@
                     reason: reason
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => Promise.reject(err));
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
-                    showToast(data.message || 'Task archived successfully');
+                    toastr.success(data.message || 'Task archived successfully');
                     document.querySelector(`[data-task-id="${taskToArchive}"]`).remove();
                 } else {
-                    showToast(data.message || 'Failed to archive task', 'error');
+                    toastr.error(data.message || 'Failed to archive task');
                 }
                 closeArchiveModal();
             })
             .catch(error => {
-                showToast('An error occurred. Please try again.', 'error');
+                toastr.error(error.message || 'An error occurred. Please try again.');
                 closeArchiveModal();
             });
     }
@@ -474,39 +465,57 @@
     // Handle Task Form Submission
     taskForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         const formData = new FormData(this);
         const method = this.querySelector('input[name="_method"]')?.value || 'POST';
         const url = this.action;
 
-        fetch(url, {
-            method: method,
-            body: formData,
-            headers: {
-                'Accept': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast(data.message);
-                closeModal();
-                // Reload the page to see the new/updated task
-                window.location.reload();
-            } else {
-                showToast(data.message || 'Operation failed', 'error');
-            }
-        })
-        .catch(error => {
-            showToast('An error occurred. Please try again.', 'error');
+        // Convert FormData to JSON
+        const jsonData = {};
+        formData.forEach((value, key) => {
+            jsonData[key] = value;
         });
+
+        fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(jsonData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => Promise.reject(err));
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    toastr.success(data.message);
+                    closeModal();
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                if (error.errors) {
+                    // Handle validation errors
+                    Object.entries(error.errors).forEach(([field, messages]) => {
+                        toastr.error(messages[0]);
+                    });
+                } else {
+                    toastr.error(error.message || 'An error occurred. Please try again.');
+                }
+            });
     });
 
     // Search and Filter Functions
     function debounce(func, wait) {
         let timeout;
         return function() {
-            const context = this, args = arguments;
+            const context = this,
+                args = arguments;
             clearTimeout(timeout);
             timeout = setTimeout(() => {
                 func.apply(context, args);
