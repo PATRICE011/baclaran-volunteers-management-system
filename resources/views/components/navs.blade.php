@@ -44,7 +44,7 @@
             </a>
 
             <!-- Tasks Link -->
-             <a href="{{ url('/event') }}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('event') }}">
+             <a href="{{ url('/events') }}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('event') }}">
                 <i class="bx bx-calendar text-lg"></i>
                 <span class="font-medium">Events</span>
             </a> 

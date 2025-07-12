@@ -2,17 +2,7 @@
 @section('title','Task and Assignment Monitoring')
 @section('styles')
 <style>
-    /* Auto-shrink container based on content */
-    .volunteer-container {
-        max-height: 16rem; /* Initial max height */
-        overflow-y: auto;
-        transition: max-height 0.3s ease;
-    }
-    
-    /* When no volunteers are visible */
-    .volunteer-container.empty {
-        max-height: 6rem; /* Shrunk height */
-    }
+    /* Remove volunteer container styles as they're no longer needed */
 </style>
 @endsection
 @section('content')
@@ -111,16 +101,11 @@
                             <option value="Completed">Completed</option>
                         </select>
                         <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">All Volunteers</option>
-                            <option value="1">John Smith</option>
-                            <option value="2">Sarah Johnson</option>
-                            <option value="3">Mike Wilson</option>
-                        </select>
-                        <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">All Ministries</option>
-                            <option value="youth">Youth Ministry</option>
-                            <option value="worship">Worship Ministry</option>
-                            <option value="outreach">Outreach Ministry</option>
+                            <option value="">All Categories</option>
+                            <option value="planning">Planning</option>
+                            <option value="development">Development</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="other">Other</option>
                         </select>
                     </div>
                 </div>
@@ -151,11 +136,9 @@
                     </div>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
-                            <div class="flex -space-x-2">
-                                <img class="w-8 h-8 rounded-full border-2 border-white" src="https://ui-avatars.com/api/?name=John+Smith&background=3b82f6&color=fff" alt="John Smith">
-                                <img class="w-8 h-8 rounded-full border-2 border-white" src="https://ui-avatars.com/api/?name=Sarah+Johnson&background=ef4444&color=fff" alt="Sarah Johnson">
-                            </div>
-                            <span class="ml-2 text-sm text-gray-600">Youth Ministry</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                Planning
+                            </span>
                         </div>
                         <div class="flex space-x-2">
                             <button onclick="editTask(1)" class="text-blue-600 hover:text-blue-800">
@@ -195,10 +178,9 @@
                     </div>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
-                            <div class="flex -space-x-2">
-                                <img class="w-8 h-8 rounded-full border-2 border-white" src="https://ui-avatars.com/api/?name=Mike+Wilson&background=10b981&color=fff" alt="Mike Wilson">
-                            </div>
-                            <span class="ml-2 text-sm text-gray-600">Media Ministry</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                Development
+                            </span>
                         </div>
                         <div class="flex space-x-2">
                             <button onclick="editTask(2)" class="text-blue-600 hover:text-blue-800">
@@ -238,12 +220,9 @@
                     </div>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
-                            <div class="flex -space-x-2">
-                                <img class="w-8 h-8 rounded-full border-2 border-white" src="https://ui-avatars.com/api/?name=Lisa+Davis&background=8b5cf6&color=fff" alt="Lisa Davis">
-                                <img class="w-8 h-8 rounded-full border-2 border-white" src="https://ui-avatars.com/api/?name=Tom+Brown&background=f59e0b&color=fff" alt="Tom Brown">
-                                <img class="w-8 h-8 rounded-full border-2 border-white" src="https://ui-avatars.com/api/?name=Amy+White&background=ec4899&color=fff" alt="Amy White">
-                            </div>
-                            <span class="ml-2 text-sm text-gray-600">Outreach Ministry</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Planning
+                            </span>
                         </div>
                         <div class="flex space-x-2">
                             <button onclick="editTask(3)" class="text-blue-600 hover:text-blue-800">
@@ -262,10 +241,10 @@
             </div>
         </div>
     </div>
+
 <!-- add/edit modal -->
-  <!-- Task Modal -->
 <div id="taskModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 xl:w-1/2 shadow-lg rounded-md bg-white">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
         <div class="flex justify-between items-center pb-3">
             <h3 id="modalTitle" class="text-2xl font-bold text-gray-900">Add New Task</h3>
             <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
@@ -295,6 +274,28 @@
                     <input type="date" id="taskDueDate" name="due_date" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 
+                <!-- Priority -->
+                <div>
+                    <label for="taskPriority" class="block text-sm font-medium text-gray-700">Priority</label>
+                    <select id="taskPriority" name="priority" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+                
+                <!-- Category -->
+                <div>
+                    <label for="taskCategory" class="block text-sm font-medium text-gray-700">Category</label>
+                    <select id="taskCategory" name="category" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Select a Category</option>
+                        <option value="planning">Planning</option>
+                        <option value="development">Development</option>
+                        <option value="maintenance">Maintenance</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
                 <!-- Status -->
                 <div>
                     <label for="taskStatus" class="block text-sm font-medium text-gray-700">Status</label>
@@ -302,87 +303,6 @@
                         <option value="To Do">To Do</option>
                         <option value="In Progress">In Progress</option>
                         <option value="Completed">Completed</option>
-                    </select>
-                </div>
-                
-                <!-- Assignment Type -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Assignment</label>
-                    <div class="flex gap-4">
-                        <label class="inline-flex items-center">
-                            <input type="radio" name="assignmentType" value="volunteers" checked class="form-radio text-blue-600">
-                            <span class="ml-2">Assign to Volunteers</span>
-                        </label>
-                        <label class="inline-flex items-center">
-                            <input type="radio" name="assignmentType" value="ministry" class="form-radio text-blue-600">
-                            <span class="ml-2">Assign to Ministry</span>
-                        </label>
-                    </div>
-                </div>
-                
-                <!-- Volunteer Assignment Section -->
-                <div id="volunteerSection">
-                    <div class="flex justify-between items-center mb-2">
-                        <label class="block text-sm font-medium text-gray-700">Select Volunteers</label>
-                        <div class="flex gap-2">
-                            <button type="button" onclick="clearVolunteerSelection()" class="text-xs text-blue-600 hover:text-blue-800">Clear</button>
-                            <button type="button" onclick="selectAllVisibleVolunteers()" class="text-xs text-blue-600 hover:text-blue-800">Select All</button>
-                        </div>
-                    </div>
-                    <div class="text-right text-xs text-gray-500 mb-2">
-                        <span id="volunteerCounter"></span>
-                    </div>
-                    
-                    <!-- Search and Filter Controls -->
-                    <div class="mb-4 space-y-3">
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
-                            </div>
-                            <input type="text" id="volunteerSearch" placeholder="Search volunteers..." 
-                                   class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                   onkeyup="filterVolunteers()">
-                        </div>
-                        
-                        <select id="ministryFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" 
-                                onchange="filterVolunteers()">
-                            <option value="">All Ministries</option>
-                            <option value="Worship">Worship</option>
-                            <option value="Hospitality">Hospitality</option>
-                            <option value="Ushering">Ushering</option>
-                            <option value="Children">Children</option>
-                            <option value="Youth">Youth</option>
-                            <option value="Media">Media</option>
-                            <option value="Outreach">Outreach</option>
-                            <option value="Prayer">Prayer</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Volunteer List with Auto-Shrinking Container -->
-                    <div class="border border-gray-300 rounded-lg p-3 max-h-64 overflow-y-auto transition-all duration-300 volunteer-container">
-                        <div id="volunteerList" class="space-y-2">
-                            <!-- Volunteer items go here (same as your original volunteer items) -->
-                        </div>
-                        
-                        <div id="noVolunteersMessage" class="hidden text-center text-gray-500 text-sm py-4">
-                            No volunteers found matching your criteria.
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Ministry Assignment Section -->
-                <div id="ministrySection" class="hidden">
-                    <label for="ministrySelect" class="block text-sm font-medium text-gray-700">Select Ministry</label>
-                    <select id="ministrySelect" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">Select a Ministry</option>
-                        <option value="youth">Youth Ministry</option>
-                        <option value="worship">Worship Ministry</option>
-                        <option value="outreach">Outreach Ministry</option>
-                        <option value="media">Media Ministry</option>
-                        <option value="children">Children Ministry</option>
-                        <option value="prayer">Prayer Ministry</option>
                     </select>
                 </div>
             </div>
@@ -404,51 +324,11 @@
 
 @section('scripts')
 <script>
-        // Auto-shrink function
-    function updateVolunteerContainerHeight() {
-        const container = document.querySelector('.volunteer-container');
-        const visibleItems = document.querySelectorAll('.volunteer-item[style=""]:not([style*="none"]), .volunteer-item:not([style])');
-        
-        if (visibleItems.length === 0) {
-            container.classList.add('empty');
-        } else {
-            container.classList.remove('empty');
-        }
-    }
-
-    // Modify filterVolunteers to call the height update
-    function filterVolunteers() {
-        // ... existing filter code ...
-        
-        // Add this at the end:
-        updateVolunteerContainerHeight();
-    }
-
-    // Initialize on modal open
-    function openAddModal() {
-        // ... existing code ...
-        setTimeout(updateVolunteerContainerHeight, 10);
-    }
-
-    // Update on assignment type change
-    document.addEventListener('DOMContentLoaded', function() {
-        const assignmentRadios = document.querySelectorAll('input[name="assignmentType"]');
-        
-        assignmentRadios.forEach(radio => {
-            radio.addEventListener('change', function() {
-                setTimeout(updateVolunteerContainerHeight, 10);
-            });
-        });
-    });
     // Modal Functions
-     function openAddModal() {
+    function openAddModal() {
         document.getElementById('taskModal').classList.remove('hidden');
         document.getElementById('modalTitle').textContent = 'Add New Task';
         document.getElementById('taskForm').reset();
-        // Reset filters when opening modal
-        document.getElementById('volunteerSearch').value = '';
-        document.getElementById('ministryFilter').value = '';
-        filterVolunteers();
     }
 
     function closeModal() {
@@ -460,60 +340,7 @@
         document.getElementById('taskModal').classList.remove('hidden');
         document.getElementById('modalTitle').textContent = 'Edit Task';
         // Populate form with task data
-        // Reset filters when opening modal
-        document.getElementById('volunteerSearch').value = '';
-        document.getElementById('ministryFilter').value = '';
-        filterVolunteers();
     }
-    function filterVolunteers() {
-    const searchTerm = document.getElementById('volunteerSearch').value.toLowerCase();
-    const ministryFilter = document.getElementById('ministryFilter').value;
-    const volunteerItems = document.querySelectorAll('.volunteer-item');
-    const noVolunteersMessage = document.getElementById('noVolunteersMessage');
-    
-    let visibleCount = 0;
-    
-    volunteerItems.forEach(item => {
-        const name = item.getAttribute('data-name').toLowerCase();
-        const ministry = item.getAttribute('data-ministry');
-        
-        const matchesSearch = name.includes(searchTerm);
-        const matchesMinistry = !ministryFilter || ministry === ministryFilter;
-        
-        if (matchesSearch && matchesMinistry) {
-            item.style.display = 'flex';
-            visibleCount++;
-        } else {
-            item.style.display = 'none';
-        }
-    });
-    
-    // Show/hide no results message
-    if (visibleCount === 0) {
-        noVolunteersMessage.classList.remove('hidden');
-    } else {
-        noVolunteersMessage.classList.add('hidden');
-    }
-}
-
-// Handle assignment type switching
-document.addEventListener('DOMContentLoaded', function() {
-    const assignmentRadios = document.querySelectorAll('input[name="assignmentType"]');
-    const volunteerSection = document.getElementById('volunteerSection');
-    const ministrySection = document.getElementById('ministrySection');
-    
-    assignmentRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (this.value === 'volunteers') {
-                volunteerSection.classList.remove('hidden');
-                ministrySection.classList.add('hidden');
-            } else {
-                volunteerSection.classList.add('hidden');
-                ministrySection.classList.remove('hidden');
-            }
-        });
-    });
-});
 
     function deleteTask(taskId) {
         if (confirm('Are you sure you want to delete this task?')) {
@@ -522,92 +349,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Volunteer filtering function
-    function filterVolunteers() {
-        const searchTerm = document.getElementById('volunteerSearch').value.toLowerCase();
-        const ministryFilter = document.getElementById('ministryFilter').value;
-        const volunteerItems = document.querySelectorAll('.volunteer-item');
-        const noVolunteersMessage = document.getElementById('noVolunteersMessage');
-        
-        let visibleCount = 0;
-        
-        volunteerItems.forEach(item => {
-            const name = item.getAttribute('data-name').toLowerCase();
-            const ministry = item.getAttribute('data-ministry');
-            
-            const matchesSearch = name.includes(searchTerm);
-            const matchesMinistry = !ministryFilter || ministry === ministryFilter;
-            
-            if (matchesSearch && matchesMinistry) {
-                item.style.display = 'flex';
-                visibleCount++;
-            } else {
-                item.style.display = 'none';
-            }
-        });
-        
-        // Show/hide no results message
-        if (visibleCount === 0) {
-            noVolunteersMessage.classList.remove('hidden');
-        } else {
-            noVolunteersMessage.classList.add('hidden');
-        }
-    }
-
-    // Clear all volunteer selections
-    function clearVolunteerSelection() {
-        document.querySelectorAll('#volunteerSection input[type="checkbox"]').forEach(checkbox => {
-            checkbox.checked = false;
-        });
-    }
-
-    // Select all visible volunteers
-    function selectAllVisibleVolunteers() {
-        document.querySelectorAll('#volunteerSection .volunteer-item').forEach(item => {
-            if (item.style.display !== 'none') {
-                const checkbox = item.querySelector('input[type="checkbox"]');
-                checkbox.checked = true;
-            }
-        });
-    }
-
-    // Get selected volunteer count
-    function getSelectedVolunteerCount() {
-        return document.querySelectorAll('#volunteerSection input[type="checkbox"]:checked').length;
-    }
-
-    // Update volunteer selection counter
-    function updateVolunteerCounter() {
-        const count = getSelectedVolunteerCount();
-        const counterElement = document.getElementById('volunteerCounter');
-        if (counterElement) {
-            counterElement.textContent = count > 0 ? `${count} selected` : '';
-        }
-    }
-
-    // Assignment type toggle
+    // Initialize everything when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
-        const assignmentTypeRadios = document.querySelectorAll('input[name="assignmentType"]');
-        const volunteerSection = document.getElementById('volunteerSection');
-        const ministrySection = document.getElementById('ministrySection');
-
-        assignmentTypeRadios.forEach(radio => {
-            radio.addEventListener('change', function() {
-                if (this.value === 'volunteers') {
-                    volunteerSection.classList.remove('hidden');
-                    ministrySection.classList.add('hidden');
-                } else {
-                    volunteerSection.classList.add('hidden');
-                    ministrySection.classList.remove('hidden');
-                }
-            });
-        });
-
-        // Add event listeners for volunteer checkboxes to update counter
-        document.querySelectorAll('#volunteerSection input[type="checkbox"]').forEach(checkbox => {
-            checkbox.addEventListener('change', updateVolunteerCounter);
-        });
-
         // Form submission
         document.getElementById('taskForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -616,43 +359,9 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('title', document.getElementById('taskTitle').value);
             formData.append('description', document.getElementById('taskDescription').value);
             formData.append('due_date', document.getElementById('taskDueDate').value);
+            formData.append('priority', document.getElementById('taskPriority').value);
+            formData.append('category', document.getElementById('taskCategory').value);
             formData.append('status', document.getElementById('taskStatus').value);
-            
-            const assignmentType = document.querySelector('input[name="assignmentType"]:checked').value;
-            
-            if (assignmentType === 'volunteers') {
-                const selectedVolunteers = [];
-                const volunteerData = [];
-                
-                document.querySelectorAll('#volunteerSection input[type="checkbox"]:checked').forEach(checkbox => {
-                    const volunteerItem = checkbox.closest('.volunteer-item');
-                    const volunteerName = volunteerItem.getAttribute('data-name');
-                    const volunteerMinistry = volunteerItem.getAttribute('data-ministry');
-                    
-                    selectedVolunteers.push(checkbox.value);
-                    volunteerData.push({
-                        id: checkbox.value,
-                        name: volunteerName,
-                        ministry: volunteerMinistry
-                    });
-                });
-                
-                formData.append('volunteers', JSON.stringify(selectedVolunteers));
-                formData.append('volunteer_data', JSON.stringify(volunteerData));
-                
-                // Validate that at least one volunteer is selected
-                if (selectedVolunteers.length === 0) {
-                    alert('Please select at least one volunteer.');
-                    return;
-                }
-            } else {
-                const ministryValue = document.getElementById('ministrySelect').value;
-                if (!ministryValue) {
-                    alert('Please select a ministry.');
-                    return;
-                }
-                formData.append('ministry', ministryValue);
-            }
             
             // Validate required fields
             if (!document.getElementById('taskTitle').value.trim()) {
@@ -703,9 +412,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 closeModal();
             }
         });
-
-        // Initialize volunteer counter
-        updateVolunteerCounter();
     });
 </script>
 @endsection
