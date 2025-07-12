@@ -75,7 +75,7 @@ $current = request()->is('dashboard') ? 'active' : '';
                         <p class="text-2xl font-bold text-gray-900">{{ $metrics['activeMinistries'] }}</p>
                         <div class="flex items-center space-x-1 mt-2">
                             @foreach($metrics['ministryData'] as $ministry)
-                                <div class="w-2 h-2 {{ $ministry['color'] }} rounded-full"></div>
+                            <div class="w-2 h-2 {{ $ministry['color'] }} rounded-full"></div>
                             @endforeach
                         </div>
                     </div>
@@ -201,24 +201,29 @@ $current = request()->is('dashboard') ? 'active' : '';
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
-                                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                                                <span class="text-sm font-medium text-blue-600">{{ $volunteer['avatar'] }}</span>
-                                            </div>
+                                            <img src="{{ $volunteer->profile_picture_url }}"
+                                                alt="{{ $volunteer->detail->full_name ?? 'Volunteer' }}"
+                                                class="w-10 h-10 rounded-full mr-3 object-cover">
                                             <div>
-                                                <div class="text-sm font-medium text-gray-900">{{ $volunteer['name'] }}</div>
+                                                <div class="text-sm font-medium text-gray-900">
+                                                    {{ $volunteer->detail->full_name ?? 'No Name' }}
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">{{ $volunteer['role'] }}</div>
+                                        <div class="text-sm text-gray-900">
+                                            {{ $volunteer->detail->ministry->ministry_name ?? 'No Ministry' }}
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $volunteer['status'] === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
-                                            {{ ucfirst($volunteer['status']) }}
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
+                {{ strtolower($volunteer->detail->volunteer_status) === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                            {{ ucfirst($volunteer->detail->volunteer_status ?? 'unknown') }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ \Carbon\Carbon::parse($volunteer['joined'])->format('M d, Y') }}
+                                        {{ $volunteer->created_at->format('M d, Y') }}
                                     </td>
                                 </tr>
                                 @endforeach
@@ -288,22 +293,22 @@ $current = request()->is('dashboard') ? 'active' : '';
         tabButtons.forEach(button => {
             button.addEventListener('click', function() {
                 const target = this.getAttribute('data-target');
-                
+
                 // Remove active classes from all tabs
                 tabButtons.forEach(btn => {
                     btn.classList.remove('border-blue-600', 'text-blue-600');
                     btn.classList.add('border-transparent', 'text-gray-500');
                 });
-                
+
                 // Hide all tab contents
                 tabContents.forEach(content => {
                     content.classList.add('hidden');
                 });
-                
+
                 // Activate clicked tab
                 this.classList.remove('border-transparent', 'text-gray-500');
                 this.classList.add('border-blue-600', 'text-blue-600');
-                
+
                 // Show target content
                 document.getElementById(target).classList.remove('hidden');
             });

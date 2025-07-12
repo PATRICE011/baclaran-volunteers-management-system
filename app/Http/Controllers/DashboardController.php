@@ -18,7 +18,11 @@ class DashboardController extends Controller
 
         // Get counts from models
         $totalVolunteers = Volunteer::count();
-        $activeVolunteers = Volunteer::where('is_archived', false)->count();
+        $activeVolunteers = Volunteer::where('is_archived', false)
+            ->whereHas('detail', function ($query) {
+                $query->where('volunteer_status', 'Active');
+            })
+            ->count();
         $upcomingEvents = Event::where('date', '>=', now())
             ->where('date', '<=', now()->addDays(30))
             ->count();
@@ -63,21 +67,14 @@ class DashboardController extends Controller
                 ];
             });
         // Recent volunteers (active, not archived)
-        $recentVolunteers = Volunteer::with('detail.ministry')
+        $recentVolunteers = Volunteer::with(['detail.ministry'])
             ->where('is_archived', false)
+            ->whereHas('detail', function ($query) {
+                $query->where('volunteer_status', 'Active');
+            })
             ->orderBy('created_at', 'desc')
             ->take(4)
-            ->get()
-            ->map(function ($volunteer) {
-                return [
-                    'id' => $volunteer->id,
-                    'name' => $volunteer->detail->full_name ?? 'No Name',
-                    'role' => $volunteer->detail->ministry->ministry_name ?? 'No Ministry',
-                    'avatar' => $this->getInitials($volunteer->detail->full_name ?? 'NN'),
-                    'status' => strtolower($volunteer->detail->volunteer_status ?? 'active'),
-                    'joined' => $volunteer->created_at->format('Y-m-d')
-                ];
-            });
+            ->get();
 
         // Upcoming tasks (next 7 days, not completed)
         $upcomingTasks = Task::where('due_date', '>=', now())
