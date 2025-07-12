@@ -389,6 +389,51 @@
 </div>
 
 <script>
+    // Search Functionality
+    document.getElementById('searchInput').addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#eventsTableBody tr');
+
+        rows.forEach(row => {
+            const title = row.querySelector('td:first-child .text-sm.font-medium').textContent.toLowerCase();
+            const description = row.querySelector('td:first-child .text-sm.text-gray-500').textContent.toLowerCase();
+
+            if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+    // Filter Functionality
+    document.getElementById('eventFilter').addEventListener('change', function() {
+        const filterValue = this.value;
+        const rows = document.querySelectorAll('#eventsTableBody tr');
+        const now = new Date();
+
+        rows.forEach(row => {
+            const dateStr = row.querySelector('td:nth-child(2)').textContent;
+            const eventDate = new Date(dateStr);
+            const isArchived = row.classList.contains('archived');
+
+            let shouldShow = true;
+
+            switch (filterValue) {
+                case 'upcoming':
+                    shouldShow = eventDate >= now;
+                    break;
+                case 'past':
+                    shouldShow = eventDate < now;
+                    break;
+                case 'archived':
+                    shouldShow = isArchived;
+                    break;
+                    // 'all' shows everything
+            }
+
+            row.style.display = shouldShow ? '' : 'none';
+        });
+    });
     // Modal Functions
     function openAddModal() {
         document.getElementById('addModal').classList.remove('hidden');
@@ -407,6 +452,7 @@
 
     function openEditModal(eventId) {
         // Fetch event data
+
         fetch(`/events/${eventId}`)
             .then(response => response.json())
             .then(event => {
