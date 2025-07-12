@@ -33,13 +33,13 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
-
-
-
-    Route::get('/tasks', [TasksController::class, 'index']);
-    // attendance tracking page
-    Route::prefix('attendance')->group(function () {
-        Route::get('/', [AttendanceController::class, 'index']);
+    // Task Management Routes
+    Route::prefix('tasks')->group(function () {
+        Route::get('/', [TasksController::class, 'index'])->name('tasks.index');
+        Route::post('/', [TasksController::class, 'store'])->name('tasks.store');
+        Route::get('/{task}/edit', [TasksController::class, 'edit'])->name('tasks.edit');
+        Route::put('/{task}', [TasksController::class, 'update'])->name('tasks.update');
+        Route::delete('/{task}', [TasksController::class, 'destroy'])->name('tasks.destroy');
     });
 
     // Event routes - Modified to match our new implementation

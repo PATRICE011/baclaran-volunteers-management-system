@@ -2,7 +2,37 @@
 @section('title','Task and Assignment Monitoring')
 @section('styles')
 <style>
-    /* Remove volunteer container styles as they're no longer needed */
+    #taskModal {
+        backdrop-filter: blur(2px);
+    }
+
+    #taskModal .bg-white {
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Form input focus states */
+    input:focus,
+    textarea:focus,
+    select:focus {
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    /* Smooth transitions */
+    #taskModal>div {
+        animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9) translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
 </style>
 @endsection
 @section('content')
@@ -14,7 +44,7 @@
             <div class="mb-8">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
-                        <h1 class="text-3xl font-bold text-gray-900">Task & Assignment Monitoring</h1>
+                        <h1 class="text-3xl font-bold text-gray-900">Task Management</h1>
                         <p class="mt-2 text-gray-600">Manage and track tasks across your organization</p>
                     </div>
                     <button onclick="openAddModal()" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200">
@@ -32,7 +62,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600">Total Tasks</p>
-                            <p class="text-3xl font-bold text-gray-900">24</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ $totalTasks }}</p>
                         </div>
                         <div class="p-3 bg-blue-100 rounded-full">
                             <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -45,7 +75,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600">To Do</p>
-                            <p class="text-3xl font-bold text-orange-600">8</p>
+                            <p class="text-3xl font-bold text-orange-600">{{ $todoTasks }}</p>
                         </div>
                         <div class="p-3 bg-orange-100 rounded-full">
                             <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,7 +88,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600">In Progress</p>
-                            <p class="text-3xl font-bold text-yellow-600">10</p>
+                            <p class="text-3xl font-bold text-yellow-600">{{ $inProgressTasks }}</p>
                         </div>
                         <div class="p-3 bg-yellow-100 rounded-full">
                             <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -71,7 +101,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600">Completed</p>
-                            <p class="text-3xl font-bold text-green-600">6</p>
+                            <p class="text-3xl font-bold text-green-600">{{ $completedTasks }}</p>
                         </div>
                         <div class="p-3 bg-green-100 rounded-full">
                             <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,42 +113,47 @@
             </div>
 
             <!-- Filters and Search -->
+
             <div class="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-200">
-                <div class="flex flex-col lg:flex-row gap-4">
-                    <div class="flex-1">
-                        <div class="relative">
-                            <input type="text" placeholder="Search tasks..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
+                <form id="searchForm" method="GET" action="{{ route('tasks.index') }}">
+                    <div class="flex flex-col lg:flex-row gap-4">
+                        <div class="flex-1">
+                            <div class="relative">
+                                <input type="text"
+                                    name="search"
+                                    id="searchInput"
+                                    value="{{ request('search') }}"
+                                    placeholder="Search tasks by title or description..."
+                                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-3">
+                            <select name="status" id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">All Status</option>
+                                <option value="To Do" {{ request('status') == 'To Do' ? 'selected' : '' }}>To Do</option>
+                                <option value="In Progress" {{ request('status') == 'In Progress' ? 'selected' : '' }}>In Progress</option>
+                                <option value="Completed" {{ request('status') == 'Completed' ? 'selected' : '' }}>Completed</option>
+                            </select>
+                            @if(request('search') || request('status'))
+                            <a href="{{ route('tasks.index') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                                Clear Filters
+                            </a>
+                            @endif
                         </div>
                     </div>
-                    <div class="flex flex-wrap gap-3">
-                        <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">All Status</option>
-                            <option value="To Do">To Do</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Completed">Completed</option>
-                        </select>
-                        <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">All Categories</option>
-                            <option value="planning">Planning</option>
-                            <option value="development">Development</option>
-                            <option value="maintenance">Maintenance</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                </div>
+                </form>
             </div>
-
             <!-- Tasks Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                <!-- Task Card 1 -->
+                @foreach($tasks as $task)
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
                     <div class="flex items-start justify-between mb-4">
                         <div class="flex-1">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Youth Event Planning</h3>
-                            <p class="text-gray-600 text-sm">Organize and coordinate the upcoming youth retreat including venue booking, activities, and logistics.</p>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ $task->title }}</h3>
+                            <p class="text-gray-600 text-sm">{{ $task->description }}</p>
                         </div>
                         <div class="ml-4">
                             <button class="text-gray-400 hover:text-gray-600">
@@ -129,24 +164,30 @@
                         </div>
                     </div>
                     <div class="flex items-center justify-between mb-4">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            In Progress
+                        @php
+                        $statusColors = [
+                        'To Do' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800'],
+                        'In Progress' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800'],
+                        'Completed' => ['bg' => 'bg-green-100', 'text' => 'text-green-800']
+                        ];
+                        $statusColor = $statusColors[$task->status] ?? ['bg' => 'bg-gray-100', 'text' => 'text-gray-800'];
+                        @endphp
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusColor['bg'] }} {{ $statusColor['text'] }}">
+                            {{ $task->status }}
                         </span>
-                        <span class="text-sm text-gray-500">Due: Dec 15, 2024</span>
+                        <span class="text-sm text-gray-500">Due: {{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('M d, Y') : 'No due date' }}</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                Planning
-                            </span>
+                            <span class="text-xs text-gray-500">Created: {{ $task->created_at->format('M d, Y') }}</span>
                         </div>
                         <div class="flex space-x-2">
-                            <button onclick="editTask(1)" class="text-blue-600 hover:text-blue-800">
+                            <button onclick="editTask({{ $task->id }})" class="text-blue-600 hover:text-blue-800">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                 </svg>
                             </button>
-                            <button onclick="deleteTask(1)" class="text-red-600 hover:text-red-800">
+                            <button onclick="deleteTask({{ $task->id }})" class="text-red-600 hover:text-red-800">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>
@@ -154,250 +195,202 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Task Card 2 -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
-                    <div class="flex items-start justify-between mb-4">
-                        <div class="flex-1">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Website Content Update</h3>
-                            <p class="text-gray-600 text-sm">Update church website with new sermon series information and upcoming events.</p>
-                        </div>
-                        <div class="ml-4">
-                            <button class="text-gray-400 hover:text-gray-600">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                            To Do
-                        </span>
-                        <span class="text-sm text-gray-500">Due: Dec 20, 2024</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                Development
-                            </span>
-                        </div>
-                        <div class="flex space-x-2">
-                            <button onclick="editTask(2)" class="text-blue-600 hover:text-blue-800">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
-                            </button>
-                            <button onclick="deleteTask(2)" class="text-red-600 hover:text-red-800">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Task Card 3 -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
-                    <div class="flex items-start justify-between mb-4">
-                        <div class="flex-1">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Community Outreach Program</h3>
-                            <p class="text-gray-600 text-sm">Coordinate food drive for local homeless shelter and organize volunteer schedule.</p>
-                        </div>
-                        <div class="ml-4">
-                            <button class="text-gray-400 hover:text-gray-600">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            Completed
-                        </span>
-                        <span class="text-sm text-gray-500">Due: Dec 10, 2024</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                Planning
-                            </span>
-                        </div>
-                        <div class="flex space-x-2">
-                            <button onclick="editTask(3)" class="text-blue-600 hover:text-blue-800">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
-                            </button>
-                            <button onclick="deleteTask(3)" class="text-red-600 hover:text-red-800">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                @endforeach
             </div>
+
+            <!-- Pagination -->
+            @if($tasks->hasPages())
+            <div class="mt-8">
+                {{ $tasks->links() }}
+            </div>
+            @endif
         </div>
     </div>
 
-<!-- add/edit modal -->
-<div id="taskModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-        <div class="flex justify-between items-center pb-3">
-            <h3 id="modalTitle" class="text-2xl font-bold text-gray-900">Add New Task</h3>
-            <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
+    <!-- add/edit modal -->
+    <div id="taskModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md transform transition-all">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                <h3 id="modalTitle" class="text-lg font-semibold text-gray-900">Add New Task</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <form id="taskForm" method="POST" class="p-6">
+                @csrf
+                <input type="hidden" id="taskId" name="id">
+                <input type="hidden" id="formMethod" name="_method" value="POST">
+
+                <div class="space-y-4">
+                    <!-- Task Title -->
+                    <div>
+                        <label for="taskTitle" class="block text-sm font-medium text-gray-700 mb-2">Task Title *</label>
+                        <input type="text"
+                            id="taskTitle"
+                            name="title"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                            placeholder="Enter task title">
+                    </div>
+
+                    <!-- Task Description -->
+                    <div>
+                        <label for="taskDescription" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <textarea id="taskDescription"
+                            name="description"
+                            rows="3"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                            placeholder="Enter task description (optional)"></textarea>
+                    </div>
+
+                    <!-- Due Date and Status in a row -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Due Date -->
+                        <div>
+                            <label for="taskDueDate" class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                            <input type="date"
+                                id="taskDueDate"
+                                name="due_date"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                        </div>
+
+                        <!-- Status -->
+                        <div>
+                            <label for="taskStatus" class="block text-sm font-medium text-gray-700 mb-2">Status *</label>
+                            <select id="taskStatus"
+                                name="status"
+                                required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                                <option value="To Do">To Do</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Buttons -->
+                <div class="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+                    <button type="button"
+                        onclick="closeModal()"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        Save Task
+                    </button>
+                </div>
+            </form>
         </div>
-        
-        <form id="taskForm">
-            <div class="space-y-4">
-                <!-- Task Title -->
-                <div>
-                    <label for="taskTitle" class="block text-sm font-medium text-gray-700">Task Title</label>
-                    <input type="text" id="taskTitle" name="title" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                
-                <!-- Task Description -->
-                <div>
-                    <label for="taskDescription" class="block text-sm font-medium text-gray-700">Description</label>
-                    <textarea id="taskDescription" name="description" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
-                </div>
-                
-                <!-- Due Date -->
-                <div>
-                    <label for="taskDueDate" class="block text-sm font-medium text-gray-700">Due Date</label>
-                    <input type="date" id="taskDueDate" name="due_date" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                
-                <!-- Priority -->
-                <div>
-                    <label for="taskPriority" class="block text-sm font-medium text-gray-700">Priority</label>
-                    <select id="taskPriority" name="priority" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        <option value="low">Low</option>
-                        <option value="medium" selected>Medium</option>
-                        <option value="high">High</option>
-                    </select>
-                </div>
-                
-                <!-- Category -->
-                <div>
-                    <label for="taskCategory" class="block text-sm font-medium text-gray-700">Category</label>
-                    <select id="taskCategory" name="category" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">Select a Category</option>
-                        <option value="planning">Planning</option>
-                        <option value="development">Development</option>
-                        <option value="maintenance">Maintenance</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                
-                <!-- Status -->
-                <div>
-                    <label for="taskStatus" class="block text-sm font-medium text-gray-700">Status</label>
-                    <select id="taskStatus" name="status" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        <option value="To Do">To Do</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Completed">Completed</option>
-                    </select>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md transform transition-all">
+            <div class="p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Confirm Deletion</h3>
+                <p class="text-gray-600 mb-6">Are you sure you want to delete this task? This action cannot be undone.</p>
+                <div class="flex justify-end space-x-3">
+                    <button onclick="closeDeleteModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                        Cancel
+                    </button>
+                    <form id="deleteForm" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
+                            Delete Task
+                        </button>
+                    </form>
                 </div>
             </div>
-            
-            <!-- Form Buttons -->
-            <div class="mt-6 flex justify-end space-x-3">
-                <button type="button" onclick="closeModal()" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Cancel
-                </button>
-                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Save Task
-                </button>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
-
 @endsection
 
 @section('scripts')
 <script>
-    // Modal Functions
-    function openAddModal() {
-        document.getElementById('taskModal').classList.remove('hidden');
-        document.getElementById('modalTitle').textContent = 'Add New Task';
-        document.getElementById('taskForm').reset();
-    }
-
-    function closeModal() {
-        document.getElementById('taskModal').classList.add('hidden');
-    }
-
-    function editTask(taskId) {
-        // Here you would fetch task data and populate the form
-        document.getElementById('taskModal').classList.remove('hidden');
-        document.getElementById('modalTitle').textContent = 'Edit Task';
-        // Populate form with task data
-    }
-
-    function deleteTask(taskId) {
-        if (confirm('Are you sure you want to delete this task?')) {
-            // Handle task deletion
-            console.log('Deleting task:', taskId);
-        }
-    }
-
-    // Initialize everything when DOM is loaded
+    // Automatic filter submission
     document.addEventListener('DOMContentLoaded', function() {
-        // Form submission
-        document.getElementById('taskForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData();
-            formData.append('title', document.getElementById('taskTitle').value);
-            formData.append('description', document.getElementById('taskDescription').value);
-            formData.append('due_date', document.getElementById('taskDueDate').value);
-            formData.append('priority', document.getElementById('taskPriority').value);
-            formData.append('category', document.getElementById('taskCategory').value);
-            formData.append('status', document.getElementById('taskStatus').value);
-            
-            // Validate required fields
-            if (!document.getElementById('taskTitle').value.trim()) {
-                alert('Please enter a task title.');
-                return;
-            }
-            
-            // Here you would send the data to your Laravel backend
-            console.log('Form data:', Object.fromEntries(formData));
-            
-            // Example AJAX call (uncomment and modify as needed):
-            /*
-            fetch('/tasks', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Success:', data);
-                closeModal();
-                // Reload the page or update the UI
-                location.reload();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while saving the task.');
-            });
-            */
-            
-            // For demo purposes, just close the modal
-            closeModal();
-            alert('Task saved successfully!');
+        const searchForm = document.getElementById('searchForm');
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+
+        // Debounce function to prevent too many requests
+        function debounce(func, wait) {
+            let timeout;
+            return function() {
+                const context = this,
+                    args = arguments;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    func.apply(context, args);
+                }, wait);
+            };
+        }
+
+        // Submit form when search input changes (with debounce)
+        searchInput.addEventListener('input', debounce(function() {
+            searchForm.submit();
+        }, 500));
+
+        // Submit form when status filter changes
+        statusFilter.addEventListener('change', function() {
+            searchForm.submit();
         });
+
+        // Modal Functions
+        function openAddModal() {
+            document.getElementById('taskModal').classList.remove('hidden');
+            document.getElementById('modalTitle').textContent = 'Add New Task';
+            document.getElementById('taskForm').reset();
+            document.getElementById('formMethod').value = 'POST';
+            document.getElementById('taskForm').action = "{{ route('tasks.store') }}";
+        }
+
+        function closeModal() {
+            document.getElementById('taskModal').classList.add('hidden');
+        }
+
+        function editTask(taskId) {
+            fetch(`/tasks/${taskId}/edit`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(task => {
+                    document.getElementById('taskModal').classList.remove('hidden');
+                    document.getElementById('modalTitle').textContent = 'Edit Task';
+                    document.getElementById('taskId').value = task.id;
+                    document.getElementById('taskTitle').value = task.title;
+                    document.getElementById('taskDescription').value = task.description;
+                    document.getElementById('taskDueDate').value = task.due_date ? task.due_date.split(' ')[0] : '';
+                    document.getElementById('taskStatus').value = task.status;
+                    document.getElementById('formMethod').value = 'PUT';
+                    document.getElementById('taskForm').action = `/tasks/${task.id}`;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    toastr.error('Failed to load task data');
+                });
+        }
+
+        function deleteTask(taskId) {
+            document.getElementById('deleteModal').classList.remove('hidden');
+            document.getElementById('deleteForm').action = `/tasks/${taskId}`;
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
 
         // Close modal when clicking outside
         document.getElementById('taskModal').addEventListener('click', function(e) {
@@ -406,10 +399,22 @@
             }
         });
 
-        // Handle escape key to close modal
+        // Close delete modal when clicking outside
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteModal();
+            }
+        });
+
+        // Handle escape key to close modals
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && !document.getElementById('taskModal').classList.contains('hidden')) {
-                closeModal();
+            if (e.key === 'Escape') {
+                if (!document.getElementById('taskModal').classList.contains('hidden')) {
+                    closeModal();
+                }
+                if (!document.getElementById('deleteModal').classList.contains('hidden')) {
+                    closeDeleteModal();
+                }
             }
         });
     });
