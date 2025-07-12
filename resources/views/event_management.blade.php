@@ -307,7 +307,6 @@
     </div>
 
     <!-- Attendance Check Modal -->
-    <!-- Enhanced Attendance Check Modal -->
     <div id="attendanceModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
         <div class="relative my-8 mx-auto p-6 border w-11/12 md:w-3/5 lg:w-1/2 shadow-lg rounded-2xl bg-white max-w-4xl">
             <div class="mt-3">
@@ -419,11 +418,163 @@
             </div>
         </div>
     </div>
+
+    <!-- Alert Modal -->
+    <div id="alertModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-1/4 mx-auto p-6 border w-96 shadow-lg rounded-xl bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div id="alertIcon" class="mr-3">
+                            <!-- Icon will be inserted here by JavaScript -->
+                        </div>
+                        <h3 id="alertTitle" class="text-lg font-semibold text-gray-900">Alert</h3>
+                    </div>
+                    <button onclick="closeAlertModal()" class="text-gray-400 hover:text-gray-600 transition-colors duration-150">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="mb-6">
+                    <p id="alertMessage" class="text-gray-600">Message goes here</p>
+                </div>
+                <div class="flex justify-end">
+                    <button onclick="closeAlertModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-1/4 mx-auto p-6 border w-96 shadow-lg rounded-xl bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="mr-3 p-2 bg-yellow-100 rounded-full">
+                            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                        </div>
+                        <h3 id="confirmTitle" class="text-lg font-semibold text-gray-900">Confirm Action</h3>
+                    </div>
+                    <button onclick="closeConfirmModal()" class="text-gray-400 hover:text-gray-600 transition-colors duration-150">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="mb-6">
+                    <p id="confirmMessage" class="text-gray-600">Are you sure you want to perform this action?</p>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button onclick="closeConfirmModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200">
+                        Cancel
+                    </button>
+                    <button id="confirmActionButton" onclick="confirmAction()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200">
+                        Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
+    // Alert Modal Functions
+    function showAlert(message, type = 'info') {
+        const alertModal = document.getElementById('alertModal');
+        const alertIcon = document.getElementById('alertIcon');
+        const alertTitle = document.getElementById('alertTitle');
+        const alertMessage = document.getElementById('alertMessage');
+        
+        // Clear previous icon
+        alertIcon.innerHTML = '';
+        
+        // Set icon and colors based on type
+        let iconColor = '';
+        let iconPath = '';
+        
+        switch(type) {
+            case 'success':
+                iconColor = 'text-green-600';
+                iconPath = 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z';
+                alertTitle.textContent = 'Success';
+                break;
+            case 'error':
+                iconColor = 'text-red-600';
+                iconPath = 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z';
+                alertTitle.textContent = 'Error';
+                break;
+            case 'warning':
+                iconColor = 'text-yellow-600';
+                iconPath = 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z';
+                alertTitle.textContent = 'Warning';
+                break;
+            default: // info
+                iconColor = 'text-blue-600';
+                iconPath = 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
+                alertTitle.textContent = 'Information';
+        }
+        
+        // Create and append the icon
+        const iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        iconSvg.setAttribute('class', `w-8 h-8 ${iconColor}`);
+        iconSvg.setAttribute('fill', 'none');
+        iconSvg.setAttribute('stroke', 'currentColor');
+        iconSvg.setAttribute('viewBox', '0 0 24 24');
+        
+        const iconPathElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        iconPathElement.setAttribute('stroke-linecap', 'round');
+        iconPathElement.setAttribute('stroke-linejoin', 'round');
+        iconPathElement.setAttribute('stroke-width', '2');
+        iconPathElement.setAttribute('d', iconPath);
+        
+        iconSvg.appendChild(iconPathElement);
+        alertIcon.appendChild(iconSvg);
+        
+        // Set message
+        alertMessage.textContent = message;
+        
+        // Show modal
+        alertModal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    }
+
+    function closeAlertModal() {
+        document.getElementById('alertModal').classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+
+    // Confirmation Modal Functions
+    let confirmCallback = null;
+
+    function showConfirm(message, callback, title = 'Confirm Action') {
+        document.getElementById('confirmMessage').textContent = message;
+        document.getElementById('confirmTitle').textContent = title;
+        confirmCallback = callback;
+        document.getElementById('confirmModal').classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    }
+
+    function closeConfirmModal() {
+        document.getElementById('confirmModal').classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+        confirmCallback = null;
+    }
+
+    function confirmAction() {
+        if (confirmCallback) {
+            confirmCallback();
+        }
+        closeConfirmModal();
+    }
+
+    // Update all alert calls to use the new modal system
     // Search Volunteers
-    // Search Volunteers with debounce
     let searchTimeout;
     document.getElementById('volunteerSearch').addEventListener('input', function() {
         clearTimeout(searchTimeout);
@@ -494,6 +645,7 @@
                 document.getElementById('searchResults').classList.add('hidden');
             });
     }
+
     // Add Volunteer to Event
     function addVolunteerToEvent(volunteerId) {
         const eventId = document.getElementById('attendanceModal').dataset.eventId;
@@ -526,34 +678,32 @@
 
     // Remove Volunteer from Event
     function removeVolunteerFromEvent(volunteerId) {
-        if (!confirm('Are you sure you want to remove this volunteer from the event?')) {
-            return;
-        }
+        showConfirm('Are you sure you want to remove this volunteer from the event?', () => {
+            const eventId = document.getElementById('attendanceModal').dataset.eventId;
 
-        const eventId = document.getElementById('attendanceModal').dataset.eventId;
-
-        fetch(`/events/${eventId}/volunteers/${volunteerId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': "{{ csrf_token() }}"
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showAlert('Volunteer removed successfully', 'success');
-                    // Refresh the attendance list
-                    openAttendanceModal(eventId);
-                } else {
-                    showAlert(data.message || 'Error removing volunteer', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error removing volunteer:', error);
-                showAlert('Error removing volunteer', 'error');
-            });
+            fetch(`/events/${eventId}/volunteers/${volunteerId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert('Volunteer removed successfully', 'success');
+                        // Refresh the attendance list
+                        openAttendanceModal(eventId);
+                    } else {
+                        showAlert(data.message || 'Error removing volunteer', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error removing volunteer:', error);
+                    showAlert('Error removing volunteer', 'error');
+                });
+        });
     }
 
     // Search Functionality
@@ -572,6 +722,7 @@
             }
         });
     });
+
     // Filter Functionality
     document.getElementById('eventFilter').addEventListener('change', function() {
         const filterValue = this.value;
@@ -601,6 +752,7 @@
             row.style.display = shouldShow ? '' : 'none';
         });
     });
+
     // Modal Functions
     function openAddModal() {
         document.getElementById('addModal').classList.remove('hidden');
@@ -618,8 +770,6 @@
     }
 
     function openEditModal(eventId) {
-        // Fetch event data
-
         fetch(`/events/${eventId}`)
             .then(response => response.json())
             .then(event => {
@@ -713,7 +863,6 @@
                 showAlert('Error loading volunteer data', 'error');
             });
     }
-
 
     function closeAttendanceModal() {
         document.getElementById('attendanceModal').classList.add('hidden');
@@ -821,7 +970,7 @@
     }
 
     function archiveEvent(eventId) {
-        if (confirm('Are you sure you want to archive this event?')) {
+        showConfirm('Are you sure you want to archive this event?', () => {
             fetch(`/events/${eventId}/archive`, {
                     method: 'POST',
                     headers: {
@@ -843,7 +992,7 @@
                     console.error('Error:', error);
                     showAlert('Error archiving event', 'error');
                 });
-        }
+        });
     }
 
     // Attendance Functions
@@ -917,26 +1066,13 @@
             });
     }
 
-    // Alert System
-    function showAlert(message, type = 'info') {
-        const toastrType = {
-            'success': 'success',
-            'error': 'error',
-            'warning': 'warning',
-            'info': 'info'
-        } [type] || 'info';
-
-        toastr[toastrType](message, '', {
-            positionClass: 'toast-top-right',
-            timeOut: 3000
-        });
-    }
-
     // Close modals when clicking outside
     document.addEventListener('click', function(event) {
         const addModal = document.getElementById('addModal');
         const editModal = document.getElementById('editModal');
         const attendanceModal = document.getElementById('attendanceModal');
+        const alertModal = document.getElementById('alertModal');
+        const confirmModal = document.getElementById('confirmModal');
 
         if (event.target === addModal) {
             closeAddModal();
@@ -949,6 +1085,14 @@
         if (event.target === attendanceModal) {
             closeAttendanceModal();
         }
+
+        if (event.target === alertModal) {
+            closeAlertModal();
+        }
+
+        if (event.target === confirmModal) {
+            closeConfirmModal();
+        }
     });
 
     // Close modals with Escape key
@@ -957,6 +1101,8 @@
             closeAddModal();
             closeEditModal();
             closeAttendanceModal();
+            closeAlertModal();
+            closeConfirmModal();
         }
     });
 </script>
