@@ -85,7 +85,7 @@
                                 <option value="all">All Events</option>
                                 <option value="upcoming">Upcoming</option>
                                 <option value="past">Past</option>
-                                <option value="archived">Archived</option>
+                                <!-- <option value="archived">Archived</option> -->
                             </select>
                         </div>
                     </div>
@@ -511,11 +511,39 @@
         </div>
     </div>
 </div>
+<!-- Archive Reason Modal -->
+<div id="archiveReasonModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-10 mx-auto p-6 border w-full max-w-md shadow-lg rounded-2xl bg-white">
+        <div class="mt-3">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-semibold text-gray-900">Archive Event</h3>
+                <button onclick="closeArchiveReasonModal()" class="text-gray-400 hover:text-gray-600 transition-colors duration-150">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
 
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Reason for Archiving *</label>
+                <textarea id="archiveReason" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="Enter the reason for archiving this event..." required></textarea>
+            </div>
+
+            <div class="flex space-x-3 pt-6 border-t border-gray-200">
+                <button type="button" onclick="confirmArchive()" class="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 font-medium">
+                    Archive Event
+                </button>
+                <button type="button" onclick="closeArchiveReasonModal()" class="flex-1 bg-gray-300 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-400 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 font-medium">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 @section('scripts')
 <script>
-   // Toastr configuration
+    // Toastr configuration
     toastr.options = {
         "closeButton": true,
         "progressBar": true,
@@ -637,7 +665,7 @@
                 case 'archived':
                     shouldShow = isArchived;
                     break;
-                // 'all' shows everything
+                    // 'all' shows everything
             }
 
             row.style.display = shouldShow ? '' : 'none';
@@ -971,11 +999,24 @@
 
     // Archive Event
     function archiveEvent(eventId) {
-        if (!confirm('Are you sure you want to archive this event? Please enter a reason.')) {
-            return;
-        }
+        // Store the event ID in the modal
+        document.getElementById('archiveReasonModal').dataset.eventId = eventId;
+        // Clear any previous reason
+        document.getElementById('archiveReason').value = '';
+        // Show the modal
+        document.getElementById('archiveReasonModal').classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    }
 
-        const reason = prompt('Please enter the reason for archiving this event:');
+    function closeArchiveReasonModal() {
+        document.getElementById('archiveReasonModal').classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+
+    function confirmArchive() {
+        const eventId = document.getElementById('archiveReasonModal').dataset.eventId;
+        const reason = document.getElementById('archiveReason').value.trim();
+
         if (!reason) {
             toastr.error('Please provide a reason for archiving');
             return;
@@ -996,6 +1037,7 @@
             .then(data => {
                 if (data.success) {
                     toastr.success(data.message);
+                    closeArchiveReasonModal();
                     window.location.reload();
                 } else {
                     toastr.error(data.message || 'Error archiving event');
@@ -1006,7 +1048,39 @@
                 toastr.error('Error archiving event');
             });
     }
+    // Close modals when clicking outside
+    document.addEventListener('click', function(event) {
+        const addModal = document.getElementById('addModal');
+        const editModal = document.getElementById('editModal');
+        const attendanceModal = document.getElementById('attendanceModal');
+        const archiveReasonModal = document.getElementById('archiveReasonModal');
 
+        if (event.target === addModal) {
+            closeAddModal();
+        }
+
+        if (event.target === editModal) {
+            closeEditModal();
+        }
+
+        if (event.target === attendanceModal) {
+            closeAttendanceModal();
+        }
+
+        if (event.target === archiveReasonModal) {
+            closeArchiveReasonModal();
+        }
+    });
+
+    // Close modals with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeAddModal();
+            closeEditModal();
+            closeAttendanceModal();
+            closeArchiveReasonModal();
+        }
+    });
     // Attendance Functions
     function updateAttendanceSummary() {
         const selects = document.querySelectorAll('.attendance-select');
