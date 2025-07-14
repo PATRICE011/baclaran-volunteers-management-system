@@ -1,3 +1,4 @@
+
 <!-- Modern Settings Sidebar Navigation -->
 <div class="hidden md:flex w-64 flex-col fixed inset-y-0 z-50 bg-gradient-to-b from-slate-50 to-blue-50/30 border-r border-slate-200/50 backdrop-blur-xl">
     <!-- Sidebar Header -->
@@ -48,15 +49,17 @@
                 </div>
             </a>
 
-            <a href="{{ url('/settings/role') }}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('settings/role') }}">
-                <div class="flex items-center justify-center w-8 h-8 rounded-lg transition-colors duration-200 {{ request()->is('settings/role*') ? 'bg-white/20' : 'bg-slate-100 group-hover:bg-slate-200' }}">
-                    <i class="bx bx-shield text-lg {{ request()->is('settings/role*') ? 'text-white' : 'text-slate-600' }}"></i>
-                </div>
-                <div class="flex flex-col">
-                    <span class="font-medium text-sm">Role Management</span>
-                    <span class="text-xs {{ request()->is('settings/role*') ? 'text-white/70' : 'text-slate-500 group-hover:text-slate-600' }}">User permissions</span>
-                </div>
-            </a>
+            @if($user->isAdmin())
+                <a href="{{ url('/settings/role') }}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('settings/role') }}">
+                    <div class="flex items-center justify-center w-8 h-8 rounded-lg transition-colors duration-200 {{ request()->is('settings/role*') ? 'bg-white/20' : 'bg-slate-100 group-hover:bg-slate-200' }}">
+                        <i class="bx bx-shield text-lg {{ request()->is('settings/role*') ? 'text-white' : 'text-slate-600' }}"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-medium text-sm">Role Management</span>
+                        <span class="text-xs {{ request()->is('settings/role*') ? 'text-white/70' : 'text-slate-500 group-hover:text-slate-600' }}">User permissions</span>
+                    </div>
+                </a>
+            @endif
 
             <a href="{{ url('/settings/archives') }}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('settings/archives') }}">
                 <div class="flex items-center justify-center w-8 h-8 rounded-lg transition-colors duration-200 {{ request()->is('settings/archives*') ? 'bg-white/20' : 'bg-slate-100 group-hover:bg-slate-200' }}">
@@ -142,7 +145,6 @@
                 class="absolute right-0 mt-3 w-56 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden z-50"
                 style="display: none; top: 100%;">
 
-
                 <!-- Menu Items -->
                 <div class="py-2">
                     <a href="{{ url('/settings') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200">
@@ -150,10 +152,12 @@
                         <span>Account Settings</span>
                     </a>
 
-                    <a href="{{ url('/settings/role') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200">
-                        <i class="bx bx-shield text-slate-500"></i>
-                        <span>Role Management</span>
-                    </a>
+                    @if($user->isAdmin())
+                        <a href="{{ url('/settings/role') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200">
+                            <i class="bx bx-shield text-slate-500"></i>
+                            <span>Role Management</span>
+                        </a>
+                    @endif
 
                     <a href="{{ url('/settings/archives') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200">
                         <i class="bx bx-archive text-slate-500"></i>

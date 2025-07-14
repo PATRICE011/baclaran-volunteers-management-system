@@ -14,7 +14,9 @@ class RoleController extends Controller
     {
         $user = Auth::user();
         // Get only non-archived users and map them
-        $nonArchivedUsers = User::where('is_archived', false)->get();
+        $nonArchivedUsers = User::where('is_archived', false)
+                           ->where('id', '!=', $user->id)
+                           ->get();
 
         $users = $nonArchivedUsers->map(function ($user) {
             return [

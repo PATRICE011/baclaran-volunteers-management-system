@@ -269,6 +269,7 @@
                     </thead>
                     <tbody id="roles-tbody" class="bg-white divide-y divide-gray-200">
                         @foreach($nonArchivedUsers as $user)
+                        @if($user->id != Auth::id())
                         <tr class="hover:bg-gray-50 transition-colors">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
@@ -279,7 +280,6 @@
                                                 alt="{{$user->full_name }}"
                                                 class="w-full h-full object-cover">
                                             @else
-                                            {{-- If no profile picture, use DiceBear for default avatar --}}
                                             <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ urlencode($user->full_name) }}"
                                                 alt="{{ $user->full_name }}"
                                                 class="w-full h-full object-cover">
@@ -312,6 +312,7 @@
                                 </div>
                             </td>
                         </tr>
+                        @endif
                         @endforeach
                     </tbody>
                 </table>
@@ -871,16 +872,14 @@
         totalCount.textContent = users.length;
     }
 
-
-    // Update statistics
     function updateStats() {
-        const totalUsers = users.length;
-        const adminCount = users.filter(user => user.role === 'admin').length;
+        const currentUserId = {{ Auth::id() }};
+        const totalUsers = users.filter(user => user.id !== currentUserId).length;
+        const adminCount = users.filter(user => user.role === 'admin' && user.id !== currentUserId).length;
 
         document.getElementById('total-users').textContent = totalUsers;
         document.getElementById('admin-count').textContent = adminCount;
     }
-
     // Format date
     function formatDate(dateString) {
         const date = new Date(dateString);

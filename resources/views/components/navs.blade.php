@@ -44,26 +44,26 @@
             </a>
 
             <!-- Tasks Link -->
-             <a href="{{ url('/events') }}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('events') }}">
+            <a href="{{ url('/events') }}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('events') }}">
                 <i class="bx bx-calendar text-lg"></i>
                 <span class="font-medium">Events</span>
-            </a> 
+            </a>
             <a href="{{ url('/tasks') }}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('tasks') }}">
                 <i class="bx bx-list-check text-lg"></i>
                 <span class="font-medium">Tasks</span>
             </a>
 
-                <!-- Schedule Link -->
+            <!-- Schedule Link -->
             <!-- <a href="{{ url('/schedule') }}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('schedule') }}">
                 <i class="bx bx-calendar text-lg"></i>
                 <span class="font-medium">Schedule</span>
             </a> -->
 
             <!-- Attendance Link -->
-            <a href="{{ url('/attendance') }}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('attendance') }}">
+            <!-- <a href="{{ url('/attendance') }}" class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('attendance') }}">
                 <i class="bx bx-check-circle text-lg"></i>
                 <span class="font-medium">Track Attendance</span>
-            </a>
+            </a> -->
         </nav>
     </div>
 
@@ -76,8 +76,15 @@
     </div>
 </div>
 
-<!-- Modern Header - Matching Dashboard Style -->
+<!-- Modern Header - Consistent with Dashboard -->
 <header class="sticky top-0 z-40 flex h-16 items-center gap-4 bg-white/95 backdrop-blur-xl border-b border-slate-200/50 px-6 shadow-sm" x-data="{ userMenuOpen: false }" @click.away="userMenuOpen = false">
+    <!-- Breadcrumb -->
+    <div class="flex items-center gap-2 text-sm text-slate-600">
+        <a href="{{ url('/dashboard') }}" class="hover:text-blue-600 transition-colors duration-200">Dashboard</a>
+        <i class="bx bx-chevron-right text-slate-400"></i>
+        <span class="font-medium text-slate-800">Settings</span>
+    </div>
+
     <div class="flex flex-1 items-center justify-end">
         <div class="relative flex items-center gap-4">
             @php
@@ -132,7 +139,6 @@
                 class="absolute right-0 mt-3 w-56 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden z-50"
                 style="display: none; top: 100%;">
 
-
                 <!-- Menu Items -->
                 <div class="py-2">
                     <a href="{{ url('/settings') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200">
@@ -140,10 +146,12 @@
                         <span>Account Settings</span>
                     </a>
 
+                    @if($user->isAdmin())
                     <a href="{{ url('/settings/role') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200">
                         <i class="bx bx-shield text-slate-500"></i>
                         <span>Role Management</span>
                     </a>
+                    @endif
 
                     <a href="{{ url('/settings/archives') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200">
                         <i class="bx bx-archive text-slate-500"></i>
