@@ -49,7 +49,7 @@
                 </div>
                 <div>
                     <h1 id="user_full_name" class="text-lg font-semibold">Loading...</h1>
-                    <p id="user_email" class="text-sm text-muted-foreground">Loading...</p>
+                    <p id="user_email" class="text-xs sm:text-sm text-muted-foreground">Loading...</p>
                 </div>
             </div>
 

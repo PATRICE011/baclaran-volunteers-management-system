@@ -76,8 +76,8 @@
 @section('content')
 @include('components.navs')
 
-<div class="md:ml-64">
-    <div class="flex-1 flex flex-col overflow-auto p-6">
+<div class="min-h-screen pt-16 md:pl-64 bg-gradient-to-b from-white to-slate-50">
+      <div class="flex-1 flex flex-col overflow-auto p-6">
         <!-- Header -->
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">Volunteer Directory</h1>
