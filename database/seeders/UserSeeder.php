@@ -19,13 +19,13 @@ class UserSeeder extends Seeder
         ]);
 
         // Create a Staff user
-        User::create([
-            'first_name' => 'Jane',
-            'last_name' => 'Smith',
-            'email' => 'staff@example.com',
-            'password' => Hash::make('staffpassword'),
-            'role' => 'staff',
-        ]);
+        // User::create([
+        //     'first_name' => 'Jane',
+        //     'last_name' => 'Smith',
+        //     'email' => 'staff@example.com',
+        //     'password' => Hash::make('staffpassword'),
+        //     'role' => 'staff',
+        // ]);
 
 }
 }

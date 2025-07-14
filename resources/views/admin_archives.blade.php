@@ -293,7 +293,7 @@
                                 <input type="checkbox" @change="toggleAll($event)" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                             </th>
                             <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Role Name</th>
-                            <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Permissions</th>
+                            <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Role</th>
                             <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Archived Date</th>
                             <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Reason</th>
                             <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Archived By</th>
@@ -316,11 +316,10 @@
                                     </div>
                                 </td>
                                 <td class="border border-gray-200 p-3">
-                                    <div class="flex flex-wrap gap-1">
-                                        <template x-for="permission in item.permissions">
-                                            <span class="badge badge-info" x-text="permission"></span>
-                                        </template>
-                                    </div>
+                                    <span class="badge"
+                                        :class="{'badge-success': item.role === 'Admin', 'badge-info': item.role === 'Staff'}">
+                                        <span x-text="item.role"></span>
+                                    </span>
                                 </td>
                                 <td class="border border-gray-200 p-3" x-text="formatDate(item.archived_date)"></td>
                                 <td class="border border-gray-200 p-3">

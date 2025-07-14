@@ -24,7 +24,7 @@ class ArchivesController extends Controller
                     'id' => $user->id,
                     'name' => $user->full_name,
                     'description' => $user->email,
-                    'permissions' => $this->getPermissionsForRole($user->role),
+                    'role' => ucfirst($user->role),
                     'archived_date' => $user->archived_at?->format('Y-m-d'),
                     'reason' => $user->archive_reason,
                     'archived_by' => $user->archiver->full_name ?? 'Unknown',
