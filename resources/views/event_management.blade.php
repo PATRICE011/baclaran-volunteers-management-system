@@ -512,109 +512,29 @@
     </div>
 </div>
 
+@endsection
+@section('scripts')
 <script>
-    // Alert Modal Functions
-    function showAlert(message, type = 'info') {
-        const alertModal = document.getElementById('alertModal');
-        const alertIcon = document.getElementById('alertIcon');
-        const alertTitle = document.getElementById('alertTitle');
-        const alertMessage = document.getElementById('alertMessage');
+   // Toastr configuration
+    toastr.options = {
+        "closeButton": true,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "timeOut": "3000"
+    };
 
-        // Clear previous icon
-        alertIcon.innerHTML = '';
-
-        // Set icon and colors based on type
-        let iconColor = '';
-        let iconPath = '';
-
-        switch (type) {
-            case 'success':
-                iconColor = 'text-green-600';
-                iconPath = 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z';
-                alertTitle.textContent = 'Success';
-                break;
-            case 'error':
-                iconColor = 'text-red-600';
-                iconPath = 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z';
-                alertTitle.textContent = 'Error';
-                break;
-            case 'warning':
-                iconColor = 'text-yellow-600';
-                iconPath = 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z';
-                alertTitle.textContent = 'Warning';
-                break;
-            default: // info
-                iconColor = 'text-blue-600';
-                iconPath = 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
-                alertTitle.textContent = 'Information';
-        }
-
-        // Create and append the icon
-        const iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        iconSvg.setAttribute('class', `w-8 h-8 ${iconColor}`);
-        iconSvg.setAttribute('fill', 'none');
-        iconSvg.setAttribute('stroke', 'currentColor');
-        iconSvg.setAttribute('viewBox', '0 0 24 24');
-
-        const iconPathElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        iconPathElement.setAttribute('stroke-linecap', 'round');
-        iconPathElement.setAttribute('stroke-linejoin', 'round');
-        iconPathElement.setAttribute('stroke-width', '2');
-        iconPathElement.setAttribute('d', iconPath);
-
-        iconSvg.appendChild(iconPathElement);
-        alertIcon.appendChild(iconSvg);
-
-        // Set message
-        alertMessage.textContent = message;
-
-        // Show modal
-        alertModal.classList.remove('hidden');
-        document.body.classList.add('overflow-hidden');
-    }
-
-    function closeAlertModal() {
-        document.getElementById('alertModal').classList.add('hidden');
-        document.body.classList.remove('overflow-hidden');
-    }
-
-    // Confirmation Modal Functions
-    let confirmCallback = null;
-
-    function showConfirm(message, callback, title = 'Confirm Action') {
-        document.getElementById('confirmMessage').textContent = message;
-        document.getElementById('confirmTitle').textContent = title;
-        confirmCallback = callback;
-        document.getElementById('confirmModal').classList.remove('hidden');
-        document.body.classList.add('overflow-hidden');
-    }
-
-    function closeConfirmModal() {
-        document.getElementById('confirmModal').classList.add('hidden');
-        document.body.classList.remove('overflow-hidden');
-        confirmCallback = null;
-    }
-
-    function confirmAction() {
-        if (confirmCallback) {
-            confirmCallback();
-        }
-        closeConfirmModal();
-    }
-
-    // Update all alert calls to use the new modal system
     // Search Volunteers
     let searchTimeout;
     document.getElementById('volunteerSearch').addEventListener('input', function() {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
             const searchTerm = this.value.trim();
-            if (searchTerm.length >= 1) { // Only search if at least 1 character
+            if (searchTerm.length >= 1) {
                 searchVolunteers();
             } else {
                 document.getElementById('searchResults').classList.add('hidden');
             }
-        }, 300); // 300ms delay
+        }, 300);
     });
 
     function searchVolunteers() {
@@ -647,21 +567,21 @@
                         const row = document.createElement('tr');
                         row.className = 'hover:bg-gray-50';
                         row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center">
-                            <img class="w-8 h-8 rounded-full mr-3" src="${volunteer.profile_picture_url || '/images/default-profile.png'}" alt="${volunteer.full_name}">
-                            <div>
-                                <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
-                                <div class="text-xs text-gray-500">${volunteer.ministry_name}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right">
-                        <button onclick="addVolunteerToEvent(${volunteer.id})" class="text-blue-600 hover:text-blue-900 px-3 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors duration-200">
-                            Add
-                        </button>
-                    </td>
-                `;
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <img class="w-8 h-8 rounded-full mr-3" src="${volunteer.profile_picture_url || '/images/default-profile.png'}" alt="${volunteer.full_name}">
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
+                                        <div class="text-xs text-gray-500">${volunteer.ministry_name}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                <button onclick="addVolunteerToEvent(${volunteer.id})" class="text-blue-600 hover:text-blue-900 px-3 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors duration-200">
+                                    Add
+                                </button>
+                            </td>
+                        `;
                         resultsBody.appendChild(row);
                     });
                 }
@@ -670,10 +590,59 @@
             })
             .catch(error => {
                 console.error('Error searching volunteers:', error);
-                showAlert('Error searching volunteers. Please try again.', 'error');
+                toastr.error('Error searching volunteers. Please try again.');
                 document.getElementById('searchResults').classList.add('hidden');
             });
     }
+
+    // Search Functionality
+    document.getElementById('searchInput').addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#eventsTableBody tr');
+
+        rows.forEach(row => {
+            const title = row.querySelector('td:first-child .text-sm.font-medium').textContent.toLowerCase();
+            const description = row.querySelector('td:first-child .text-sm.text-gray-500').textContent.toLowerCase();
+
+            if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+
+    // Filter Functionality
+    document.getElementById('eventFilter').addEventListener('change', function() {
+        const filterValue = this.value;
+        const rows = document.querySelectorAll('#eventsTableBody tr');
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+        rows.forEach(row => {
+            const dateStr = row.querySelector('td:nth-child(2)').textContent;
+            // Parse the displayed date (e.g., "Jan 1, 2023")
+            const eventDate = new Date(dateStr);
+            const isArchived = row.classList.contains('archived');
+
+            let shouldShow = true;
+
+            switch (filterValue) {
+                case 'upcoming':
+                    shouldShow = eventDate >= today;
+                    break;
+                case 'past':
+                    shouldShow = eventDate < today;
+                    break;
+                case 'archived':
+                    shouldShow = isArchived;
+                    break;
+                // 'all' shows everything
+            }
+
+            row.style.display = shouldShow ? '' : 'none';
+        });
+    });
 
     // Add Volunteer to Event
     function addVolunteerToEvent(volunteerId) {
@@ -690,49 +659,51 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showAlert('Volunteer added successfully', 'success');
+                    toastr.success(data.message);
                     // Refresh the attendance list
                     openAttendanceModal(eventId);
                     document.getElementById('searchResults').classList.add('hidden');
                     document.getElementById('volunteerSearch').value = '';
                 } else {
-                    showAlert(data.message || 'Error adding volunteer', 'error');
+                    toastr.error(data.message || 'Error adding volunteer');
                 }
             })
             .catch(error => {
                 console.error('Error adding volunteer:', error);
-                showAlert('Error adding volunteer', 'error');
+                toastr.error('Error adding volunteer');
             });
     }
 
     // Remove Volunteer from Event
     function removeVolunteerFromEvent(volunteerId) {
-        showConfirm('Are you sure you want to remove this volunteer from the event?', () => {
-            const eventId = document.getElementById('attendanceModal').dataset.eventId;
+        if (!confirm('Are you sure you want to remove this volunteer from the event?')) {
+            return;
+        }
 
-            fetch(`/events/${eventId}/volunteers/${volunteerId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': "{{ csrf_token() }}"
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showAlert('Volunteer removed successfully', 'success');
-                        // Refresh the attendance list
-                        openAttendanceModal(eventId);
-                    } else {
-                        showAlert(data.message || 'Error removing volunteer', 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error removing volunteer:', error);
-                    showAlert('Error removing volunteer', 'error');
-                });
-        });
+        const eventId = document.getElementById('attendanceModal').dataset.eventId;
+
+        fetch(`/events/${eventId}/volunteers/${volunteerId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    toastr.success(data.message);
+                    // Refresh the attendance list
+                    openAttendanceModal(eventId);
+                } else {
+                    toastr.error(data.message || 'Error removing volunteer');
+                }
+            })
+            .catch(error => {
+                console.error('Error removing volunteer:', error);
+                toastr.error('Error removing volunteer');
+            });
     }
 
     // Search Functionality
@@ -809,7 +780,7 @@
                 // Populate form fields
                 document.getElementById('editEventId').value = event.id;
                 document.getElementById('editTitle').value = event.title;
-                document.getElementById('editDate').value = formattedDate; // Use formatted date
+                document.getElementById('editDate').value = formattedDate;
                 document.getElementById('editStartTime').value = event.start_time;
                 document.getElementById('editEndTime').value = event.end_time;
                 document.getElementById('editDescription').value = event.description || '';
@@ -820,7 +791,7 @@
             })
             .catch(error => {
                 console.error('Error fetching event:', error);
-                showAlert('Error loading event data', 'error');
+                toastr.error('Error loading event data');
             });
     }
 
@@ -842,39 +813,39 @@
                     row.dataset.volunteerId = volunteer.id;
 
                     row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center">
-                            <img class="w-10 h-10 rounded-full mr-3 object-cover" 
-                                 src="${volunteer.profile_picture_url}" 
-                                 alt="${volunteer.full_name}">
-                            <div>
-                                <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
-                                <div class="text-xs text-gray-500">ID: ${volunteer.id}</div>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <img class="w-10 h-10 rounded-full mr-3 object-cover" 
+                                     src="${volunteer.profile_picture_url}" 
+                                     alt="${volunteer.full_name}">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
+                                    <div class="text-xs text-gray-500">ID: ${volunteer.id}</div>
+                                </div>
                             </div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
-                            ${volunteer.ministry_name}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <select class="attendance-select px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" 
-                                data-volunteer-id="${volunteer.id}"
-                                onchange="updateAttendanceSummary()">
-                            <option value="">Select Status</option>
-                            <option value="present" ${volunteer.pivot.attendance_status === 'present' ? 'selected' : ''}>✅ Present</option>
-                            <option value="absent" ${volunteer.pivot.attendance_status === 'absent' ? 'selected' : ''}>❌ Absent</option>
-                        </select>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right">
-                        <button onclick="removeVolunteerFromEvent(${volunteer.id})" class="text-red-600 hover:text-red-900 p-1 rounded transition-colors duration-150">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
-                        </button>
-                    </td>
-                `;
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                                ${volunteer.ministry_name}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <select class="attendance-select px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" 
+                                    data-volunteer-id="${volunteer.id}"
+                                    onchange="updateAttendanceSummary()">
+                                <option value="">Select Status</option>
+                                <option value="present" ${volunteer.pivot.attendance_status === 'present' ? 'selected' : ''}>✅ Present</option>
+                                <option value="absent" ${volunteer.pivot.attendance_status === 'absent' ? 'selected' : ''}>❌ Absent</option>
+                            </select>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <button onclick="removeVolunteerFromEvent(${volunteer.id})" class="text-red-600 hover:text-red-900 p-1 rounded transition-colors duration-150">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </button>
+                        </td>
+                    `;
 
                     tableBody.appendChild(row);
                 });
@@ -889,7 +860,7 @@
             })
             .catch(error => {
                 console.error('Error fetching volunteers:', error);
-                showAlert('Error loading volunteer data', 'error');
+                toastr.error('Error loading volunteer data');
             });
     }
 
@@ -907,7 +878,7 @@
         const description = document.getElementById('addDescription').value;
 
         if (!title || !date || !startTime || !endTime) {
-            showAlert('Please fill in all required fields', 'error');
+            toastr.error('Please fill in all required fields');
             return;
         }
 
@@ -934,17 +905,17 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showAlert('Event added successfully!', 'success');
+                    toastr.success(data.message);
                     closeAddModal();
                     // Reload the page to show the new event
                     window.location.reload();
                 } else {
-                    showAlert(data.message || 'Error adding event', 'error');
+                    toastr.error(data.message || 'Error adding event');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showAlert('Error adding event', 'error');
+                toastr.error('Error adding event');
             });
     }
 
@@ -957,7 +928,7 @@
         const description = document.getElementById('editDescription').value;
 
         if (!title || !date || !startTime || !endTime) {
-            showAlert('Please fill in all required fields', 'error');
+            toastr.error('Please fill in all required fields');
             return;
         }
 
@@ -984,49 +955,33 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showAlert('Event updated successfully!', 'success');
+                    toastr.success(data.message);
                     closeEditModal();
                     // Reload the page to show the updated event
                     window.location.reload();
                 } else {
-                    showAlert(data.message || 'Error updating event', 'error');
+                    toastr.error(data.message || 'Error updating event');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showAlert('Error updating event', 'error');
+                toastr.error('Error updating event');
             });
     }
-    // Archive Reason Modal Functions
-    let archiveEventId = null;
 
-    function openArchiveReasonModal(eventId) {
-        archiveEventId = eventId;
-        document.getElementById('archiveReasonModal').classList.remove('hidden');
-        document.body.classList.add('overflow-hidden');
-        document.getElementById('archiveReason').value = ''; // Clear previous reason
-    }
+    // Archive Event
+    function archiveEvent(eventId) {
+        if (!confirm('Are you sure you want to archive this event? Please enter a reason.')) {
+            return;
+        }
 
-    function closeArchiveReasonModal() {
-        document.getElementById('archiveReasonModal').classList.add('hidden');
-        document.body.classList.remove('overflow-hidden');
-        archiveEventId = null;
-    }
-
-    function confirmArchive() {
-        const reason = document.getElementById('archiveReason').value.trim();
-
+        const reason = prompt('Please enter the reason for archiving this event:');
         if (!reason) {
-            showAlert('Please enter a reason for archiving this event', 'error');
+            toastr.error('Please provide a reason for archiving');
             return;
         }
 
-        if (!archiveEventId) {
-            showAlert('No event selected for archiving', 'error');
-            return;
-        }
-
-        fetch(`/events/${archiveEventId}/archive`, {
+        fetch(`/events/${eventId}/archive`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1040,21 +995,16 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showAlert('Event archived successfully!', 'success');
-                    closeArchiveReasonModal();
+                    toastr.success(data.message);
                     window.location.reload();
                 } else {
-                    showAlert(data.message || 'Error archiving event', 'error');
+                    toastr.error(data.message || 'Error archiving event');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showAlert('Error archiving event', 'error');
+                toastr.error('Error archiving event');
             });
-    }
-
-    function archiveEvent(eventId) {
-        openArchiveReasonModal(eventId);
     }
 
     // Attendance Functions
@@ -1116,15 +1066,15 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showAlert('Attendance saved successfully!', 'success');
+                    toastr.success(data.message);
                     closeAttendanceModal();
                 } else {
-                    showAlert(data.message || 'Error saving attendance', 'error');
+                    toastr.error(data.message || 'Error saving attendance');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showAlert('Error saving attendance', 'error');
+                toastr.error('Error saving attendance');
             });
     }
 
@@ -1133,8 +1083,6 @@
         const addModal = document.getElementById('addModal');
         const editModal = document.getElementById('editModal');
         const attendanceModal = document.getElementById('attendanceModal');
-        const alertModal = document.getElementById('alertModal');
-        const confirmModal = document.getElementById('confirmModal');
 
         if (event.target === addModal) {
             closeAddModal();
@@ -1147,14 +1095,6 @@
         if (event.target === attendanceModal) {
             closeAttendanceModal();
         }
-
-        if (event.target === alertModal) {
-            closeAlertModal();
-        }
-
-        if (event.target === confirmModal) {
-            closeConfirmModal();
-        }
     });
 
     // Close modals with Escape key
@@ -1163,10 +1103,7 @@
             closeAddModal();
             closeEditModal();
             closeAttendanceModal();
-            closeAlertModal();
-            closeConfirmModal();
         }
     });
 </script>
-
 @endsection

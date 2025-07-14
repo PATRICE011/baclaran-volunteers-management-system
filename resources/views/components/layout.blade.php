@@ -17,6 +17,8 @@
 
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+    <!-- Toastr JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,12 +40,6 @@
     </style>
     <!-- Page Content -->
     @yield('content')
-
-    <!-- Page Scripts -->
-    @yield('scripts')
-
-    <!-- Toastr JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
     <!-- Toastr Notifications for Session -->
     @if(session('success'))
@@ -68,6 +64,8 @@
     </script>
     @endif
 
+    <!-- Page Scripts -->
+    @yield('scripts')
 
     {{-- Alpine.js CDN --}}
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>

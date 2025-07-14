@@ -92,7 +92,8 @@ class EventController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Event updated successfully!'
+            'message' => 'Event updated successfully!',
+            'event' => $event
         ]);
     }
 
@@ -132,6 +133,7 @@ class EventController extends Controller
             'message' => 'Attendance saved successfully!'
         ]);
     }
+
     public function searchVolunteers(Request $request)
     {
         $request->validate([
@@ -167,13 +169,14 @@ class EventController extends Controller
             return response()->json([], 500);
         }
     }
+
     public function addVolunteer(Event $event, Volunteer $volunteer)
     {
         if ($event->volunteers()->where('volunteer_id', $volunteer->id)->exists()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Volunteer is already assigned to this event'
-            ]);
+            ], 400);
         }
 
         $event->volunteers()->attach($volunteer->id, [
@@ -196,9 +199,17 @@ class EventController extends Controller
             'message' => 'Volunteer removed from event successfully'
         ]);
     }
+
     public function archive(Event $event)
     {
-        $event->archive(request('reason'));
+        $validated = request()->validate([
+            'reason' => 'required|string|max:255'
+        ]);
+
+        $event->update([
+            'is_archived' => true,
+            'archive_reason' => $validated['reason']
+        ]);
 
         return response()->json([
             'success' => true,
@@ -209,7 +220,7 @@ class EventController extends Controller
     public function restore(Event $event)
     {
         try {
-            $event->restore();
+            $event->update(['is_archived' => false]);
             return response()->json([
                 'success' => true,
                 'message' => 'Event restored successfully'
@@ -218,7 +229,7 @@ class EventController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error restoring event: ' . $e->getMessage()
-            ]);
+            ], 500);
         }
     }
 
@@ -234,7 +245,7 @@ class EventController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error deleting event: ' . $e->getMessage()
-            ]);
+            ], 500);
         }
     }
 
