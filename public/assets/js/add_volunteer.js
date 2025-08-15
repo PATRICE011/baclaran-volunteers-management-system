@@ -1,321 +1,499 @@
-// Utility: Toggle modal visibility
-function toggleModal(id, show = true) {
-    const modal = document.getElementById(id);
-    modal.classList.replace(show ? "hidden" : "flex", show ? "flex" : "hidden");
-}
-
-// Show registration modal
-document.getElementById("addVolunteerBtn").addEventListener("click", () => {
-    toggleModal("registrationModal", true);
-});
-
-// Close/cancel registration modal and reset state
-["closeRegistration", "cancelRegistration"].forEach((id) =>
-    document.getElementById(id).addEventListener("click", () => {
-        toggleModal("registrationModal", false);
-        resetVolunteerForm();
-        resetModalTabs();
-    })
-);
-
-// Preview profile picture on file input change
-document.getElementById("profilePictureInput").addEventListener("change", function (e) {
-        const file = e.target.files[0];
-        const preview = document.getElementById("profilePreview");
-        const removeBtn = document.getElementById("removeProfilePicture");
-
-        if (file) {
-            if (file.size > 2 * 1024 * 1024) {
-                alert("File size must be less than 2MB");
-                e.target.value = "";
-                return;
-            }
-
-            if (!file.type.startsWith("image/")) {
-                alert("Please select a valid image file");
-                e.target.value = "";
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                preview.src = e.target.result;
-                removeBtn.classList.remove("hidden");
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-
-// Reset profile picture input and UI
-document.getElementById("removeProfilePicture").addEventListener("click", () => {
-        document.getElementById("profilePictureInput").value = "";
-        document.getElementById("profilePreview").src =
-            "data:image/svg+xml,%3csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100' height='100' fill='%23f3f4f6'/%3e%3ctext x='50%25' y='50%25' font-size='14' text-anchor='middle' alignment-baseline='middle' fill='%23374151'%3eNo Image%3c/text%3e%3c/svg%3e";
-        document.getElementById("removeProfilePicture").classList.add("hidden");
-    });
-
-// Compute and show duration since applied date
-document.getElementById("reg-applied-date").addEventListener("change", function () {
-        const appliedDate = new Date(this.value + "-01");
-        const now = new Date();
-
-        if (!isNaN(appliedDate)) {
-            const totalMonths =
-                (now.getFullYear() - appliedDate.getFullYear()) * 12 +
-                now.getMonth() -
-                appliedDate.getMonth();
-
-            const years = Math.floor(totalMonths / 12);
-            const months = totalMonths % 12;
-
-            let result = [];
-            if (years > 0) result.push(`${years} yr${years > 1 ? "s" : ""}`);
-            if (months > 0) result.push(`${months} mo${months > 1 ? "s" : ""}`);
-
-            document.getElementById("reg-regular-duration").value =
-                result.join(" ") || "0";
-        }
-    });
-// Handle "Next" button click from Basic Info to Info Sheet
-document.getElementById("nextToSheet")?.addEventListener("click", () => {
-    // Define required input field names
-    const requiredFields = [
-        "nickname",
-        "dob",
-        "sex",
-        "address",
-        "phone",
-        "email",
-        "occupation",
-    ];
-    let valid = true;
-
-    // Check if required fields are filled; highlight invalid ones
-    requiredFields.forEach((name) => {
-        const field = document.querySelector(`[name="${name}"]`);
-        if (!field || !field.value) {
-            if (field) field.classList.add("border-red-500");
-            valid = false;
-        } else {
-            field.classList.remove("border-red-500");
-        }
-    });
-
-    // Additional checks for required radio button groups
-    const sex = document.querySelector('[name="sex"]:checked');
-    const civil = document.querySelector('[name="civil_status"]:checked');
-    if (!sex || !civil) valid = false;
-
-    if (!valid) {
-        toastr.warning("Please fill out all required fields.");
-        return;
+document.addEventListener("DOMContentLoaded", function () {
+    // Toggle modal visibility
+    function toggleModal(id, show = true) {
+        const modal = document.getElementById(id);
+        modal.classList.replace(
+            show ? "hidden" : "flex",
+            show ? "flex" : "hidden"
+        );
     }
 
-    // Unlock and switch to Info Sheet tab
-    const infoTab = document.querySelector('.reg-tab[data-tab="sheet"]');
-    infoTab.classList.remove("tab-locked");
-    infoTab.click();
-
-    // Hide "Next", show "Register" button
-    document.getElementById("nextToSheet").classList.add("hidden");
-    document.getElementById("submitRegistration").classList.remove("hidden");
-});
-// Allow switching between tabs when they are not locked
-document.querySelectorAll(".reg-tab").forEach((tab) => {
-    tab.addEventListener("click", function () {
-        if (this.classList.contains("tab-locked")) return;
-
-        // Update active tab styles
-        document.querySelectorAll(".reg-tab").forEach((t) =>
-                t.classList.replace("border-blue-600", "border-transparent")
-            );
-        this.classList.replace("border-transparent", "border-blue-600");
-
-        // Show corresponding tab content
-        document.querySelectorAll(".reg-content").forEach((c) => c.classList.add("hidden"));
-        document.getElementById("tab-" + this.dataset.tab).classList.remove("hidden");
-    });
-});
-document.addEventListener("DOMContentLoaded", () => {
-    // Compute total years for timeline rows
-    document.querySelectorAll('select[name="timeline_start_year[]"], select[name="timeline_end_year[]"]').forEach((select) => {select.addEventListener("change", () => {
-                const row = select.closest(".grid");
-                const startYear = parseInt(
-                    row.querySelector('select[name="timeline_start_year[]"]')
-                        .value
-                );
-                const endYear = parseInt(
-                    row.querySelector('select[name="timeline_end_year[]"]')
-                        .value
-                );
-                const totalInput = row.querySelector(
-                    'input[name="timeline_total[]"]'
-                );
-
-                if (!isNaN(startYear) && !isNaN(endYear)) {
-                    const total = Math.max(0, endYear - startYear + 1);
-                    totalInput.value = total > 0 ? total : "";
-                } else {
-                    totalInput.value = "";
-                }
-            });
-        });
-    // Compute total years for affiliation rows
-    document.querySelectorAll('select[name="affil_start_year[]"], select[name="affil_end_year[]"]').forEach((select) => {
-            select.addEventListener("change", () => {
-                const row = select.closest(".grid");
-                const startYear = parseInt(
-                    row.querySelector('select[name="affil_start_year[]"]').value
-                );
-                const endYear = parseInt(
-                    row.querySelector('select[name="affil_end_year[]"]').value
-                );
-                const totalInput = row.querySelector(
-                    'input[name="affil_total[]"]'
-                );
-
-                if (!isNaN(startYear) && !isNaN(endYear)) {
-                    const total = Math.max(0, endYear - startYear + 1);
-                    totalInput.value = total > 0 ? total : "";
-                } else {
-                    totalInput.value = "";
-                }
-            });
-        });
-});
-
-// Submit registration form
-document.getElementById("submitRegistration").addEventListener("click", () => {
-    const formData = new FormData();
-
-    // Profile Picture
-    const profilePicture = document.querySelector('[name="profile_picture"]');
-    if (profilePicture?.files?.[0]) {
-        formData.append("profile_picture", profilePicture.files[0]);
-    }
-
-    // Basic Fields
-    const fields = [
-        "nickname", "dob", "address", "phone", "email", "occupation",
-        "ministry_id", "applied_date", "regular_duration",
-        "last_name", "first_name", "middle_initial"
-    ];
-
-    fields.forEach((name) => {
-        const el = document.querySelector(`[name="${name}"]`);
-        if (el) formData.append(name, el.value);
+    // Show registration modal
+    document.getElementById("addVolunteerBtn").addEventListener("click", () => {
+        toggleModal("registrationModal", true);
+        // Generate a random volunteer ID if field is empty
+        if (!document.querySelector('[name="volunteer_id"]').value) {
+            document.querySelector('[name="volunteer_id"]').value =
+                "VOL-" + Math.random().toString(36).substr(2, 6).toUpperCase();
+        }
     });
 
-    formData.append("sex", document.querySelector('[name="sex"]:checked')?.value || "");
-    formData.append("civil_status", document.querySelector('[name="civil_status"]:checked')?.value || "");
-
-    // Sacraments and Formations
-    ["sacraments[]", "formations[]"].forEach((name) => {
-        document.querySelectorAll(`input[name="${name}"]:checked`).forEach((cb) => {
-            formData.append(name, cb.value);
-        });
-    });
-
-    // Timeline
-    ["timeline_org", "timeline_start_year", "timeline_end_year", "timeline_total", "timeline_active"].forEach((name) => {
-        document.querySelectorAll(`[name="${name}[]"]`).forEach((el) => {
-            formData.append(`${name}[]`, el.value);
-        });
-    });
-
-    // Affiliations
-    ["affil_org", "affil_start_year", "affil_end_year", "affil_active"].forEach((name) => {
-        document.querySelectorAll(`[name="${name}[]"]`).forEach((el) => {
-            formData.append(`${name}[]`, el.value);
-        });
-    });
-
-    fetch("/volunteers/register", {
-        method: "POST",
-        headers: {
-            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
-        },
-        body: formData,
-    })
-        .then((res) => res.json().then((body) => ({ ok: res.ok, status: res.status, body })))
-        .then(({ ok, status, body }) => {
-            if (ok) {
-                toastr.success(body.message);
-                toggleModal("registrationModal", false);
-                resetVolunteerForm();
-                switchView(localStorage.getItem("volunteerViewType") || "grid");
-            } else {
-                const msg = body.message || "An error occurred during registration.";
-                if (status === 409) toastr.warning(msg);
-                else if (status === 422)
-                    toastr.error(body.errors?.profile_picture?.[0] || msg);
-                else toastr.error(msg);
-            }
+    // Close/cancel registration modal and reset state
+    ["closeRegistration", "cancelRegistration"].forEach((id) =>
+        document.getElementById(id).addEventListener("click", () => {
+            toggleModal("registrationModal", false);
+            resetVolunteerForm();
+            resetModalTabs();
         })
-        .catch((err) => {
-            toastr.error("An error occurred while registering the volunteer.");
-            console.error(err);
+    );
+
+    // Preview profile picture on file input change
+    document
+        .getElementById("profilePictureInput")
+        .addEventListener("change", function (e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById("profilePreview");
+            const removeBtn = document.getElementById("removeProfilePicture");
+
+            if (file) {
+                if (file.size > 2 * 1024 * 1024) {
+                    alert("File size must be less than 2MB");
+                    e.target.value = "";
+                    return;
+                }
+
+                if (!file.type.startsWith("image/")) {
+                    alert("Please select a valid image file");
+                    e.target.value = "";
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview.src = e.target.result;
+                    removeBtn.classList.remove("hidden");
+                };
+                reader.readAsDataURL(file);
+            }
         });
+
+    // Reset profile picture input and UI
+    document
+        .getElementById("removeProfilePicture")
+        .addEventListener("click", () => {
+            document.getElementById("profilePictureInput").value = "";
+            document.getElementById("profilePreview").src =
+                "data:image/svg+xml,%3csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100' height='100' fill='%23f3f4f6'/%3e%3ctext x='50%25' y='50%25' font-size='14' text-anchor='middle' alignment-baseline='middle' fill='%23374151'%3eNo Image%3c/text%3e%3c/svg%3e";
+            document
+                .getElementById("removeProfilePicture")
+                .classList.add("hidden");
+        });
+
+    // Compute and show duration since applied date
+    document
+        .getElementById("reg-applied-date")
+        .addEventListener("change", function () {
+            const appliedDate = new Date(this.value + "-01");
+            const now = new Date();
+
+            if (!isNaN(appliedDate)) {
+                const totalMonths =
+                    (now.getFullYear() - appliedDate.getFullYear()) * 12 +
+                    now.getMonth() -
+                    appliedDate.getMonth();
+
+                const years = Math.floor(totalMonths / 12);
+                const months = totalMonths % 12;
+
+                let result = [];
+                if (years > 0)
+                    result.push(`${years} yr${years > 1 ? "s" : ""}`);
+                if (months > 0)
+                    result.push(`${months} mo${months > 1 ? "s" : ""}`);
+
+                document.getElementById("reg-regular-duration").value =
+                    result.join(" ") || "0";
+            }
+        });
+
+    // Other Formation checkbox handler
+    document
+        .getElementById("other_formation_check")
+        .addEventListener("change", function () {
+            const otherInput = document.getElementById("other_formation_input");
+            otherInput.disabled = !this.checked;
+            if (!this.checked) otherInput.value = "";
+        });
+
+    // Add timeline entry
+    document
+        .getElementById("add-timeline")
+        .addEventListener("click", function () {
+            const container = document.getElementById("timeline-container");
+            const template = container
+                .querySelector(".timeline-entry")
+                .cloneNode(true);
+            template
+                .querySelectorAll("input, select")
+                .forEach((el) => (el.value = ""));
+            container.appendChild(template);
+            attachYearCalculators();
+        });
+
+    // Add affiliation entry
+    document
+        .getElementById("add-affiliation")
+        .addEventListener("click", function () {
+            const container = document.getElementById("affiliations-container");
+            const template = container
+                .querySelector(".affiliation-entry")
+                .cloneNode(true);
+            template
+                .querySelectorAll("input, select")
+                .forEach((el) => (el.value = ""));
+            container.appendChild(template);
+            attachYearCalculators();
+        });
+
+    // Calculate years between start and end dates
+    function calculateYears(startYear, endYear) {
+        if (!startYear || !endYear) return null;
+
+        if (endYear === "present") {
+            const currentYear = new Date().getFullYear();
+            return currentYear - parseInt(startYear) + 1;
+        }
+
+        return parseInt(endYear) - parseInt(startYear) + 1;
+    }
+
+    // Attach event listeners for year calculations
+    function attachYearCalculators() {
+        document.querySelectorAll(".year-select").forEach((select) => {
+            select.removeEventListener("change", handleYearChange);
+            select.addEventListener("change", handleYearChange);
+        });
+    }
+
+    function handleYearChange() {
+        const row = this.closest(".grid");
+        const startYear = row.querySelector(
+            'select[name*="start_year"]'
+        )?.value;
+        const endYear = row.querySelector('select[name*="end_year"]')?.value;
+        const totalInput = row.querySelector(".total-years");
+
+        if (startYear && endYear) {
+            const total = calculateYears(startYear, endYear);
+            totalInput.value = total > 0 ? total : "";
+        } else {
+            totalInput.value = "";
+        }
+    }
+
+    // Initial attachment of year calculators
+    attachYearCalculators();
+
+    // Handle "Next" button click from Basic Info to Volunteer's Info
+    document.getElementById("nextToSheet")?.addEventListener("click", () => {
+        const requiredFields = [
+            "volunteer_id",
+            "last_name",
+            "first_name",
+            "nickname",
+            "dob",
+            "sex",
+            "address",
+            "phone",
+            "email",
+            "occupation",
+            "civil_status",
+        ];
+
+        let valid = true;
+
+        // Check required fields
+        requiredFields.forEach((name) => {
+            const field = document.querySelector(`[name="${name}"]`);
+            if (
+                !field ||
+                (field.type === "radio" &&
+                    !document.querySelector(`[name="${name}"]:checked`)) ||
+                (field.type !== "radio" && !field.value)
+            ) {
+                if (field) field.classList.add("border-red-500");
+                valid = false;
+            } else {
+                if (field) field.classList.remove("border-red-500");
+            }
+        });
+
+        if (!valid) {
+            toastr.warning("Please fill out all required fields.");
+            return;
+        }
+
+        // Unlock and switch to Volunteer's Info tab
+        const infoTab = document.querySelector('.reg-tab[data-tab="sheet"]');
+        infoTab.classList.remove("tab-locked");
+        infoTab.click();
+
+        // Hide "Next", show "Register" button
+        document.getElementById("nextToSheet").classList.add("hidden");
+        document
+            .getElementById("submitRegistration")
+            .classList.remove("hidden");
+    });
+
+    // Allow switching between tabs when they are not locked
+    document.querySelectorAll(".reg-tab").forEach((tab) => {
+        tab.addEventListener("click", function () {
+            if (this.classList.contains("tab-locked")) return;
+
+            // Update active tab styles
+            document
+                .querySelectorAll(".reg-tab")
+                .forEach((t) =>
+                    t.classList.replace("border-blue-600", "border-transparent")
+                );
+            this.classList.replace("border-transparent", "border-blue-600");
+
+            // Show corresponding tab content
+            document
+                .querySelectorAll(".reg-content")
+                .forEach((c) => c.classList.add("hidden"));
+            document
+                .getElementById("tab-" + this.dataset.tab)
+                .classList.remove("hidden");
+        });
+    });
+
+    // Submit registration form
+    document
+        .getElementById("submitRegistration")
+        .addEventListener("click", () => {
+            const formData = new FormData();
+
+            // Profile Picture
+            const profilePicture = document.querySelector(
+                '[name="profile_picture"]'
+            );
+            if (profilePicture?.files?.[0]) {
+                formData.append("profile_picture", profilePicture.files[0]);
+            }
+
+            // Basic Fields
+            const fields = [
+                "volunteer_id",
+                "nickname",
+                "dob",
+                "address",
+                "phone",
+                "email",
+                "occupation",
+                "ministry_id",
+                "applied_date",
+                "regular_duration",
+                "last_name",
+                "first_name",
+                "middle_initial",
+            ];
+
+            fields.forEach((name) => {
+                const el = document.querySelector(`[name="${name}"]`);
+                if (el) formData.append(name, el.value);
+            });
+
+            formData.append(
+                "sex",
+                document.querySelector('[name="sex"]:checked')?.value || ""
+            );
+            formData.append(
+                "civil_status",
+                document.querySelector('[name="civil_status"]:checked')
+                    ?.value || ""
+            );
+
+            // Sacraments and Formations
+            ["sacraments[]", "formations[]"].forEach((name) => {
+                document
+                    .querySelectorAll(`input[name="${name}"]:checked`)
+                    .forEach((cb) => {
+                        formData.append(name, cb.value);
+                    });
+            });
+
+            // Add other formation if specified
+            if (
+                document.getElementById("other_formation_check").checked &&
+                document.getElementById("other_formation_input").value
+            ) {
+                formData.append(
+                    "formations[]",
+                    document.getElementById("other_formation_input").value
+                );
+            }
+
+            // Timeline
+            [
+                "timeline_org",
+                "timeline_start_year",
+                "timeline_end_year",
+                "timeline_total",
+            ].forEach((name) => {
+                document
+                    .querySelectorAll(`[name="${name}[]"]`)
+                    .forEach((el) => {
+                        formData.append(`${name}[]`, el.value);
+                    });
+            });
+
+            // Affiliations
+            [
+                "affil_org",
+                "affil_start_year",
+                "affil_end_year",
+                "affil_total",
+            ].forEach((name) => {
+                document
+                    .querySelectorAll(`[name="${name}[]"]`)
+                    .forEach((el) => {
+                        formData.append(`${name}[]`, el.value);
+                    });
+            });
+
+            fetch("/volunteers/register", {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": document.querySelector(
+                        'meta[name="csrf-token"]'
+                    ).content,
+                },
+                body: formData,
+            })
+                .then((res) =>
+                    res
+                        .json()
+                        .then((body) => ({
+                            ok: res.ok,
+                            status: res.status,
+                            body,
+                        }))
+                )
+                .then(({ ok, status, body }) => {
+                    if (ok) {
+                        toastr.success(body.message);
+                        toggleModal("registrationModal", false);
+                        resetVolunteerForm();
+                        switchView(
+                            localStorage.getItem("volunteerViewType") || "grid"
+                        );
+                    } else {
+                        const msg =
+                            body.message ||
+                            "An error occurred during registration.";
+                        if (status === 409) toastr.warning(msg);
+                        else if (status === 422)
+                            toastr.error(
+                                body.errors?.profile_picture?.[0] || msg
+                            );
+                        else toastr.error(msg);
+                    }
+                })
+                .catch((err) => {
+                    toastr.error(
+                        "An error occurred while registering the volunteer."
+                    );
+                    console.error(err);
+                });
+        });
+
+    // Resets the entire volunteer registration form to its default state
+    function resetVolunteerForm() {
+        // Clear all form inputs (text, email, tel, date, file, textarea, select)
+        document
+            .querySelectorAll(
+                '#registrationModal input[type="text"], ' +
+                    '#registrationModal input[type="email"], ' +
+                    '#registrationModal input[type="tel"], ' +
+                    '#registrationModal input[type="date"], ' +
+                    '#registrationModal input[type="month"], ' +
+                    '#registrationModal input[type="file"], ' +
+                    "#registrationModal textarea, " +
+                    "#registrationModal select"
+            )
+            .forEach((el) => (el.value = ""));
+
+        // Uncheck all checkboxes and radio buttons
+        document
+            .querySelectorAll(
+                '#registrationModal input[type="checkbox"], #registrationModal input[type="radio"]'
+            )
+            .forEach((el) => (el.checked = false));
+
+        // Reset profile picture preview and hide remove button
+        const profilePreview = document.getElementById("profilePreview");
+        const removeBtn = document.getElementById("removeProfilePicture");
+        if (profilePreview) {
+            profilePreview.src =
+                "data:image/svg+xml,%3csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100' height='100' fill='%23f3f4f6'/%3e%3ctext x='50%25' y='50%25' font-size='14' text-anchor='middle' alignment-baseline='middle' fill='%23374151'%3eNo Image%3c/text%3e%3c/svg%3e";
+        }
+        if (removeBtn) {
+            removeBtn.classList.add("hidden");
+        }
+
+        // Reset other formation input
+        document.getElementById("other_formation_check").checked = false;
+        document.getElementById("other_formation_input").disabled = true;
+        document.getElementById("other_formation_input").value = "";
+
+        // Reset timeline and affiliations to one entry each
+        const timelineContainer = document.getElementById("timeline-container");
+        const affiliationContainer = document.getElementById(
+            "affiliations-container"
+        );
+
+        while (timelineContainer.children.length > 1) {
+            timelineContainer.removeChild(timelineContainer.lastChild);
+        }
+
+        while (affiliationContainer.children.length > 1) {
+            affiliationContainer.removeChild(affiliationContainer.lastChild);
+        }
+
+        // Reset tab styles: activate the first tab and lock the others
+        document.querySelectorAll(".reg-tab").forEach((tab, i) => {
+            if (i === 0) {
+                tab.classList.replace("border-transparent", "border-blue-600");
+                tab.classList.remove("tab-locked");
+            } else {
+                tab.classList.replace("border-blue-600", "border-transparent");
+                tab.classList.add("tab-locked");
+            }
+        });
+
+        // Show only the first tab content section
+        document.querySelectorAll(".reg-content").forEach((content, i) => {
+            if (i === 0) {
+                content.classList.remove("hidden");
+            } else {
+                content.classList.add("hidden");
+            }
+        });
+
+        // Ensure the "Next" button is visible and "Register" is hidden
+        document.getElementById("nextToSheet")?.classList.remove("hidden");
+        document.getElementById("submitRegistration")?.classList.add("hidden");
+
+        // Scroll the form modal to the top for better UX
+        document
+            .querySelector("#registrationModal .overflow-y-auto")
+            ?.scrollTo(0, 0);
+    }
+
+    function resetModalTabs() {
+        // Reset tabs to initial state
+        document.querySelectorAll(".reg-tab").forEach((tab, i) => {
+            if (i === 0) {
+                tab.classList.replace("border-transparent", "border-blue-600");
+                tab.classList.remove("tab-locked");
+            } else {
+                tab.classList.replace("border-blue-600", "border-transparent");
+                tab.classList.add("tab-locked");
+            }
+        });
+
+        // Show only the first tab content
+        document.querySelectorAll(".reg-content").forEach((content, i) => {
+            if (i === 0) {
+                content.classList.remove("hidden");
+            } else {
+                content.classList.add("hidden");
+            }
+        });
+
+        // Reset buttons
+        document.getElementById("nextToSheet").classList.remove("hidden");
+        document.getElementById("submitRegistration").classList.add("hidden");
+    }
 });
-
-// Resets the entire volunteer registration form to its default state
-function resetVolunteerForm() {
-    // Clear all form inputs (text, email, tel, date, file, textarea, select)
-    document.querySelectorAll(
-            '#registrationModal input[type="text"], ' +
-                '#registrationModal input[type="email"], ' +
-                '#registrationModal input[type="tel"], ' +
-                '#registrationModal input[type="date"], ' +
-                '#registrationModal input[type="month"], ' +
-                '#registrationModal input[type="file"], ' +
-                "#registrationModal textarea, " +
-                "#registrationModal select"
-        )
-        .forEach((el) => (el.value = ""));
-
-    // Uncheck all checkboxes and radio buttons
-    document.querySelectorAll('#registrationModal input[type="checkbox"], #registrationModal input[type="radio"]').forEach((el) => (el.checked = false));
-
-    // Reset profile picture preview and hide remove button
-    const profilePreview = document.getElementById("profilePreview");
-    const removeBtn = document.getElementById("removeProfilePicture");
-    if (profilePreview) {
-        profilePreview.src =
-            "data:image/svg+xml,%3csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100' height='100' fill='%23f3f4f6'/%3e%3ctext x='50%25' y='50%25' font-size='14' text-anchor='middle' alignment-baseline='middle' fill='%23374151'%3eNo Image%3c/text%3e%3c/svg%3e";
-    }
-    if (removeBtn) {
-        removeBtn.classList.add("hidden");
-    }
-
-    // Hide the "other" input for civil status if shown
-    const otherInput = document.getElementById("civilOtherInput");
-    if (otherInput) otherInput.classList.add("hidden");
-
-    // Reset tab styles: activate the first tab and lock the others
-    document.querySelectorAll(".reg-tab").forEach((tab, i) => {
-        if (i === 0) {
-            tab.classList.replace("border-transparent", "border-blue-600");
-            tab.classList.remove("tab-locked");
-        } else {
-            tab.classList.replace("border-blue-600", "border-transparent");
-            tab.classList.add("tab-locked");
-        }
-    });
-
-    // Show only the first tab content section
-    document.querySelectorAll(".reg-content").forEach((content, i) => {
-        if (i === 0) {
-            content.classList.remove("hidden");
-        } else {
-            content.classList.add("hidden");
-        }
-    });
-
-    // Ensure the "Next" button is visible and "Register" is hidden
-    document.getElementById("nextToSheet")?.classList.remove("hidden");
-    document.getElementById("submitRegistration")?.classList.add("hidden");
-
-    // Scroll the form modal to the top for better UX
-    document.querySelector("#registrationModal .overflow-y-auto")?.scrollTo(0, 0);
-}
-

@@ -14,6 +14,7 @@ return new class extends Migration
         // basic info
         Schema::create('volunteers', function (Blueprint $table) {
             $table->id();
+            $table->string('volunteer_id')->unique();
             $table->string('nickname')->nullable();
             $table->date('date_of_birth')->nullable();
             $table->enum('sex', ['Male', 'Female']);
@@ -22,8 +23,8 @@ return new class extends Migration
             $table->string('email_address')->nullable();
             $table->string('occupation')->nullable();
             $table->enum('civil_status', ['Single', 'Married', 'Widow/er', 'Separated', 'Church', 'Civil', 'Others'])->nullable();
-            $table->json('sacraments_received')->nullable(); 
-            $table->json('formations_received')->nullable(); 
+            $table->json('sacraments_received')->nullable();
+            $table->json('formations_received')->nullable();
             $table->string('profile_picture')->nullable();
             $table->timestamps();
             // archive

@@ -12,6 +12,7 @@ class Volunteer extends Model
 {
     use HasFactory;
     protected $fillable = [
+        'volunteer_id',
         'nickname',
         'date_of_birth',
         'sex',
@@ -34,6 +35,16 @@ class Volunteer extends Model
         'date_of_birth' => 'date',
         'archived_at' => 'datetime',
     ];
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($volunteer) {
+            if (empty($volunteer->volunteer_id)) {
+                $volunteer->volunteer_id = 'VOL-' . strtoupper(Str::random(6));
+            }
+        });
+    }
     protected $appends = ['profile_picture_url'];
 
     // Volunteer.php (getProfilePictureUrlAttribute)

@@ -158,15 +158,17 @@ class VolunteersController extends Controller
             $email = strtolower(trim($request->email));
             $fullName = "{$firstName} {$middleInitial} {$lastName}";
             $birthDate = $request->dob;
+            $volunteerId = $request->volunteer_id ?: 'VOL-' . strtoupper(Str::random(6));
 
             // Check for existing volunteer by name + birthdate OR email
             $duplicate = Volunteer::where('email_address', $email)
-                ->whereHas('detail', function ($q) use ($fullName) {
-                    $q->where('full_name', $fullName);
+                ->orWhere('volunteer_id', $volunteerId)
+                ->orWhere(function ($q) use ($fullName, $birthDate) {
+                    $q->whereHas('detail', function ($q) use ($fullName) {
+                        $q->where('full_name', $fullName);
+                    })->whereDate('date_of_birth', $birthDate);
                 })
-                ->whereDate('date_of_birth', $birthDate)
                 ->exists();
-
 
             if ($duplicate) {
                 return response()->json([
@@ -190,8 +192,15 @@ class VolunteersController extends Controller
                 : $request->civil_status;
             $civilStatus = Str::title($civilStatus);
 
+            // Handle formations
+            $formations = $request->formations ?? [];
+            if ($request->other_formation) {
+                $formations[] = $request->other_formation;
+            }
+
             // Create volunteer
             $volunteer = Volunteer::create([
+                'volunteer_id' => $volunteerId,
                 'nickname' => $nickname,
                 'date_of_birth' => $birthDate,
                 'sex' => strtolower($request->sex),
@@ -201,10 +210,8 @@ class VolunteersController extends Controller
                 'occupation' => $occupation,
                 'civil_status' => $civilStatus,
                 'sacraments_received' => $request->sacraments ?? [],
-                'formations_received' => $request->formations ?? [],
+                'formations_received' => $formations,
                 'profile_picture' => $profilePicturePath,
-
-
             ]);
 
             // Create detail
@@ -217,49 +224,48 @@ class VolunteersController extends Controller
                 'volunteer_status' => 'Active',
             ]);
 
-            // Timeline entries - FIXED VERSION
+            // Timeline entries
             $timelineOrgs = $request->timeline_org ?? [];
             $timelineStartYears = $request->timeline_start_year ?? [];
             $timelineEndYears = $request->timeline_end_year ?? [];
             $timelineTotals = $request->timeline_total ?? [];
-            $timelineActives = $request->timeline_active ?? [];
 
             foreach ($timelineOrgs as $i => $org) {
                 if (!empty(trim($org))) {
                     $orgName = Str::title(trim($org));
-                    $startYear = !empty($timelineStartYears[$i]) ? (int) $timelineStartYears[$i] : null;
-                    $endYear = !empty($timelineEndYears[$i]) ? (int) $timelineEndYears[$i] : null;
-                    $total = isset($timelineTotals[$i]) ? trim($timelineTotals[$i]) : '';
-                    $totalYears = !empty($total) ? (int) filter_var($total, FILTER_SANITIZE_NUMBER_INT) : null;
-                    $isActive = isset($timelineActives[$i]) && $timelineActives[$i] === 'Y';
+                    $startYear = !empty($timelineStartYears[$i]) ? $timelineStartYears[$i] : null;
+                    $endYear = !empty($timelineEndYears[$i]) ? $timelineEndYears[$i] : null;
+                    $totalYears = isset($timelineTotals[$i]) ? $timelineTotals[$i] : null;
+                    $isActive = $endYear === 'present';
 
                     $volunteer->timelines()->create([
                         'organization_name' => $orgName,
                         'year_started' => $startYear,
-                        'year_ended' => $endYear,
+                        'year_ended' => $isActive ? null : $endYear,
                         'total_years' => $totalYears,
                         'is_active' => $isActive,
                     ]);
                 }
             }
 
-            // Affiliations - FIXED VERSION
+            // Affiliations
             $affilOrgs = $request->affil_org ?? [];
             $affilStartYears = $request->affil_start_year ?? [];
             $affilEndYears = $request->affil_end_year ?? [];
-            $affilActives = $request->affil_active ?? [];
+            $affilTotals = $request->affil_total ?? [];
 
             foreach ($affilOrgs as $i => $org) {
                 if (!empty(trim($org))) {
                     $orgName = Str::title(trim($org));
-                    $startYear = !empty($affilStartYears[$i]) ? (int) $affilStartYears[$i] : null;
-                    $endYear = !empty($affilEndYears[$i]) ? (int) $affilEndYears[$i] : null;
-                    $isActive = isset($affilActives[$i]) && $affilActives[$i] === 'Y';
+                    $startYear = !empty($affilStartYears[$i]) ? $affilStartYears[$i] : null;
+                    $endYear = !empty($affilEndYears[$i]) ? $affilEndYears[$i] : null;
+                    $totalYears = isset($affilTotals[$i]) ? $affilTotals[$i] : null;
+                    $isActive = $endYear === 'present';
 
                     $volunteer->affiliations()->create([
                         'organization_name' => $orgName,
                         'year_started' => $startYear,
-                        'year_ended' => $endYear,
+                        'year_ended' => $isActive ? null : $endYear,
                         'is_active' => $isActive,
                     ]);
                 }

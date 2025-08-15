@@ -46,6 +46,7 @@
     #field-email_address-display {
         scrollbar-width: thin;
     }
+
     #archive-modal {
         display: flex;
         align-items: center;
@@ -54,22 +55,20 @@
         pointer-events: none;
         transition: opacity 0.3s ease;
     }
-    
+
     #archive-modal.active {
         opacity: 1;
         pointer-events: all;
     }
-    
+
     #archive-modal .modal-container {
         transform: translateY(-20px);
         transition: transform 0.3s ease;
     }
-    
+
     #archive-modal.active .modal-container {
         transform: translateY(0);
     }
-   
-
 </style>
 @endsection
 
@@ -77,7 +76,7 @@
 @include('components.navs')
 
 <div class="min-h-screen pt-16 md:pl-64 bg-gradient-to-b from-white to-slate-50">
-      <div class="flex-1 flex flex-col overflow-auto p-6">
+    <div class="flex-1 flex flex-col overflow-auto p-6">
         <!-- Header -->
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">Volunteer Directory</h1>
@@ -182,10 +181,8 @@
         </div>
     </div>
 
-    <!-- Registration Modal -->
     <div id="registrationModal" class="fixed inset-0 hidden items-center justify-center modal-bg z-50">
         <div class="bg-white rounded-xl w-full max-w-2xl p-8 relative max-h-[90vh] overflow-y-auto shadow-lg min-h-[500px]">
-
             <!-- Close Button -->
             <button id="closeRegistration" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -201,13 +198,20 @@
                 <button class="reg-tab text-sm font-medium px-4 py-2 border-b-2 border-blue-600 text-blue-600"
                     data-tab="personal" data-step="1">Basic Info</button>
                 <button class="reg-tab text-sm font-medium px-4 py-2 border-b-2 border-transparent text-gray-500 tab-locked"
-                    data-tab="sheet" data-step="2">Info Sheet</button>
+                    data-tab="sheet" data-step="2">Volunteer's Info</button>
             </div>
 
             <div id="regTabContent">
                 <!-- Basic Info -->
                 <div class="reg-content" id="tab-personal">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Volunteer ID -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Volunteer ID</label>
+                            <input name="volunteer_id" type="text" placeholder="VOL-XXXXXX"
+                                class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+                        </div>
+
                         <!-- Profile Picture Upload Section -->
                         <div class="col-span-full">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Profile Picture</label>
@@ -246,6 +250,19 @@
                             </div>
                         </div>
 
+                        <!-- Full Name -->
+                        <div class="col-span-full">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                <input type="text" name="last_name" placeholder="Last Name" required
+                                    class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+                                <input type="text" name="first_name" placeholder="First Name" required
+                                    class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+                                <input type="text" name="middle_initial" placeholder="M.I."
+                                    class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+                            </div>
+                        </div>
+
                         <div class="col-span-full">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Nickname</label>
                             <input name="nickname" type="text" placeholder="e.g. Chaz"
@@ -262,7 +279,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Sex</label>
                             <div class="flex gap-4 mt-1">
                                 <label class="inline-flex items-center text-sm">
-                                    <input type="radio" name="sex" value="male"
+                                    <input type="radio" name="sex" value="male" required
                                         class="form-radio text-blue-600">
                                     <span class="ml-2">Male</span>
                                 </label>
@@ -304,7 +321,7 @@
                         <div class="grid grid-cols-2 gap-2">
                             @foreach (['single', 'married', 'widower', 'separated', 'others'] as $status)
                             <label class="inline-flex items-center text-sm">
-                                <input type="radio" name="civil_status" value="{{ $status }}"
+                                <input type="radio" name="civil_status" value="{{ $status }}" required
                                     class="form-radio mr-2">
                                 {{ ucfirst($status) }}
                             </label>
@@ -315,7 +332,7 @@
                     <div class="mt-6">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Sacrament/s Received</label>
                         <div class="grid grid-cols-3 gap-3 text-sm">
-                            @foreach (['baptism', 'first_communion', 'confirmation'] as $sacrament)
+                            @foreach (['baptism', 'first_communion', 'confirmation', 'marriage'] as $sacrament)
                             <label class="inline-flex items-center">
                                 <input type="checkbox" name="sacraments[]" value="{{ $sacrament }}"
                                     class="form-checkbox mr-2">
@@ -324,28 +341,14 @@
                             @endforeach
                         </div>
                     </div>
-
-                    <div class="mt-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Formations Received</label>
-                        <div class="flex flex-col gap-2 text-sm mt-2">
-                            <label class="inline-flex items-center">
-                                <input type="checkbox" name="formations[]" value="BOS" class="form-checkbox mr-2">
-                                Basic Orientation Seminar (BOS)
-                            </label>
-                            <label class="inline-flex items-center">
-                                <input type="checkbox" name="formations[]" value="BFF" class="form-checkbox mr-2">
-                                Basic Faith Formation (BFF)
-                            </label>
-                        </div>
-                    </div>
                 </div>
-                <!-- Info Sheet -->
+
+                <!-- Volunteer's Info -->
                 <div class="reg-content hidden space-y-6" id="tab-sheet">
                     <!-- Ministry Select -->
                     <div>
                         <label for="reg-ministry" class="block text-sm font-medium text-gray-700 mb-1">Ministry</label>
                         <select id="reg-ministry" name="ministry_id" class="pl-10 pr-3 py-2 border rounded w-full h-12">
-
                             <option value="">-- Select Ministry --</option>
                             @foreach ($ministries as $main)
                             <optgroup label="{{ $main->ministry_name }}">
@@ -369,46 +372,52 @@
                     <!-- Applied & Duration -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label for="reg-applied-date" class="block text-sm font-medium text-gray-700 mb-1">Month &
-                                Year Applied</label>
+                            <label for="reg-applied-date" class="block text-sm font-medium text-gray-700 mb-1">Month & Year Started</label>
                             <input id="reg-applied-date" name="applied_date" type="month"
                                 class="w-full border rounded px-3 py-2">
                         </div>
                         <div>
-                            <label for="reg-regular-duration" class="block text-sm font-medium text-gray-700 mb-1">Years
-                                as Regular Volunteer</label>
+                            <label for="reg-regular-duration" class="block text-sm font-medium text-gray-700 mb-1">Years as Regular Volunteer</label>
                             <input id="reg-regular-duration" name="regular_duration" type="text"
                                 placeholder="e.g. 1 yr 6 mos" class="w-full border rounded px-3 py-2">
                         </div>
                     </div>
 
-                    <!-- Full Name -->
+                    <!-- Formation Received -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-                            <input type="text" name="last_name" placeholder="Last Name"
-                                class="w-full border rounded px-3 py-2">
-                            <input type="text" name="first_name" placeholder="First Name"
-                                class="w-full border rounded px-3 py-2">
-                            <input type="text" name="middle_initial" placeholder="M.I."
-                                class="w-full border rounded px-3 py-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Formation Received</label>
+                        <div class="flex flex-col gap-2 text-sm mt-2">
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="formations[]" value="BOS" class="form-checkbox mr-2">
+                                Basic Orientation Seminar (BOS)
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="formations[]" value="Diocesan Basic Formation" class="form-checkbox mr-2">
+                                Diocesan Basic Formation
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="formations[]" value="Safeguarding Policy" class="form-checkbox mr-2">
+                                Safeguarding Policy
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="other_formation_check" class="form-checkbox">
+                                <input type="text" name="other_formation" id="other_formation_input"
+                                    placeholder="Other Formation" class="w-full border rounded px-3 py-2 text-sm" disabled>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Timeline -->
                     <div>
                         <h3 class="font-semibold text-sm mb-2">Volunteer Timeline</h3>
-                        <p class="text-xs text-gray-500 mb-2">Please indicate all Organization/Ministry you belong to in
-                            the Shrine</p>
-                        <div class="space-y-3">
-                            @for ($i = 0; $i < 3; $i++)
-                                <div class="grid grid-cols-1 md:grid-cols-4 gap-2 items-center">
+                        <p class="text-xs text-gray-500 mb-2">Please indicate all Organization/Ministry you belong to in the Shrine</p>
+                        <div id="timeline-container" class="space-y-3">
+                            <div class="timeline-entry grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
                                 <input type="text" name="timeline_org[]" placeholder="Organization/Ministry"
-                                    class="border rounded px-3 py-2 col-span-1 md:col-span-1">
+                                    class="border rounded px-3 py-2 col-span-1">
                                 <div class="flex gap-2 col-span-1">
                                     <select name="timeline_start_year[]"
-                                        class="border rounded px-2 py-2 w-full year-select"
-                                        data-row="{{ $i }}">
+                                        class="border rounded px-2 py-2 w-full year-select">
                                         <option value="">Start Year</option>
                                         @for ($y = date('Y'); $y >= 1980; $y--)
                                         <option value="{{ $y }}">{{ $y }}</option>
@@ -416,90 +425,78 @@
                                     </select>
                                     <span class="flex items-center text-sm">–</span>
                                     <select name="timeline_end_year[]"
-                                        class="border rounded px-2 py-2 w-full year-select"
-                                        data-row="{{ $i }}">
+                                        class="border rounded px-2 py-2 w-full year-select">
                                         <option value="">End Year</option>
+                                        <option value="present">Present</option>
                                         @for ($y = date('Y'); $y >= 1980; $y--)
                                         <option value="{{ $y }}">{{ $y }}</option>
                                         @endfor
                                     </select>
                                 </div>
-                                <input type="number" name="timeline_total[]" min="0" class="w-full border rounded px-3 py-2 total-years" placeholder="Total" readonly>
-                                <select name="timeline_active[]" class="border rounded px-3 py-2">
-                                    <option value="">is active?</option>
-                                    <option value="Y">Y</option>
-                                    <option value="N">N</option>
-                                </select>
-                        </div>
-                        @endfor
-                    </div>
-                </div>
-
-                <!-- Other Affiliations -->
-                <div>
-                    <h3 class="font-semibold text-sm mb-2">Other Affiliations</h3>
-                    <p class="text-xs text-gray-500 mb-2">Please indicate any Organization/Ministry outside the Shrine
-                    </p>
-                    <div class="space-y-3">
-                        @for ($i = 0; $i < 3; $i++)
-                            <div class="grid grid-cols-1 md:grid-cols-4 gap-2 items-center">
-                            <input type="text" name="affil_org[]" placeholder="Organization/Ministry"
-                                class="border rounded px-3 py-2 col-span-1 md:col-span-1">
-
-                            <div class="flex gap-2 col-span-1">
-                                <select name="affil_start_year[]"
-                                    class="border rounded px-2 py-2 w-full year-select"
-                                    data-row="{{ $i }}">
-                                    <option value="">Start Year</option>
-                                    @for ($y = date('Y'); $y >= 1980; $y--)
-                                    <option value="{{ $y }}">{{ $y }}</option>
-                                    @endfor
-                                </select>
-
-                                <span class="flex items-center text-sm">–</span>
-
-                                <select name="affil_end_year[]"
-                                    class="border rounded px-2 py-2 w-full year-select"
-                                    data-row="{{ $i }}">
-                                    <option value="">End Year</option>
-                                    @for ($y = date('Y'); $y >= 1980; $y--)
-                                    <option value="{{ $y }}">{{ $y }}</option>
-                                    @endfor
-                                </select>
+                                <input type="number" name="timeline_total[]" min="0"
+                                    class="w-full border rounded px-3 py-2 total-years" placeholder="Total" readonly>
                             </div>
-
-                            <input type="number" name="affil_total[]" min="0" placeholder="Total"
-                                class="w-full border rounded px-3 py-2 total-years" readonly>
-
-                            <select name="affil_active[]" class="border rounded px-3 py-2">
-                                <option value="">is active?</option>
-                                <option value="Y">Y</option>
-                                <option value="N">N</option>
-                            </select>
+                        </div>
+                        <button type="button" id="add-timeline" class="mt-2 px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">
+                            + Add Another Timeline Entry
+                        </button>
                     </div>
-                    @endfor
+
+                    <!-- Other Affiliations -->
+                    <div>
+                        <h3 class="font-semibold text-sm mb-2">Other Affiliations</h3>
+                        <p class="text-xs text-gray-500 mb-2">Please indicate any Organization/Ministry outside the Shrine</p>
+                        <div id="affiliations-container" class="space-y-3">
+                            <div class="affiliation-entry grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+                                <input type="text" name="affil_org[]" placeholder="Organization/Ministry"
+                                    class="border rounded px-3 py-2 col-span-1">
+                                <div class="flex gap-2 col-span-1">
+                                    <select name="affil_start_year[]"
+                                        class="border rounded px-2 py-2 w-full year-select">
+                                        <option value="">Start Year</option>
+                                        @for ($y = date('Y'); $y >= 1980; $y--)
+                                        <option value="{{ $y }}">{{ $y }}</option>
+                                        @endfor
+                                    </select>
+                                    <span class="flex items-center text-sm">–</span>
+                                    <select name="affil_end_year[]"
+                                        class="border rounded px-2 py-2 w-full year-select">
+                                        <option value="">End Year</option>
+                                        <option value="present">Present</option>
+                                        @for ($y = date('Y'); $y >= 1980; $y--)
+                                        <option value="{{ $y }}">{{ $y }}</option>
+                                        @endfor
+                                    </select>
+                                </div>
+                                <input type="number" name="affil_total[]" min="0"
+                                    class="w-full border rounded px-3 py-2 total-years" placeholder="Total" readonly>
+                            </div>
+                        </div>
+                        <button type="button" id="add-affiliation" class="mt-2 px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">
+                            + Add Another Affiliation
+                        </button>
+                    </div>
                 </div>
             </div>
+
+            <!-- Modal Footer -->
+            <div class="mt-8 flex justify-end gap-3">
+                <button id="cancelRegistration"
+                    class="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 transition">
+                    Cancel
+                </button>
+                <button id="nextToSheet"
+                    class="px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 transition">
+                    Next
+                </button>
+                <button id="submitRegistration"
+                    class="hidden px-4 py-2 text-sm rounded-md bg-green-600 text-white hover:bg-green-700 transition">
+                    Register Volunteer
+                </button>
+            </div>
         </div>
-
     </div>
 
-    <!-- Modal Footer -->
-    <div class="mt-8 flex justify-end gap-3">
-        <button id="cancelRegistration"
-            class="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 transition">
-            Cancel
-        </button>
-        <button id="nextToSheet"
-            class="px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 transition">
-            Next
-        </button>
-        <button id="submitRegistration"
-            class="hidden px-4 py-2 text-sm rounded-md bg-green-600 text-white hover:bg-green-700 transition">
-            Register Volunteer
-        </button>
-    </div>
-</div>
 </div>
 
 <div id="profileModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-40 z-50">
