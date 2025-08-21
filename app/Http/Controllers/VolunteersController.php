@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
+use App\Http\Controllers\Storage;
 
 use Illuminate\Http\Request;
 use App\Models\Volunteer;
@@ -150,6 +151,18 @@ class VolunteersController extends Controller
                 ]);
             }
 
+            // Log the incoming request data (excluding sensitive info)
+            Log::info('Volunteer registration attempt', [
+                'request_data' => $request->except(['profile_picture']),
+                'formations_received' => $request->formations,
+                'bos_year' => $request->bos_year,
+                'diocesan_year' => $request->diocesan_year,
+                'safeguarding_year' => $request->safeguarding_year,
+                'other_formation_check' => $request->other_formation_check,
+                'other_formation' => $request->other_formation,
+                'other_formation_year' => $request->other_formation_year
+            ]);
+
             // Normalize inputs
             $firstName = Str::title(trim($request->first_name));
             $lastName = Str::title(trim($request->last_name));
@@ -171,6 +184,13 @@ class VolunteersController extends Controller
                 ->exists();
 
             if ($duplicate) {
+                Log::warning('Duplicate volunteer registration attempt', [
+                    'email' => $email,
+                    'volunteer_id' => $volunteerId,
+                    'full_name' => $fullName,
+                    'date_of_birth' => $birthDate
+                ]);
+
                 return response()->json([
                     'message' => 'Volunteer already exists with the same name and birthdate or email.',
                 ], 409);
@@ -179,27 +199,89 @@ class VolunteersController extends Controller
             // Handle profile picture upload
             $profilePicturePath = null;
             if ($request->hasFile('profile_picture')) {
-                $file = $request->file('profile_picture');
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $profilePicturePath = $file->storeAs('profile_pictures', $filename, 'public');
+                try {
+                    $file = $request->file('profile_picture');
+                    $filename = time() . '_' . $file->getClientOriginalName();
+                    $profilePicturePath = $file->storeAs('profile_pictures', $filename, 'public');
+                    Log::info('Profile picture uploaded successfully', ['path' => $profilePicturePath]);
+                } catch (\Exception $e) {
+                    Log::error('Profile picture upload failed', [
+                        'error' => $e->getMessage(),
+                        'filename' => $file->getClientOriginalName()
+                    ]);
+                    throw $e;
+                }
             }
 
             // Normalize other fields
             $address = Str::title(trim($request->address));
             $occupation = Str::title(trim($request->occupation));
+            $civilStatusMap = [
+                'widower' => 'Widow/er',
+                // Add other mappings if needed
+            ];
+
             $civilStatus = $request->civil_status === 'others'
                 ? ($request->civil_status_other ?: 'Others')
                 : $request->civil_status;
-            $civilStatus = Str::title($civilStatus);
 
-            // Handle formations
-            $formations = $request->formations ?? [];
-            if ($request->other_formation) {
-                $formations[] = $request->other_formation;
+            // Map to database values
+            if (array_key_exists(strtolower($civilStatus), $civilStatusMap)) {
+                $civilStatus = $civilStatusMap[strtolower($civilStatus)];
+            } else {
+                $civilStatus = Str::title($civilStatus);
             }
 
+            // Handle formations with years - FIXED VERSION
+            $formations = [];
+
+            // Process predefined formations with years
+            $formationMappings = [
+                'BOS' => $request->bos_year,
+                'Diocesan Basic Formation' => $request->diocesan_year,
+                'Safeguarding Policy' => $request->safeguarding_year
+            ];
+
+            Log::info('Processing formations', [
+                'request_formations' => $request->formations,
+                'formation_mappings' => $formationMappings,
+                'other_formation_check' => $request->other_formation_check,
+                'other_formation' => $request->other_formation,
+                'other_formation_year' => $request->other_formation_year
+            ]);
+
+            // Process standard formations
+            if ($request->has('formations') && is_array($request->formations)) {
+                foreach ($request->formations as $formation) {
+                    // Skip "Other Formation" as it's handled separately
+                    if ($formation === 'Other Formation') {
+                        continue;
+                    }
+
+                    // Check if this formation has a corresponding year
+                    if (array_key_exists($formation, $formationMappings)) {
+                        $year = $formationMappings[$formation];
+                        $formations[] = $year ? "{$formation} ({$year})" : $formation;
+                    } else {
+                        $formations[] = $formation;
+                    }
+                }
+            }
+
+            // Process other formation separately - FIXED
+            if ($request->other_formation_check == '1' && !empty($request->other_formation)) {
+                $otherFormation = trim($request->other_formation);
+                $otherYear = $request->other_formation_year;
+
+                if (!empty($otherFormation)) {
+                    $formations[] = $otherYear ? "{$otherFormation} ({$otherYear})" : $otherFormation;
+                }
+            }
+
+            Log::info('Formations processed', ['formations' => $formations]);
+
             // Create volunteer
-            $volunteer = Volunteer::create([
+            $volunteerData = [
                 'volunteer_id' => $volunteerId,
                 'nickname' => $nickname,
                 'date_of_birth' => $birthDate,
@@ -212,17 +294,24 @@ class VolunteersController extends Controller
                 'sacraments_received' => $request->sacraments ?? [],
                 'formations_received' => $formations,
                 'profile_picture' => $profilePicturePath,
-            ]);
+            ];
+
+            Log::info('Creating volunteer with data', ['volunteer_data' => $volunteerData]);
+
+            $volunteer = Volunteer::create($volunteerData);
 
             // Create detail
-            $volunteer->detail()->create([
+            $detailData = [
                 'ministry_id' => $request->ministry_id,
                 'line_group' => $request->ministry_id,
                 'applied_month_year' => $request->applied_date,
                 'regular_years_month' => $request->regular_duration,
                 'full_name' => $fullName,
                 'volunteer_status' => 'Active',
-            ]);
+            ];
+
+            Log::info('Creating volunteer detail', ['detail_data' => $detailData]);
+            $volunteer->detail()->create($detailData);
 
             // Timeline entries
             $timelineOrgs = $request->timeline_org ?? [];
@@ -271,16 +360,28 @@ class VolunteersController extends Controller
                 }
             }
 
+            Log::info('Volunteer registered successfully', [
+                'volunteer_id' => $volunteer->id,
+                'volunteer_number' => $volunteer->volunteer_id
+            ]);
+
             return response()->json(['message' => 'Volunteer registered successfully.']);
         } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Volunteer registration validation failed', [
+                'errors' => $e->errors(),
+                'request_data' => $request->except(['profile_picture'])
+            ]);
+
             return response()->json([
                 'message' => 'Validation failed',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Throwable $e) {
             Log::error('Volunteer registration error: ' . $e->getMessage(), [
-                'request_data' => $request->all(),
-                'trace' => $e->getTraceAsString()
+                'request_data' => $request->except(['profile_picture']),
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
             ]);
 
             return response()->json([
@@ -416,6 +517,90 @@ class VolunteersController extends Controller
         } catch (\Throwable $e) {
             Log::error('Update error: ' . $e->getMessage());
             return response()->json(['error' => 'Failed to update volunteer.'], 500);
+        }
+    }
+
+    public function updateProfilePicture(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            ]);
+
+            $volunteer = Volunteer::findOrFail($id);
+
+            if ($request->hasFile('profile_picture')) {
+                $file = $request->file('profile_picture');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('profile_pictures', $filename, 'public');
+
+                // Delete old picture if exists
+                if ($volunteer->profile_picture) {
+                    Storage::disk('public')->delete($volunteer->profile_picture);
+                }
+
+                $volunteer->profile_picture = $path;
+                $volunteer->save();
+            }
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            Log::error('Profile picture update error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Failed to update profile picture'], 500);
+        }
+    }
+
+    public function updateTimeline(Request $request, $id)
+    {
+        try {
+            $volunteer = Volunteer::findOrFail($id);
+            $data = $request->validate([
+                'index' => 'required|integer',
+                'data.organization_name' => 'required|string|max:255',
+                'data.year_started' => 'nullable|integer',
+                'data.year_ended' => 'nullable|string',
+                'data.total_years' => 'nullable|integer',
+            ]);
+
+            $timeline = $volunteer->timelines[$data['index']] ?? null;
+
+            if ($timeline) {
+                $timeline->update($data['data']);
+            } else {
+                $volunteer->timelines()->create($data['data']);
+            }
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            Log::error('Timeline update error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Failed to update timeline'], 500);
+        }
+    }
+
+    public function updateAffiliation(Request $request, $id)
+    {
+        try {
+            $volunteer = Volunteer::findOrFail($id);
+            $data = $request->validate([
+                'index' => 'required|integer',
+                'data.organization_name' => 'required|string|max:255',
+                'data.year_started' => 'nullable|integer',
+                'data.year_ended' => 'nullable|string',
+                'data.is_active' => 'nullable|boolean',
+            ]);
+
+            $affiliation = $volunteer->affiliations[$data['index']] ?? null;
+
+            if ($affiliation) {
+                $affiliation->update($data['data']);
+            } else {
+                $volunteer->affiliations()->create($data['data']);
+            }
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            Log::error('Affiliation update error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Failed to update affiliation'], 500);
         }
     }
     public function archive(Request $request, $id)

@@ -34,10 +34,10 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index']);
     // 
     // Task Management Routes
-     Route::prefix('attendance')->group(function () {
+    Route::prefix('attendance')->group(function () {
         Route::get('/', [AttendanceController::class, 'index']);
     });
-    
+
     Route::prefix('tasks')->group(function () {
         Route::get('/', [TasksController::class, 'index'])->name('tasks.index');
         Route::post('/', [TasksController::class, 'store'])->name('tasks.store');
@@ -93,6 +93,10 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
         Route::get('/{id}/edit', [VolunteersController::class, 'edit'])->name('volunteers.edit');
         Route::put('/{id}', [VolunteersController::class, 'update'])->name('volunteers.update');
         // Route::delete('/{id}', [VolunteersController::class, 'destroy'])->name('volunteers.destroy');
+        Route::post('/{volunteer}/timeline', [VolunteersController::class, 'updateTimeline'])->name('volunteers.timeline.update');
+        Route::post('/{volunteer}/affiliation', [VolunteersController::class, 'updateAffiliation'])->name('volunteers.affiliation.update');
+        Route::post('/{volunteer}/picture', [VolunteersController::class, 'updateProfilePicture'])->name('volunteers.picture.update');
+
         Route::post('/{volunteer}/archive', [VolunteersController::class, 'archive'])->name('volunteers.archive');
         Route::post('/{volunteer}/restore', [VolunteersController::class, 'restore']);
         Route::delete('/{volunteer}/force-delete', [VolunteersController::class, 'forceDelete'])->name('volunteers.forceDelete');

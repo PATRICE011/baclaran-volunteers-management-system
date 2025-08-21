@@ -96,14 +96,65 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-    // Other Formation checkbox handler
-    document
-        .getElementById("other_formation_check")
-        .addEventListener("change", function () {
-            const otherInput = document.getElementById("other_formation_input");
-            otherInput.disabled = !this.checked;
-            if (!this.checked) otherInput.value = "";
+    // Formation checkbox handlers
+    function setupFormationHandlers() {
+        // BOS
+        const bosCheckbox = document.querySelector(
+            'input[name="formations[]"][value="BOS"]'
+        );
+        const bosYear = document.querySelector('select[name="bos_year"]');
+
+        bosCheckbox.addEventListener("change", function () {
+            bosYear.disabled = !this.checked;
+            if (!this.checked) bosYear.value = "";
         });
+
+        // Diocesan Basic Formation
+        const diocesanCheckbox = document.querySelector(
+            'input[name="formations[]"][value="Diocesan Basic Formation"]'
+        );
+        const diocesanYear = document.querySelector(
+            'select[name="diocesan_year"]'
+        );
+
+        diocesanCheckbox.addEventListener("change", function () {
+            diocesanYear.disabled = !this.checked;
+            if (!this.checked) diocesanYear.value = "";
+        });
+
+        // Safeguarding Policy
+        const safeguardingCheckbox = document.querySelector(
+            'input[name="formations[]"][value="Safeguarding Policy"]'
+        );
+        const safeguardingYear = document.querySelector(
+            'select[name="safeguarding_year"]'
+        );
+
+        safeguardingCheckbox.addEventListener("change", function () {
+            safeguardingYear.disabled = !this.checked;
+            if (!this.checked) safeguardingYear.value = "";
+        });
+
+        // Other Formation
+        const otherFormationCheckbox = document.getElementById(
+            "other_formation_check"
+        );
+        const otherFormationInput = document.getElementById(
+            "other_formation_input"
+        );
+        const otherFormationYear = document.getElementById(
+            "other_formation_year"
+        );
+
+        otherFormationCheckbox.addEventListener("change", function () {
+            otherFormationInput.disabled = !this.checked;
+            otherFormationYear.disabled = !this.checked;
+            if (!this.checked) {
+                otherFormationInput.value = "";
+                otherFormationYear.value = "";
+            }
+        });
+    }
 
     // Add timeline entry
     document
@@ -173,6 +224,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Initial attachment of year calculators
     attachYearCalculators();
+    setupFormationHandlers();
 
     // Handle "Next" button click from Basic Info to Volunteer's Info
     document.getElementById("nextToSheet")?.addEventListener("click", () => {
@@ -249,6 +301,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Submit registration form
+    // In your add_volunteer.js file, replace the formation handling section in submitRegistration with this:
+
+    // Submit registration form
     document
         .getElementById("submitRegistration")
         .addEventListener("click", () => {
@@ -277,12 +332,44 @@ document.addEventListener("DOMContentLoaded", function () {
                 "last_name",
                 "first_name",
                 "middle_initial",
+                "bos_year",
+                "diocesan_year",
+                "safeguarding_year",
             ];
 
             fields.forEach((name) => {
                 const el = document.querySelector(`[name="${name}"]`);
                 if (el) formData.append(name, el.value);
             });
+
+            // Handle Other Formation properly
+            const otherFormationCheckbox = document.getElementById(
+                "other_formation_check"
+            );
+            const otherFormationInput = document.getElementById(
+                "other_formation_input"
+            );
+            const otherFormationYear = document.getElementById(
+                "other_formation_year"
+            );
+
+            // Add other formation checkbox status
+            formData.append(
+                "other_formation_check",
+                otherFormationCheckbox.checked ? "1" : "0"
+            );
+
+            // Only add other formation data if checkbox is checked
+            if (otherFormationCheckbox.checked) {
+                formData.append(
+                    "other_formation",
+                    otherFormationInput.value || ""
+                );
+                formData.append(
+                    "other_formation_year",
+                    otherFormationYear.value || ""
+                );
+            }
 
             formData.append(
                 "sex",
@@ -294,25 +381,35 @@ document.addEventListener("DOMContentLoaded", function () {
                     ?.value || ""
             );
 
-            // Sacraments and Formations
-            ["sacraments[]", "formations[]"].forEach((name) => {
-                document
-                    .querySelectorAll(`input[name="${name}"]:checked`)
-                    .forEach((cb) => {
-                        formData.append(name, cb.value);
-                    });
-            });
+            // Sacraments
+            document
+                .querySelectorAll('input[name="sacraments[]"]:checked')
+                .forEach((cb) => {
+                    formData.append("sacraments[]", cb.value);
+                });
 
-            // Add other formation if specified
+            // Formations - Fixed to properly handle all formation types
+            const selectedFormations = [];
+
+            // Check standard formations
+            document
+                .querySelectorAll('input[name="formations[]"]:checked')
+                .forEach((cb) => {
+                    selectedFormations.push(cb.value);
+                });
+
+            // Add other formation if checked and has value
             if (
-                document.getElementById("other_formation_check").checked &&
-                document.getElementById("other_formation_input").value
+                otherFormationCheckbox.checked &&
+                otherFormationInput.value.trim()
             ) {
-                formData.append(
-                    "formations[]",
-                    document.getElementById("other_formation_input").value
-                );
+                selectedFormations.push("Other Formation"); // This will be processed server-side
             }
+
+            // Send all formations
+            selectedFormations.forEach((formation) => {
+                formData.append("formations[]", formation);
+            });
 
             // Timeline
             [
@@ -342,6 +439,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     });
             });
 
+            // Debug: Log form data to console
+            console.log("Form data being sent:");
+            for (let pair of formData.entries()) {
+                console.log(pair[0] + ": " + pair[1]);
+            }
+
             fetch("/volunteers/register", {
                 method: "POST",
                 headers: {
@@ -352,13 +455,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 body: formData,
             })
                 .then((res) =>
-                    res
-                        .json()
-                        .then((body) => ({
-                            ok: res.ok,
-                            status: res.status,
-                            body,
-                        }))
+                    res.json().then((body) => ({
+                        ok: res.ok,
+                        status: res.status,
+                        body,
+                    }))
                 )
                 .then(({ ok, status, body }) => {
                     if (ok) {
@@ -387,7 +488,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     console.error(err);
                 });
         });
-
     // Resets the entire volunteer registration form to its default state
     function resetVolunteerForm() {
         // Clear all form inputs (text, email, tel, date, file, textarea, select)
@@ -422,10 +522,18 @@ document.addEventListener("DOMContentLoaded", function () {
             removeBtn.classList.add("hidden");
         }
 
+        // Reset formation year selects
+        document.querySelectorAll(".formation-year").forEach((select) => {
+            select.disabled = true;
+            select.value = "";
+        });
+
         // Reset other formation input
         document.getElementById("other_formation_check").checked = false;
         document.getElementById("other_formation_input").disabled = true;
         document.getElementById("other_formation_input").value = "";
+        document.getElementById("other_formation_year").disabled = true;
+        document.getElementById("other_formation_year").value = "";
 
         // Reset timeline and affiliations to one entry each
         const timelineContainer = document.getElementById("timeline-container");

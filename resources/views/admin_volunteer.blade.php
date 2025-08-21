@@ -319,7 +319,7 @@
                     <div class="mt-6">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Civil Status</label>
                         <div class="grid grid-cols-2 gap-2">
-                            @foreach (['single', 'married', 'widower', 'separated', 'others'] as $status)
+                            @foreach (['Single', 'Married', 'Widow/er', 'Separated', 'Others'] as $status)
                             <label class="inline-flex items-center text-sm">
                                 <input type="radio" name="civil_status" value="{{ $status }}" required
                                     class="form-radio mr-2">
@@ -386,23 +386,53 @@
                     <!-- Formation Received -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Formation Received</label>
-                        <div class="flex flex-col gap-2 text-sm mt-2">
-                            <label class="inline-flex items-center">
-                                <input type="checkbox" name="formations[]" value="BOS" class="form-checkbox mr-2">
-                                Basic Orientation Seminar (BOS)
-                            </label>
-                            <label class="inline-flex items-center">
-                                <input type="checkbox" name="formations[]" value="Diocesan Basic Formation" class="form-checkbox mr-2">
-                                Diocesan Basic Formation
-                            </label>
-                            <label class="inline-flex items-center">
-                                <input type="checkbox" name="formations[]" value="Safeguarding Policy" class="form-checkbox mr-2">
-                                Safeguarding Policy
-                            </label>
+                        <div class="space-y-3 mt-2">
+                            <!-- BOS -->
                             <div class="flex items-center gap-2">
-                                <input type="checkbox" id="other_formation_check" class="form-checkbox">
-                                <input type="text" name="other_formation" id="other_formation_input"
-                                    placeholder="Other Formation" class="w-full border rounded px-3 py-2 text-sm" disabled>
+                                <input type="checkbox" name="formations[]" value="BOS" class="formation-checkbox">
+                                <span class="text-sm w-48">Basic Orientation Seminar (BOS)</span>
+                                <select name="bos_year" class="formation-year border rounded px-2 py-1 text-sm" disabled>
+                                    <option value="">Select Year</option>
+                                    @for ($y = date('Y'); $y >= 1980; $y--)
+                                    <option value="{{ $y }}">{{ $y }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+
+                            <!-- Diocesan Basic Formation -->
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" name="formations[]" value="Diocesan Basic Formation" class="formation-checkbox">
+                                <span class="text-sm w-48">Diocesan Basic Formation</span>
+                                <select name="diocesan_year" class="formation-year border rounded px-2 py-1 text-sm" disabled>
+                                    <option value="">Select Year</option>
+                                    @for ($y = date('Y'); $y >= 1980; $y--)
+                                    <option value="{{ $y }}">{{ $y }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+
+                            <!-- Safeguarding Policy -->
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" name="formations[]" value="Safeguarding Policy" class="formation-checkbox">
+                                <span class="text-sm w-48">Safeguarding Policy</span>
+                                <select name="safeguarding_year" class="formation-year border rounded px-2 py-1 text-sm" disabled>
+                                    <option value="">Select Year</option>
+                                    @for ($y = date('Y'); $y >= 1980; $y--)
+                                    <option value="{{ $y }}">{{ $y }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+
+                            <!-- Other Formation -->
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="other_formation_check" class="formation-checkbox">
+                                <input type="text" id="other_formation_input" placeholder="Other Formation" class="w-48 border rounded px-2 py-1 text-sm" disabled>
+                                <select id="other_formation_year" class="border rounded px-2 py-1 text-sm" disabled>
+                                    <option value="">Select Year</option>
+                                    @for ($y = date('Y'); $y >= 1980; $y--)
+                                    <option value="{{ $y }}">{{ $y }}</option>
+                                    @endfor
+                                </select>
                             </div>
                         </div>
                     </div>
