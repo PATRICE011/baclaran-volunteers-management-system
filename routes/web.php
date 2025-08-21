@@ -95,6 +95,10 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
         // Route::delete('/{id}', [VolunteersController::class, 'destroy'])->name('volunteers.destroy');
         Route::post('/{volunteer}/timeline', [VolunteersController::class, 'updateTimeline'])->name('volunteers.timeline.update');
         Route::post('/{volunteer}/affiliation', [VolunteersController::class, 'updateAffiliation'])->name('volunteers.affiliation.update');
+        Route::put('/{id}/sacraments', [VolunteersController::class, 'updateSacraments']);
+        Route::put('/{id}/formations', [VolunteersController::class, 'updateFormations']);
+
+
         Route::post('/{volunteer}/picture', [VolunteersController::class, 'updateProfilePicture'])->name('volunteers.picture.update');
 
         Route::post('/{volunteer}/archive', [VolunteersController::class, 'archive'])->name('volunteers.archive');

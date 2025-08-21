@@ -603,6 +603,34 @@ class VolunteersController extends Controller
             return response()->json(['success' => false, 'message' => 'Failed to update affiliation'], 500);
         }
     }
+
+    public function updateSacraments(Request $request, $id)
+    {
+        try {
+            $volunteer = Volunteer::findOrFail($id);
+            $volunteer->sacraments_received = $request->sacraments;
+            $volunteer->save();
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            Log::error('Update sacraments error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Failed to update sacraments'], 500);
+        }
+    }
+
+    public function updateFormations(Request $request, $id)
+    {
+        try {
+            $volunteer = Volunteer::findOrFail($id);
+            $volunteer->formations_received = $request->formations;
+            $volunteer->save();
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            Log::error('Update formations error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Failed to update formations'], 500);
+        }
+    }
     public function archive(Request $request, $id)
     {
         $request->validate(['reason' => 'required|string|max:255']);
