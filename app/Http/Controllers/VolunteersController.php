@@ -639,6 +639,27 @@ class VolunteersController extends Controller
 
             // Update basic info
             if (!empty($request->all())) {
+                // Update volunteer details if they exist in the request
+                if ($volunteer->detail) {
+                    if ($request->has('volunteer_status')) {
+                        $volunteer->detail->volunteer_status = $request->volunteer_status;
+                    }
+                    if ($request->has('ministry_id')) {
+                        $volunteer->detail->ministry_id = $request->ministry_id;
+                    }
+                    if ($request->has('full_name')) {
+                        $volunteer->detail->full_name = $request->full_name;
+                    }
+                    $volunteer->detail->save();
+                }
+
+                // Update volunteer fields (excluding detail fields)
+                $volunteer->fill($request->except(['volunteer_status', 'ministry_id', 'full_name']));
+                $volunteer->save();
+            }
+
+            // Update basic info
+            if (!empty($request->all())) {
                 $volunteer->fill($request->all());
                 $volunteer->save();
             }
