@@ -1,3 +1,21 @@
+let volunteerChanges = {
+    basicInfo: {},
+    timelines: [],
+    affiliations: [],
+    sacraments: [],
+    formations: [],
+};
+
+// Initialize the changes object when opening a profile
+function initializeChanges(volunteerData) {
+    volunteerChanges = {
+        basicInfo: {},
+        timelines: [...(volunteerData.timelines || [])],
+        affiliations: [...(volunteerData.affiliations || [])],
+        sacraments: [...(volunteerData.sacraments_received || [])],
+        formations: [...(volunteerData.formations_received || [])],
+    };
+}
 function renderMinistryOptions(ministries, selectedId = null, level = 0) {
     return ministries
         .map((ministry) => {
@@ -111,6 +129,7 @@ function renderEditableProfile(
     activeTabId = "contact-tab",
     ministriesList = []
 ) {
+    initializeChanges(volunteer);
     const profileContent = document.getElementById("profileContent");
     const displayName =
         volunteer.nickname || volunteer.detail?.full_name || "No Name";
@@ -775,7 +794,7 @@ function generateTimelinesDisplay(timelines) {
                     </div>
                     <div class="flex justify-end gap-2 mt-4">
                         <button onclick="cancelEditTimeline(this)" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
-                        <button onclick="saveTimelineEdit(this, ${index})" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">Save</button>
+                        <button onclick="cancelEditTimeline(this)" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Done</button>
                     </div>
                 </div>
             </div>
@@ -853,7 +872,7 @@ function generateAffiliationsDisplay(affiliations) {
                     </div>
                     <div class="flex justify-end gap-2 mt-4">
                         <button onclick="cancelEditAffiliation(this)" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
-                        <button onclick="saveAffiliationEdit(this, ${index})" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">Save</button>
+                       <button onclick="cancelEditAffiliation(this)" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Done</button>
                     </div>
                 </div>
             </div>
@@ -923,7 +942,7 @@ function generateSacramentsDisplay(sacraments) {
                     </div>
                     <div class="flex justify-end gap-2 mt-4">
                         <button onclick="cancelEditSacrament(this, ${index})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
-                        <button onclick="saveSacramentEdit(this, ${index})" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">Save</button>
+                        <button onclick="cancelEditSacrament(this, ${index})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Done</button>
                     </div>
                 </div>
             </div>
@@ -982,7 +1001,7 @@ function generateFormationsDisplay(formations) {
                     </div>
                     <div class="flex justify-end gap-2 mt-4">
                         <button onclick="cancelEditFormation(this, ${index})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
-                        <button onclick="saveFormationEdit(this, ${index})" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">Save</button>
+                        <button onclick="cancelEditFormation(this, ${index})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Done</button>
                     </div>
                 </div>
             </div>
@@ -1043,6 +1062,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function saveAllChanges(volunteerId) {
+    // Collect basic info changes (existing functionality)
     const data = {};
     const editableInputs = document.querySelectorAll(".editable-input");
 
@@ -1053,20 +1073,33 @@ function saveAllChanges(volunteerId) {
         const original = (input.dataset.original || "").trim();
         let current = (input.value || "").trim();
 
-        if (field === "ministry_id") {
-            if (current !== original) data[field] = current;
-            return;
+        if (current !== original) {
+            data[field] = current;
         }
-
-        if (current !== original) data[field] = current;
     });
+
+    // Add the section changes
+    data.timelines = volunteerChanges.timelines;
+    data.affiliations = volunteerChanges.affiliations;
+    data.sacraments = volunteerChanges.sacraments;
+    data.formations = volunteerChanges.formations;
 
     if (Object.keys(data).length === 0) {
         toastr.info("No changes to save.");
         return;
     }
 
-    fetch(`/volunteers/${volunteerId}`, {
+    // Show loading state
+    const saveButton = document.getElementById("saveChanges");
+    const originalText = saveButton.innerHTML;
+    saveButton.innerHTML = `
+    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mx-auto"></div>
+    Saving...
+  `;
+    saveButton.disabled = true;
+
+    // Send all changes in one request
+    fetch(`/volunteers/${volunteerId}/complete-update`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
@@ -1080,49 +1113,18 @@ function saveAllChanges(volunteerId) {
             return res.json();
         })
         .then(() => {
-            const fieldLabels = {
-                email_address: "Email Address",
-                mobile_number: "Mobile Number",
-                date_of_birth: "Date of Birth",
-                occupation: "Occupation",
-                address: "Address",
-                sex: "Gender",
-                civil_status: "Civil Status",
-                full_name: "Full Name",
-                nickname: "Display Name",
-                volunteer_status: "Volunteer Status",
-                ministry_name: "Ministry",
-            };
-
-            let updatedFields = Object.keys(data)
-                .map((key) => {
-                    if (key === "ministry_id") {
-                        const select =
-                            document.getElementById("ministry-input");
-                        const selectedOption = select?.querySelector(
-                            `option[value="${data[key]}"]`
-                        );
-                        return (
-                            selectedOption?.textContent?.trim() || "Ministry"
-                        );
-                    }
-                    return fieldLabels[key] || key.replace(/_/g, " ");
-                })
-                .join(", ");
-
-            toastr.success("Updated: " + updatedFields);
+            toastr.success("All changes saved successfully");
+            // Refresh the profile view
             openProfile(volunteerId, currentActiveTabId);
-
-            setTimeout(() => {
-                const activeTabBtn = document.querySelector(
-                    `button[onclick*='${currentActiveTabId}']`
-                );
-                if (activeTabBtn) activeTabBtn.click();
-            }, 100);
         })
         .catch((err) => {
             console.error("Save failed:", err);
             toastr.error("There was an error saving the profile.");
+        })
+        .finally(() => {
+            // Restore button state
+            saveButton.innerHTML = originalText;
+            saveButton.disabled = false;
         });
 }
 
@@ -1188,49 +1190,24 @@ function saveTimelineEdit(button, index) {
         data[input.dataset.field] = input.value;
     });
 
-    // Calculate total years if both start and end years are provided
-    if (data.year_started && data.year_ended) {
-        const startYear = parseInt(data.year_started);
-        const endYear =
-            data.year_ended === "present"
-                ? new Date().getFullYear()
-                : parseInt(data.year_ended);
-        data.total_years = endYear - startYear + 1;
-        entry.querySelector(".total-years").value = data.total_years;
+    // Update the changes object
+    if (volunteerChanges.timelines[index]) {
+        // Update existing entry
+        volunteerChanges.timelines[index] = {
+            ...volunteerChanges.timelines[index],
+            ...data,
+        };
+    } else {
+        // Add new entry
+        volunteerChanges.timelines.push(data);
     }
 
-    // Update the display
-    entry.querySelector(".display-mode p:nth-child(1)").textContent =
-        data.organization_name || "No Title";
-    entry.querySelector(".display-mode p:nth-child(2)").textContent = `${
-        data.year_started || "?"
-    } - ${data.year_ended || "Present"}`;
-
-    if (data.total_years) {
-        const totalYearsEl = entry.querySelector(
-            ".display-mode p:nth-child(3)"
-        );
-        if (!totalYearsEl) {
-            const displayMode = entry.querySelector(".display-mode");
-            const totalEl = document.createElement("p");
-            totalEl.className = "text-xs text-gray-400 mt-1";
-            totalEl.textContent = `${data.total_years} year${
-                data.total_years > 1 ? "s" : ""
-            }`;
-            displayMode.appendChild(totalEl);
-        } else {
-            totalYearsEl.textContent = `${data.total_years} year${
-                data.total_years > 1 ? "s" : ""
-            }`;
-        }
-    }
-
-    // Switch back to display mode
+    // Update UI only
     entry.querySelector(".display-mode").classList.remove("hidden");
     entry.querySelector(".edit-mode").classList.add("hidden");
-
-    // Make API call to save changes
-    saveTimelineToServer(entry.dataset.index, data);
+    toastr.info(
+        "Changes staged. Click 'Save Changes' to save all modifications."
+    );
 }
 
 function deleteTimelineEntry(button, index) {
@@ -1348,29 +1325,43 @@ function addNewAffiliation(volunteerId) {
     const index = container.querySelectorAll(".affiliation-entry").length;
 
     const entryHtml = `
-        <div class="affiliation-entry border-l-2 border-orange-200 pl-4 relative group space-y-2" data-index="${index}">
-            <div class="edit-mode grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
-                <input type="text" class="form-input w-full" placeholder="Organization" data-field="organization_name" value="" data-index="${index}">
-                <div class="flex gap-2">
-                    <select class="form-select w-full year-select" data-field="year_started" data-index="${index}">
-                        <option value="">Start Year</option>
-                        ${generateYearOptions()}
-                    </select>
-                    <span class="flex items-center text-sm">–</span>
-                    <select class="form-select w-full year-select" data-field="year_ended" data-index="${index}">
-                        <option value="">End Year</option>
-                        <option value="present">Present</option>
-                        ${generateYearOptions()}
-                    </select>
+    <div class="affiliation-entry bg-white border border-gray-200 rounded-lg p-4 mb-3" data-index="${index}">
+        <div class="edit-mode mt-3 p-4 bg-gray-50 rounded-lg">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Organization</label>
+                    <input type="text" class="form-input w-full" placeholder="Organization" data-field="organization_name" value="" data-index="${index}">
                 </div>
-                <input type="number" class="form-input w-full total-years" placeholder="Total" readonly>
-                <div class="col-span-3 flex justify-end gap-2 mt-2">
-                    <button onclick="cancelAddAffiliation(this)" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
-                    <button onclick="saveNewAffiliation(this, ${volunteerId}, ${index})" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">Save</button>
+                <div class="flex gap-2">
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Start Year</label>
+                        <select class="form-select w-full year-select" data-field="year_started" data-index="${index}">
+                            <option value="">Start Year</option>
+                            ${generateYearOptions()}
+                        </select>
+                    </div>
+                    <span class="flex items-end pb-2 text-sm">–</span>
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">End Year</label>
+                        <select class="form-select w-full year-select" data-field="year_ended" data-index="${index}">
+                            <option value="">End Year</option>
+                            <option value="present">Present</option>
+                            ${generateYearOptions()}
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Total Years</label>
+                    <input type="number" class="form-input w-full total-years" placeholder="Total" readonly>
                 </div>
             </div>
+            <div class="flex justify-end gap-2 mt-4">
+                <button onclick="cancelAddAffiliation(this)" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
+                <button onclick="saveNewAffiliation(this, ${volunteerId}, ${index})" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">Save</button>
+            </div>
         </div>
-    `;
+    </div>
+`;
 
     // Remove the "no affiliations" message if it exists
     const noItemsMsg = container.querySelector("p.text-gray-500");
@@ -1428,6 +1419,9 @@ function saveAffiliationEdit(button, index) {
 
     // Make API call to save changes
     saveAffiliationToServer(entry.dataset.index, data);
+    toastr.info(
+        "Changes staged. Click 'Save Changes' to save all modifications."
+    );
 }
 
 function saveTimelineToServer(index, data) {
@@ -1662,6 +1656,9 @@ function saveSacramentEdit(button, index) {
 
     // Save to server
     saveSacramentToServer(index, sacramentValue);
+    toastr.info(
+        "Changes staged. Click 'Save Changes' to save all modifications."
+    );
 }
 
 function saveSacramentToServer(index, value) {
@@ -1853,6 +1850,9 @@ function saveFormationEdit(button, index) {
 
     // Save to server
     saveFormationToServer(index, formationValue);
+    toastr.info(
+        "Changes staged. Click 'Save Changes' to save all modifications."
+    );
 }
 
 function saveFormationToServer(index, value) {

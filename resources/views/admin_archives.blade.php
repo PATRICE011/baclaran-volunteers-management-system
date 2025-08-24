@@ -5,6 +5,10 @@
 
 @section('styles')
 <style>
+    [x-cloak] {
+        display: none !important;
+    }
+
     .modal-bg {
         background: rgba(0, 0, 0, 0.5);
         backdrop-filter: blur(4px);
@@ -100,7 +104,7 @@
     ministries: {{ Js::from($ministries) }},
     tasks: {{ Js::from($tasks) }},
     events: {{ Js::from($events) }}
-})">
+})" x-cloak>
     <div class="bg-white rounded-lg shadow-lg p-6">
 
         {{-- Header Section --}}
@@ -264,7 +268,7 @@
         </div>
 
         {{-- Bulk Actions --}}
-        <div x-show="selectedItems.length > 0" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 fade-in">
+        <div x-show="selectedItems.length > 0" x-cloak class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 fade-in">
             <div class="flex items-center justify-between">
                 <span class="text-sm font-medium text-blue-800">
                     <span x-text="selectedItems.length"></span> item(s) selected
@@ -664,7 +668,7 @@
 
     {{-- Confirmation Modal --}}
     <div x-show="showModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto modal-bg"
-        @click.self="showModal = false; itemToDelete = null">
+        @click.self="showModal = false; itemToDelete = null" style="display: none;">
         <div class="flex items-center justify-center min-h-screen px-4">
             <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 fade-in" @click.stop>
                 <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
@@ -695,7 +699,7 @@
     {{-- Toast Notifications --}}
     <div x-show="showToast"
         x-cloak
-        class="fixed top-4 right-4 z-50 fade-in">
+        class="fixed top-4 right-4 z-50 fade-in" style="display: none;">
         <div :class="toastType === 'success' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'"
             class="border rounded-lg p-4 shadow-lg max-w-sm">
             <div class="flex items-center gap-3">
@@ -725,7 +729,7 @@
     </div>
     {{-- Bulk Delete Confirmation Modal --}}
     <div x-show="showBulkDeleteModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto modal-bg"
-        @click.self="showBulkDeleteModal = false">
+        @click.self="showBulkDeleteModal = false" style="display: none;">
         <div class="flex items-center justify-center min-h-screen px-4">
             <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 fade-in" @click.stop>
                 <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">

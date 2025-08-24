@@ -97,7 +97,7 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
         Route::post('/{volunteer}/affiliation', [VolunteersController::class, 'updateAffiliation'])->name('volunteers.affiliation.update');
         Route::put('/{id}/sacraments', [VolunteersController::class, 'updateSacraments']);
         Route::put('/{id}/formations', [VolunteersController::class, 'updateFormations']);
-
+        Route::put('/{id}/complete-update', [VolunteersController::class, 'completeUpdate'])->name('volunteers.complete-update');
 
         Route::post('/{volunteer}/picture', [VolunteersController::class, 'updateProfilePicture'])->name('volunteers.picture.update');
 

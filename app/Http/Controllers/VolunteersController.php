@@ -631,6 +631,51 @@ class VolunteersController extends Controller
             return response()->json(['success' => false, 'message' => 'Failed to update formations'], 500);
         }
     }
+
+    public function completeUpdate(Request $request, $id)
+    {
+        try {
+            $volunteer = Volunteer::findOrFail($id);
+
+            // Update basic info
+            if (!empty($request->all())) {
+                $volunteer->fill($request->all());
+                $volunteer->save();
+            }
+
+            // Update timelines
+            if ($request->has('timelines')) {
+                $volunteer->timelines()->delete();
+                foreach ($request->timelines as $timelineData) {
+                    $volunteer->timelines()->create($timelineData);
+                }
+            }
+
+            // Update affiliations
+            if ($request->has('affiliations')) {
+                $volunteer->affiliations()->delete();
+                foreach ($request->affiliations as $affiliationData) {
+                    $volunteer->affiliations()->create($affiliationData);
+                }
+            }
+
+            // Update sacraments and formations
+            if ($request->has('sacraments')) {
+                $volunteer->sacraments_received = $request->sacraments;
+            }
+
+            if ($request->has('formations')) {
+                $volunteer->formations_received = $request->formations;
+            }
+
+            $volunteer->save();
+
+            return response()->json(['message' => 'Volunteer updated successfully.']);
+        } catch (\Exception $e) {
+            Log::error('Complete update error: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to update volunteer.'], 500);
+        }
+    }
     public function archive(Request $request, $id)
     {
         $request->validate(['reason' => 'required|string|max:255']);
