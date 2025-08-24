@@ -952,7 +952,7 @@ function generateSacramentsDisplay(sacraments) {
                     </div>
                     <div class="flex justify-end gap-2 mt-4">
                         <button onclick="cancelEditSacrament(this, ${index})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
-                        <button onclick="saveSacramentEdit(this, ${index})" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">Done</button>
+                        <button onclick="cancelEditSacrament(this, ${index})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Done</button>
                     </div>
                 </div>
             </div>
@@ -1010,7 +1010,7 @@ function generateFormationsDisplay(formations) {
                     </div>
                     <div class="flex justify-end gap-2 mt-4">
                         <button onclick="cancelEditFormation(this, ${index})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
-                        <button onclick="saveFormationEdit(this, ${index})" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">Done</button>
+                        <button onclick="cancelEditFormation(this, ${index})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Done</button>
                     </div>
                 </div>
             </div>
