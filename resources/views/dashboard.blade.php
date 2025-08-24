@@ -21,18 +21,30 @@ $current = request()->is('dashboard') ? 'active' : '';
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <!-- Total Volunteers Card -->
-            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
+            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow relative group">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">Total Volunteers</p>
                         <p class="text-2xl font-bold text-gray-900">{{ $metrics['totalVolunteers'] }}</p>
-                        <p class="text-xs text-green-600 mt-1 flex items-center">
-                            <i class="fas fa-arrow-up mr-1"></i>
-                            {{ $metrics['activeVolunteers'] }} currently active
-                        </p>
                     </div>
                     <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                         <i class="fas fa-users text-blue-600"></i>
+                    </div>
+                </div>
+
+                <!-- Hover Tooltip -->
+                <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <div class="text-white text-center p-2">
+                        <div class="flex justify-center space-x-4">
+                            <div>
+                                <p class="text-sm">Active</p>
+                                <p class="text-lg font-bold text-green-400">{{ $metrics['activeVolunteers'] }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm">Inactive</p>
+                                <p class="text-lg font-bold text-red-400">{{ $metrics['inactiveVolunteers'] }}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
