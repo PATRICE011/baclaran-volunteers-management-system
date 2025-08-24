@@ -479,7 +479,7 @@ function renderEditableProfile(
                                 Add Sacrament
                             </button>
                         </div>
-                        <div class="flex flex-wrap gap-3" id="sacraments-display">
+                        <div class="space-y-4" id="sacraments-display">
                             ${
                                 sacraments.length > 0
                                     ? generateSacramentsDisplay(sacraments)
@@ -503,7 +503,7 @@ function renderEditableProfile(
                                 Add Formation
                             </button>
                         </div>
-                        <div class="flex flex-wrap gap-3" id="formations-display">
+                        <div class="space-y-4" id="formations-display">
                             ${
                                 formations.length > 0
                                     ? generateFormationsDisplay(formations)
@@ -560,13 +560,14 @@ function renderEditableProfile(
                             Add Affiliation
                         </button>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="affiliations-display">
-                        ${
-                            affiliations.length > 0
-                                ? generateAffiliationsDisplay(affiliations)
-                                : `<p class="text-gray-500 col-span-full">No affiliations added yet.</p>`
-                        }
+                    <div class="space-y-4" id="affiliations-display">
+                    ${
+                        affiliations.length > 0
+                            ? generateAffiliationsDisplay(affiliations)
+                            : `<p class="text-gray-500">No affiliations added yet.</p>`
+                    }
                     </div>
+
                 </div>
             </div>
         </div>
@@ -815,11 +816,21 @@ function generateAffiliationsDisplay(affiliations) {
                             <p class="text-sm font-medium text-gray-800">${
                                 a.organization_name || "No Organization"
                             }</p>
-                            <p class="text-sm text-gray-500">${
-                                a.year_started || "?"
-                            } - ${
+                                <p class="text-sm text-gray-500">
+                                ${a.year_started || "?"} - ${
                 isActive ? "Present" : a.year_ended || "?"
-            }</p>
+            }
+                                </p>
+                                ${
+                                    a.total_years
+                                        ? `<p class="text-xs text-gray-400 mt-1">${
+                                              a.total_years
+                                          } year${
+                                              a.total_years > 1 ? "s" : ""
+                                          }</p>`
+                                        : ""
+                                }
+
                         </div>
                         <div class="flex gap-2">
                             <button onclick="editAffiliation(this, ${index})" class="text-gray-400 hover:text-blue-600 transition-colors">
@@ -895,7 +906,6 @@ function generateYearOptions(selectedYear) {
 function generateSacramentsDisplay(sacraments) {
     return sacraments
         .map((sacrament, index) => {
-            // Extract sacrament name and year if present
             const sacramentParts = sacrament.split(" (");
             const sacramentName = sacramentParts[0];
             const sacramentYear = sacramentParts[1]
@@ -905,13 +915,13 @@ function generateSacramentsDisplay(sacraments) {
             return `
             <div class="sacrament-entry bg-white border border-gray-200 rounded-lg p-4 mb-3" data-index="${index}">
                 <div class="display-mode">
-                    <div class="flex justify-between items-center">
-                        <span class="inline-flex items-center px-3 py-1 text-sm font-medium bg-purple-50 text-purple-800 rounded-lg border border-purple-200">
-                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            ${sacrament}
-                        </span>
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">${sacramentName}</p>
+                            <p class="text-sm text-gray-500">${
+                                sacramentYear ? sacramentYear : "Year not set"
+                            }</p>
+                        </div>
                         <div class="flex gap-2">
                             <button onclick="editSacrament(this, ${index})" class="text-gray-400 hover:text-blue-600 transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -942,7 +952,7 @@ function generateSacramentsDisplay(sacraments) {
                     </div>
                     <div class="flex justify-end gap-2 mt-4">
                         <button onclick="cancelEditSacrament(this, ${index})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
-                        <button onclick="cancelEditSacrament(this, ${index})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Done</button>
+                        <button onclick="saveSacramentEdit(this, ${index})" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">Done</button>
                     </div>
                 </div>
             </div>
@@ -954,7 +964,6 @@ function generateSacramentsDisplay(sacraments) {
 function generateFormationsDisplay(formations) {
     return formations
         .map((formation, index) => {
-            // Extract formation name and year if present
             const formationParts = formation.split(" (");
             const formationName = formationParts[0];
             const formationYear = formationParts[1]
@@ -964,13 +973,13 @@ function generateFormationsDisplay(formations) {
             return `
             <div class="formation-entry bg-white border border-gray-200 rounded-lg p-4 mb-3" data-index="${index}">
                 <div class="display-mode">
-                    <div class="flex justify-between items-center">
-                        <span class="inline-flex items-center px-3 py-1 text-sm font-medium bg-indigo-50 text-indigo-800 rounded-lg border border-indigo-200">
-                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                            </svg>
-                            ${formation}
-                        </span>
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">${formationName}</p>
+                            <p class="text-sm text-gray-500">${
+                                formationYear ? formationYear : "Year not set"
+                            }</p>
+                        </div>
                         <div class="flex gap-2">
                             <button onclick="editFormation(this, ${index})" class="text-gray-400 hover:text-blue-600 transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1001,7 +1010,7 @@ function generateFormationsDisplay(formations) {
                     </div>
                     <div class="flex justify-end gap-2 mt-4">
                         <button onclick="cancelEditFormation(this, ${index})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
-                        <button onclick="cancelEditFormation(this, ${index})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Done</button>
+                        <button onclick="saveFormationEdit(this, ${index})" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">Done</button>
                     </div>
                 </div>
             </div>
@@ -1542,11 +1551,18 @@ function saveNewAffiliation(button, volunteerId, index) {
         </div>
         
         <div class="display-mode">
-            <div class="text-sm text-gray-500">
-                ${data.year_started ? `From ${data.year_started}` : ""}
-                ${data.year_ended ? ` to ${data.year_ended}` : ""}
-            </div>
+        <p class="text-sm text-gray-500">
+            ${data.year_started || "?"} - ${data.year_ended || "Present"}
+        </p>
+        ${
+            data.total_years
+                ? `<p class="text-xs text-gray-400 mt-1">${
+                      data.total_years
+                  } year${data.total_years > 1 ? "s" : ""}</p>`
+                : ""
+        }
         </div>
+
         
         <div class="edit-mode hidden grid grid-cols-2 gap-2">
             <div>
@@ -1731,32 +1747,33 @@ function saveNewSacrament(button, volunteerId, index) {
 
     // Create display mode HTML
     const displayHtml = `
-        <div class="display-mode">
-            <div class="flex justify-between items-center">
-                <span class="inline-flex items-center px-3 py-1 text-sm font-medium bg-purple-50 text-purple-800 rounded-lg border border-purple-200">
-                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+    <div class="display-mode">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-sm font-medium text-gray-800">${sacramentValue.replace(
+                    /\s+\(\d{4}\)$/,
+                    ""
+                )}</p>
+                <p class="text-sm text-gray-500">${
+                    year ? year : "Year not set"
+                }</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="editSacrament(this, ${index})" class="text-gray-400 hover:text-blue-600 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                     </svg>
-                    ${sacramentValue}
-                </span>
-                <div class="flex gap-2">
-                    <button onclick="editSacrament(this, ${index})" class="text-gray-400 hover:text-blue-600 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                        </svg>
-                    </button>
-                    <button onclick="deleteSacrament(this, ${index})" class="text-gray-400 hover:text-red-600 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg>
-                    </button>
-                </div>
+                </button>
+                <button onclick="deleteSacrament(this, ${index})" class="text-gray-400 hover:text-red-600 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                </button>
             </div>
         </div>
-        <div class="edit-mode hidden mt-3 p-4 bg-gray-50 rounded-lg">
-            <!-- Edit form will go here when editing -->
-        </div>
-    `;
+    </div>
+    <div class="edit-mode hidden mt-3 p-4 bg-gray-50 rounded-lg"></div>
+`;
 
     entry.innerHTML = displayHtml;
 
@@ -1925,32 +1942,33 @@ function saveNewFormation(button, volunteerId, index) {
 
     // Create display mode HTML
     const displayHtml = `
-        <div class="display-mode">
-            <div class="flex justify-between items-center">
-                <span class="inline-flex items-center px-3 py-1 text-sm font-medium bg-indigo-50 text-indigo-800 rounded-lg border border-indigo-200">
-                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+    <div class="display-mode">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-sm font-medium text-gray-800">${formationValue.replace(
+                    /\s+\(\d{4}\)$/,
+                    ""
+                )}</p>
+                <p class="text-sm text-gray-500">${
+                    year ? year : "Year not set"
+                }</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="editFormation(this, ${index})" class="text-gray-400 hover:text-blue-600 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                     </svg>
-                    ${formationValue}
-                </span>
-                <div class="flex gap-2">
-                    <button onclick="editFormation(this, ${index})" class="text-gray-400 hover:text-blue-600 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                        </svg>
-                    </button>
-                    <button onclick="deleteFormation(this, ${index})" class="text-gray-400 hover:text-red-600 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg>
-                    </button>
-                </div>
+                </button>
+                <button onclick="deleteFormation(this, ${index})" class="text-gray-400 hover:text-red-600 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                </button>
             </div>
         </div>
-        <div class="edit-mode hidden mt-3 p-4 bg-gray-50 rounded-lg">
-            <!-- Edit form will go here when editing -->
-        </div>
-    `;
+    </div>
+    <div class="edit-mode hidden mt-3 p-4 bg-gray-50 rounded-lg"></div>
+`;
 
     entry.innerHTML = displayHtml;
 
