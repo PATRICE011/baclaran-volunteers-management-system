@@ -171,8 +171,37 @@
         </button>
 
         <!-- Simplified Breadcrumb - Shows only current page -->
+        <!-- Dynamic Breadcrumb - Shows current page based on active navigation -->
         <div class="flex items-center gap-2 text-sm text-slate-600">
-            <span class="font-medium text-slate-800">Dashboard</span>
+            @php
+            $currentPath = request()->path();
+            $pageTitle = 'Dashboard'; // Default value
+
+            // Map paths to page titles
+            if (request()->is('dashboard')) {
+            $pageTitle = 'Dashboard';
+            } elseif (request()->is('volunteers')) {
+            $pageTitle = 'Volunteers';
+            } elseif (request()->is('ministries')) {
+            $pageTitle = 'Ministries';
+            } elseif (request()->is('events')) {
+            $pageTitle = 'Events';
+            } elseif (request()->is('tasks')) {
+            $pageTitle = 'Tasks';
+            } elseif (request()->is('settings')) {
+            $pageTitle = 'Settings';
+            } elseif (request()->is('settings/role')) {
+            $pageTitle = 'Role Management';
+            } elseif (request()->is('settings/archives')) {
+            $pageTitle = 'Archives';
+            } else {
+            // For any other paths, use the first segment capitalized
+            $segments = explode('/', $currentPath);
+            $pageTitle = ucfirst($segments[0] ?? 'Dashboard');
+            }
+            @endphp
+
+            <span class="font-medium text-slate-800">{{ $pageTitle }}</span>
         </div>
 
         <div class="flex flex-1 items-center justify-end">
