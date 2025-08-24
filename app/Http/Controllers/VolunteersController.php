@@ -12,6 +12,10 @@ use App\Http\Controllers\Storage;
 use Illuminate\Http\Request;
 use App\Models\Volunteer;
 use App\Models\Ministry;
+
+use App\Exports\VolunteersExport;
+use Maatwebsite\Excel\Facades\Excel;
+
 use Illuminate\Container\Attributes\Auth;
 
 class VolunteersController extends Controller
@@ -777,5 +781,12 @@ class VolunteersController extends Controller
             'deleted_count' => $count,
             'message' => "$count volunteer(s) permanently deleted"
         ]);
+    }
+
+    public function exportExcel()
+    {
+        $fileName = 'volunteers_export_' . now()->format('Y-m-d') . '.xlsx';
+
+        return Excel::download(new VolunteersExport, $fileName);
     }
 }

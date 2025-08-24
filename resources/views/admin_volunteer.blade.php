@@ -78,15 +78,28 @@
 <div class="min-h-screen pt-16 md:pl-64 bg-gradient-to-b from-white to-slate-50">
     <div class="flex-1 flex flex-col overflow-auto p-6">
         <!-- Header -->
+        <!-- Replace the header section with this code -->
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">Volunteer Directory</h1>
-            <button id="addVolunteerBtn"
-                class="flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 focus:outline-none">
-                <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Add Volunteer
-            </button>
+            <div class="flex gap-2">
+                <!-- Export Button -->
+                <a href="{{ route('volunteers.export') }}"
+                    class="flex items-center bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 focus:outline-none">
+                    <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Export Volunteers
+                </a>
+
+                <!-- Add Volunteer Button -->
+                <button id="addVolunteerBtn"
+                    class="flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 focus:outline-none">
+                    <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Volunteer
+                </button>
+            </div>
         </div>
 
         <!-- Search & Controls -->
