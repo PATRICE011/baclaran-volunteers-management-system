@@ -142,6 +142,9 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
 
 
             Route::post('update-profile-picture', [AccountSettingsController::class, 'updateProfilePicture']);
+
+            Route::post('/update-ministry', [AccountSettingsController::class, 'updateMinistry'])->name('settings.update-ministry');
+
         });
 
 

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\UserOtp;
+use App\Models\Ministry;
 use App\Services\MailService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -24,9 +25,11 @@ class AccountSettingsController extends Controller
     /**
      * Show the account settings page
      */
-      public function index(){
-        $user = Auth::user();
-        return view('admin_accountsettings', compact('user'));
+    public function index()
+    {
+        $user = Auth::user()->load('ministry');
+        $ministries = Ministry::with('children')->whereNull('parent_id')->get();
+        return view('admin_accountsettings', compact('user', 'ministries'));
     }
 
     /**
@@ -553,6 +556,39 @@ class AccountSettingsController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to resend OTP. Please try again later.'
+            ], 500);
+        }
+    }
+
+    public function updateMinistry(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'ministry_id' => 'nullable|exists:ministries,id',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $user = Auth::user();
+            $user->ministry_id = $request->ministry_id;
+            $user->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Ministry updated successfully!'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Ministry update failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update ministry. Please try again later.'
             ], 500);
         }
     }
