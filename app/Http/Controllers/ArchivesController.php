@@ -62,7 +62,7 @@ class ArchivesController extends Controller
                 ];
             });
 
-        // In ArchivesController.php
+
         $archivedTasks = Task::where('is_archived', true)
             ->with('archiver')
             ->get()
@@ -81,7 +81,7 @@ class ArchivesController extends Controller
         return view('admin_archives', [
             'roles' => $archivedRoles,
             'volunteers' => $archivedVolunteers,
-            'ministries' => [], // Keep empty for now unless you implement ministry archiving
+            'ministries' => [],
             'tasks' => $archivedTasks,
             'events' => $archivedEvents,
             'user' => $user,
@@ -89,7 +89,7 @@ class ArchivesController extends Controller
     }
     private function getPermissionsForRole($role)
     {
-        // Map roles to permissions (customize as needed)
+
         $permissions = [
             'admin' => ['manage_users', 'manage_content', 'manage_settings'],
             'staff' => ['manage_content', 'view_reports'],

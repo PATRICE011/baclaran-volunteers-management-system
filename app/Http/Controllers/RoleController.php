@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\Ministry;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -13,32 +14,38 @@ class RoleController extends Controller
     public function index()
     {
         $user = Auth::user();
-        // Get only non-archived users and map them
-        $nonArchivedUsers = User::where('is_archived', false)
-                           ->where('id', '!=', $user->id)
-                           ->get();
 
+        // Get only non-archived users and exclude current user
+        $nonArchivedUsers = User::with('ministry')
+            ->where('is_archived', false)
+            ->where('id', '!=', $user->id)
+            ->get();
+
+        // Get all ministries with hierarchical structure
+        $ministries = Ministry::with(['children.children'])
+            ->whereNull('parent_id')
+            ->get();
+
+        // Map users for JavaScript
         $users = $nonArchivedUsers->map(function ($user) {
             return [
                 'id' => $user->id,
-                'first_name' => $user->first_name,
-                'last_name' => $user->last_name,
                 'email' => $user->email,
                 'role' => $user->role,
+                'ministry_id' => $user->ministry_id,
+                'ministry_name' => $user->ministry ? $user->ministry->ministry_name : null,
                 'dateAdded' => $user->created_at->format('Y-m-d'),
                 'profile_picture' => $user->profile_picture,
             ];
         });
 
-        return view('admin_roleManagement', compact('user', 'nonArchivedUsers', 'users'));
+        return view('admin_roleManagement', compact('user', 'nonArchivedUsers', 'users', 'ministries'));
     }
 
     public function store(Request $request)
     {
         // Validate the incoming request data
         $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => [
                 'required',
@@ -47,32 +54,34 @@ class RoleController extends Controller
                 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).+$/'
             ],
             'role' => 'required|in:admin,staff',
+            'ministry_id' => 'required|exists:ministries,id',
         ], [
-            'password.regex' => 'Password must contain at least one uppercase letter, one number, and one special character'
+            'password.regex' => 'Password must contain at least one uppercase letter, one number, and one special character',
+            'ministry_id.required' => 'Please select a ministry',
+            'ministry_id.exists' => 'Selected ministry is invalid'
         ]);
-        try {
-            // Apply proper capitalization to names
-            $firstName = ucwords(strtolower($request->first_name));
-            $lastName = ucwords(strtolower($request->last_name));
 
+        try {
             // Create the new user
             $user = User::create([
-                'first_name' => $firstName,
-                'last_name' => $lastName,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'role' => $request->role,
+                'ministry_id' => $request->ministry_id,
             ]);
+
+            // Load the ministry relationship
+            $user->load('ministry');
 
             return response()->json([
                 'success' => true,
                 'user' => [
                     'id' => $user->id,
-                    'first_name' => $user->first_name,
-                    'last_name' => $user->last_name,
                     'email' => $user->email,
                     'role' => $user->role,
-                    'created_at' => $user->created_at->format('Y-m-d'),
+                    'ministry_id' => $user->ministry_id,
+                    'ministry_name' => $user->ministry ? $user->ministry->ministry_name : null,
+                    'dateAdded' => $user->created_at->format('Y-m-d'),
                 ]
             ]);
         } catch (\Exception $e) {
@@ -82,15 +91,17 @@ class RoleController extends Controller
             ], 500);
         }
     }
+
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
             'role' => 'required|in:admin,staff',
+            'ministry_id' => 'required|exists:ministries,id',
         ], [
             'email.unique' => 'This email is already in use by another account',
+            'ministry_id.required' => 'Please select a ministry',
+            'ministry_id.exists' => 'Selected ministry is invalid'
         ]);
 
         if ($validator->fails()) {
@@ -101,21 +112,23 @@ class RoleController extends Controller
         }
 
         $user = User::findOrFail($id);
-        $user->first_name = $request->first_name;
-        $user->last_name = $request->last_name;
         $user->email = $request->email;
         $user->role = $request->role;
+        $user->ministry_id = $request->ministry_id;
         $user->save();
+
+        // Load the ministry relationship
+        $user->load('ministry');
 
         return response()->json([
             'success' => true,
             'message' => 'User information updated successfully',
             'user' => [
                 'id' => $user->id,
-                'first_name' => $user->first_name,
-                'last_name' => $user->last_name,
                 'email' => $user->email,
                 'role' => $user->role,
+                'ministry_id' => $user->ministry_id,
+                'ministry_name' => $user->ministry ? $user->ministry->ministry_name : null,
                 'dateAdded' => $user->created_at->format('Y-m-d'),
             ]
         ]);
@@ -123,18 +136,31 @@ class RoleController extends Controller
 
     public function archive(User $user)
     {
-        $user->archive(request('reason'));
+        try {
+            // Set is_archived to true and save the reason
+            $user->is_archived = true;
+            $user->archive_reason = request('reason');
+            $user->save();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'User archived successfully'
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'User archived successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error archiving user: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function restore(User $user)
     {
         try {
-            $user->restore(); // This will set is_archived to false
+            $user->is_archived = false;
+            $user->archive_reason = null;
+            $user->save();
+
             return response()->json([
                 'success' => true,
                 'message' => 'User restored successfully'
@@ -163,13 +189,12 @@ class RoleController extends Controller
         }
     }
 
-    // RoleController.php
     public function bulkForceDelete(Request $request)
     {
         $ids = $request->input('ids');
         $count = User::where('is_archived', true)
             ->whereIn('id', $ids)
-            ->forceDelete();
+            ->delete(); // Use delete() instead of forceDelete() for soft deletes
 
         return response()->json([
             'success' => true,
@@ -183,7 +208,7 @@ class RoleController extends Controller
         $ids = $request->input('ids');
         $count = User::where('is_archived', true)
             ->whereIn('id', $ids)
-            ->update(['is_archived' => false]);
+            ->update(['is_archived' => false, 'archive_reason' => null]);
 
         return response()->json([
             'success' => true,

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Volunteer;
 use App\Models\Ministry;
@@ -90,7 +91,7 @@ class DashboardController extends Controller
                 return [
                     'id' => $task->id,
                     'title' => $task->title,
-                    'date' => Carbon::parse($task->due_date)->format('Y-m-d'), // Fixed this line
+                    'date' => Carbon::parse($task->due_date)->format('Y-m-d'),
                     'assignee' => $task->volunteer->detail->full_name ?? 'Unassigned',
                     'priority' => strtolower($task->priority ?? 'medium'),
                     'status' => strtolower($task->status ?? 'pending')
@@ -108,7 +109,7 @@ class DashboardController extends Controller
             'recentVolunteers' => $recentVolunteers,
             'upcomingTasks' => $upcomingTasks,
             'ministryData' => $parentMinistries,
-            'attendanceData' => $attendanceData // Add this line
+            'attendanceData' => $attendanceData
         ];
 
         return view('dashboard', compact('user', 'metrics'));
@@ -128,7 +129,7 @@ class DashboardController extends Controller
         ];
 
         // Get all event_volunteer records where attendance is present in the last 30 days
-        $attendanceRecords = \DB::table('event_volunteer')
+        $attendanceRecords = DB::table('event_volunteer')
             ->join('events', 'event_volunteer.event_id', '=', 'events.id')
             ->where('attendance_status', 'present')
             ->whereBetween('events.date', [$startDate, $endDate])

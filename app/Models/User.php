@@ -17,8 +17,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'first_name',
-        'last_name',
+        'ministry_id',
         'email',
         'password',
         'role',
@@ -47,7 +46,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'archived_at' => 'datetime', 
+        'archived_at' => 'datetime',
     ];
     /**
      * Get the user's full name.
@@ -112,5 +111,9 @@ class User extends Authenticatable
             'archived_by' => null,
             'archive_reason' => null
         ]);
+    }
+    public function ministry()
+    {
+        return $this->belongsTo(Ministry::class);
     }
 }

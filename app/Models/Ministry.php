@@ -31,11 +31,10 @@ class Ministry extends Model
         'deleted_at' => 'datetime',
     ];
 
-    /**
-     * Get the parent ministry that this ministry belongs to.
-     */
-    // In Ministry.php
-    // In Ministry.php
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
     public function volunteers()
     {
         return $this->belongsToMany(Volunteer::class, 'volunteer_details', 'ministry_id', 'volunteer_id')

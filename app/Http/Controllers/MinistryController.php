@@ -27,7 +27,7 @@ class MinistryController extends Controller
                 $search = $request->get('search');
                 $query->where(function ($q) use ($search) {
                     $q->where('ministry_name', 'LIKE', "%{$search}%");
-                        
+
                 });
             }
 
@@ -79,7 +79,7 @@ class MinistryController extends Controller
             $validator = Validator::make($request->all(), [
                 'ministry_name' => 'required|string|max:255|unique:ministries,ministry_name',
                 'ministry_code' => 'nullable|string|max:20|unique:ministries,ministry_code',
-                'ministry_type' => 'required|in:LITURGICAL,PASTORAL,SOCIAL_MISSION,SUB_GROUP',
+                'ministry_type' => 'required|in:PARISH,PASTORAL,SOCIAL_MISSION,SUB_GROUP',
                 'parent_id' => 'nullable|exists:ministries,id',
             ], [
                 'ministry_name.required' => 'Ministry name is required.',
@@ -186,7 +186,7 @@ class MinistryController extends Controller
             $validator = Validator::make($request->all(), [
                 'ministry_name' => 'required|string|max:255|unique:ministries,ministry_name,' . $id,
                 'ministry_code' => 'nullable|string|max:20|unique:ministries,ministry_code,' . $id,
-                'ministry_type' => 'required|in:LITURGICAL,PASTORAL,SOCIAL_MISSION,SUB_GROUP',
+                'ministry_type' => 'required|in:PARISH,PASTORAL,SOCIAL_MISSION,SUB_GROUP',
                 'parent_id' => 'nullable|exists:ministries,id',
             ], [
                 'ministry_name.required' => 'Ministry name is required.',
@@ -383,7 +383,7 @@ class MinistryController extends Controller
     private function mapMinistryTypeToCategory($type)
     {
         $mapping = [
-            'LITURGICAL' => 'Liturgical',
+            'PARISH' => 'Parish', // Changed from LITURGICAL
             'PASTORAL' => 'Pastoral',
             'SOCIAL_MISSION' => 'Social Mission',
             'SUB_GROUP' => 'Sub Group'

@@ -25,18 +25,16 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'first_name' => fake()->firstName(),
-            'last_name' => fake()->lastName(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
-            'role' => 'staff', // Default role is 'staff'
-            
-            'is_archived' => false, // Default to not archived
-            'archived_at' => null, // Set to null unless archived
-            'archived_by' => null, // Set to null unless archived
-            'archive_reason' => null, // No archive reason unless specified
+            'role' => 'staff',
+
+            'is_archived' => false,
+            'archived_at' => null,
+            'archived_by' => null,
+            'archive_reason' => null,
         ];
     }
 
@@ -45,7 +43,7 @@ class UserFactory extends Factory
      */
     public function unverified(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'email_verified_at' => null,
         ]);
     }
@@ -57,10 +55,10 @@ class UserFactory extends Factory
      */
     public function archived(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'is_archived' => true,
-            'archived_at' => Carbon::now(), // Use Carbon to set current date and time
-            'archived_by' => \App\Models\User::factory(), // Create an archiver user
+            'archived_at' => Carbon::now(),
+            'archived_by' => \App\Models\User::factory(),
             'archive_reason' => fake()->sentence(),
         ]);
     }

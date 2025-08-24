@@ -146,19 +146,17 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
 
 
         // role management
-        Route::prefix('role')->group(function () {
-            Route::get('/', [RoleController::class, 'index']);
-            Route::post('', [RoleController::class, 'store'])->name('roles.store');
-            Route::put('{user}', [RoleController::class, 'update'])->name('roles.update');
+        Route::prefix('role')->name('roles.')->group(function () {
+            Route::get('/', [RoleController::class, 'index'])->name('index');
+            Route::post('', [RoleController::class, 'store'])->name('store');
+            Route::put('{user}', [RoleController::class, 'update'])->name('update');
 
+            Route::post('/{user}/archive', [RoleController::class, 'archive'])->name('archive');
+            Route::post('/{user}/restore', [RoleController::class, 'restore'])->name('restore');
+            Route::delete('/{user}/force-delete', [RoleController::class, 'forceDelete'])->name('forceDelete');
 
-            Route::post('/{user}/archive', [RoleController::class, 'archive'])->name('users.archive');
-
-            Route::post('/{user}/restore', [RoleController::class, 'restore'])->name('users.restore');
-            Route::delete('/{user}/force-delete', [RoleController::class, 'forceDelete'])->name('users.forceDelete');
-
-            Route::post('/bulk-restore', [RoleController::class, 'bulkRestore'])->name('users.bulkRestore');
-            Route::post('/bulk-force-delete', [RoleController::class, 'bulkForceDelete'])->name('users.bulkForceDelete');
+            Route::post('/bulk-restore', [RoleController::class, 'bulkRestore'])->name('bulkRestore');
+            Route::post('/bulk-force-delete', [RoleController::class, 'bulkForceDelete'])->name('bulkForceDelete');
         });
 
         Route::prefix('archives')->group(function () {

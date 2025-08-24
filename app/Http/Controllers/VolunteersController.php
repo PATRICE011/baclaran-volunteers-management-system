@@ -7,10 +7,11 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
-use App\Http\Controllers\Storage;
+use Illuminate\Support\Facades\Storage;
 
 use Illuminate\Http\Request;
 use App\Models\Volunteer;
+use App\Models\VolunteerDetail;
 use App\Models\Ministry;
 
 use App\Exports\VolunteersExport;
@@ -110,7 +111,7 @@ class VolunteersController extends Controller
 
 
             // Fetch distinct statuses from the volunteer_details table
-            $statuses = \App\Models\VolunteerDetail::select('volunteer_status')
+            $statuses = VolunteerDetail::select('volunteer_status')
                 ->distinct()
                 ->pluck('volunteer_status');
 
@@ -717,7 +718,7 @@ class VolunteersController extends Controller
         Log::info("Volunteer #{$volunteer->id} archived by user #" . auth()->id());
 
         return response()->json([
-            'success' => true, // Add this property
+            'success' => true,
             'message' => 'Volunteer archived successfully'
         ]);
     }
