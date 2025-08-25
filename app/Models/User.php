@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-
+use Illuminate\Support\Facades\Auth;
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
@@ -99,10 +99,9 @@ class User extends Authenticatable
     }
     public function archiver()
     {
-        return $this->belongsTo(User::class, 'archived_by')->withDefault([
-            'full_name' => 'System'
-        ]);
+        return $this->belongsTo(User::class, 'archived_by');
     }
+
     public function restore()
     {
         $this->update([

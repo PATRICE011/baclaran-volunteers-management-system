@@ -140,6 +140,11 @@ class RoleController extends Controller
             // Set is_archived to true and save the reason
             $user->is_archived = true;
             $user->archive_reason = request('reason');
+
+            // Add Archived Date and Archived By
+            $user->archived_at = now();
+            $user->archived_by = Auth::id();
+
             $user->save();
 
             return response()->json([
@@ -153,6 +158,7 @@ class RoleController extends Controller
             ], 500);
         }
     }
+
 
     public function restore(User $user)
     {
