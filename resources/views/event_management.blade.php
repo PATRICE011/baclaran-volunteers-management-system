@@ -106,35 +106,27 @@
                                 <tr>
                                     <th
                                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Event</th>
+                                        Event Details
+                                    </th>
                                     <th
                                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Date</th>
+                                        Date & Time
+                                    </th>
                                     <th
                                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Time</th>
+                                        Status
+                                    </th>
                                     <th
                                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Status</th>
+                                        Pre-Registration
+                                    </th>
                                     <th
                                         class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Actions</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Pre-Reg Status
-                                    </th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Pre-Reg Deadline
-                                    </th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Pre-Reg Count
+                                        Actions
                                     </th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200" id="eventsTableBody">
-
                                 @foreach($events as $event)
                                     @php
                                         $preRegStatus = $event->allow_pre_registration ?
@@ -144,7 +136,8 @@
                                             ($preRegStatus === 'Closed' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800');
                                     @endphp
                                     <tr class="hover:bg-gray-50 transition-colors duration-150">
-                                        <td class="px-6 py-4 whitespace-nowrap">
+                                        <!-- Event Details Column -->
+                                        <td class="px-6 py-4">
                                             <div class="flex items-center">
                                                 <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                                                     <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor"
@@ -156,18 +149,31 @@
                                                 </div>
                                                 <div class="ml-4">
                                                     <div class="text-sm font-medium text-gray-900">{{ $event->title }}</div>
-                                                    <div class="text-sm text-gray-500">{{ $event->description }}</div>
+                                                    <div class="text-sm text-gray-500">{{ Str::limit($event->description, 50) }}
+                                                    </div>
+                                                    <div class="text-xs text-gray-400 mt-1">
+                                                        Pre-registered: {{ $event->preRegisteredVolunteers->count() }}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ $event->date->format('M j, Y') }}
+
+                                        <!-- Date & Time Column -->
+                                        <td class="px-6 py-4">
+                                            <div class="text-sm text-gray-900">{{ $event->date->format('M j, Y') }}</div>
+                                            <div class="text-sm text-gray-500">
+                                                {{ \Carbon\Carbon::parse($event->start_time)->format('g:i A') }} -
+                                                {{ \Carbon\Carbon::parse($event->end_time)->format('g:i A') }}
+                                            </div>
+                                            @if($event->pre_registration_deadline)
+                                                <div class="text-xs text-gray-400 mt-1">
+                                                    Deadline: {{ $event->pre_registration_deadline->format('M j, Y g:i A') }}
+                                                </div>
+                                            @endif
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ \Carbon\Carbon::parse($event->start_time)->format('g:i A') }} -
-                                            {{ \Carbon\Carbon::parse($event->end_time)->format('g:i A') }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
+
+                                        <!-- Status Column -->
+                                        <td class="px-6 py-4">
                                             @php
                                                 $now = now();
                                                 $eventDate = \Carbon\Carbon::parse($event->date);
@@ -183,9 +189,27 @@
                                                 }
                                             @endphp
                                             <span
-                                                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $statusClass }}">{{ $status }}</span>
+                                                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $statusClass }}">
+                                                {{ $status }}
+                                            </span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+
+                                        <!-- Pre-Registration Column -->
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $preRegStatusClass }}">
+                                                {{ $preRegStatus }}
+                                            </span>
+                                            @if($event->allow_pre_registration)
+                                                <button onclick="showPreRegVolunteers({{ $event->id }})"
+                                                    class="mt-1 text-xs text-blue-600 hover:text-blue-800">
+                                                    View Pre-registered
+                                                </button>
+                                            @endif
+                                        </td>
+
+                                        <!-- Actions Column -->
+                                        <td class="px-6 py-4 text-right text-sm font-medium">
                                             <div class="flex items-center justify-end space-x-2">
                                                 <button onclick="openEditModal({{ $event->id }})"
                                                     class="text-blue-600 hover:text-blue-900 p-1 rounded transition-colors duration-150">
@@ -193,13 +217,6 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
                                                         </path>
-                                                    </svg>
-                                                </button>
-                                                <button onclick="openAttendanceModal({{ $event->id }})"
-                                                    class="text-purple-600 hover:text-purple-900 p-1 rounded transition-colors duration-150">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                                     </svg>
                                                 </button>
                                                 <button onclick="archiveEvent({{ $event->id }})"
@@ -211,18 +228,6 @@
                                                 </button>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span
-                                                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $preRegStatusClass }}">
-                                                {{ $preRegStatus }}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ $event->pre_registration_deadline ? $event->pre_registration_deadline->format('M j, Y g:i A') : 'N/A' }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ $event->preRegisteredVolunteers->count() }}
-                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -232,7 +237,61 @@
                 </div>
             </div>
         </div>
+        <!-- pre preg modal -->
 
+        <div id="preRegModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white">
+                <div class="mt-3">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium text-gray-900">Pre-registered Volunteers</h3>
+                        <button onclick="closePreRegModal()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="mb-4">
+                        <input type="text" id="preRegSearch" placeholder="Search volunteers..."
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+
+                    <div class="h-64 overflow-y-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Volunteer
+                                    </th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Ministry
+                                    </th>
+                                    @if(auth()->user()->isAdmin())
+                                        <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Email
+                                        </th>
+                                    @endif
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200" id="preRegTableBody">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="flex justify-end mt-4">
+                        <button onclick="closePreRegModal()"
+                            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- Add Event Modal -->
         <div id="addModal"
             class="fixed inset-0 bg-black/60 backdrop-blur-sm overflow-y-auto h-full w-full hidden z-50 flex items-start justify-center py-4">
@@ -904,21 +963,21 @@
                             const row = document.createElement('tr');
                             row.className = 'hover:bg-gray-50';
                             row.innerHTML = `
-                                                                                        <td class="px-6 py-4 whitespace-nowrap">
-                                                                                            <div class="flex items-center">
-                                                                                                <img class="w-8 h-8 rounded-full mr-3" src="${volunteer.profile_picture_url || '/images/default-profile.png'}" alt="${volunteer.full_name}">
-                                                                                                <div>
-                                                                                                    <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
-                                                                                                    <div class="text-xs text-gray-500">${volunteer.ministry_name}</div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </td>
-                                                                                        <td class="px-6 py-4 whitespace-nowrap text-right">
-                                                                                            <button onclick="addVolunteerToEvent(${volunteer.id})" class="text-blue-600 hover:text-blue-900 px-3 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors duration-200">
-                                                                                                Add
-                                                                                            </button>
-                                                                                        </td>
-                                                                                    `;
+                                                                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                                                                        <div class="flex items-center">
+                                                                                                            <img class="w-8 h-8 rounded-full mr-3" src="${volunteer.profile_picture_url || '/images/default-profile.png'}" alt="${volunteer.full_name}">
+                                                                                                            <div>
+                                                                                                                <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
+                                                                                                                <div class="text-xs text-gray-500">${volunteer.ministry_name}</div>
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                    </td>
+                                                                                                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                                                                                                        <button onclick="addVolunteerToEvent(${volunteer.id})" class="text-blue-600 hover:text-blue-900 px-3 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors duration-200">
+                                                                                                            Add
+                                                                                                        </button>
+                                                                                                    </td>
+                                                                                                `;
                             resultsBody.appendChild(row);
                         });
                     }
@@ -1158,39 +1217,39 @@
                         row.dataset.volunteerId = volunteer.id;
 
                         row.innerHTML = `
-                                                                                    <td class="px-6 py-4 whitespace-nowrap">
-                                                                                        <div class="flex items-center">
-                                                                                            <img class="w-10 h-10 rounded-full mr-3 object-cover" 
-                                                                                                 src="${volunteer.profile_picture_url}" 
-                                                                                                 alt="${volunteer.full_name}">
-                                                                                            <div>
-                                                                                                <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
-                                                                                                <div class="text-xs text-gray-500">ID: ${volunteer.id}</div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </td>
-                                                                                    <td class="px-6 py-4 whitespace-nowrap">
-                                                                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
-                                                                                            ${volunteer.ministry_name}
-                                                                                        </span>
-                                                                                    </td>
-                                                                                    <td class="px-6 py-4 whitespace-nowrap">
-                                                                                        <select class="attendance-select px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" 
-                                                                                                data-volunteer-id="${volunteer.id}"
-                                                                                                onchange="updateAttendanceSummary()">
-                                                                                            <option value="">Select Status</option>
-                                                                                            <option value="present" ${volunteer.pivot.attendance_status === 'present' ? 'selected' : ''}>✅ Present</option>
-                                                                                            <option value="absent" ${volunteer.pivot.attendance_status === 'absent' ? 'selected' : ''}>❌ Absent</option>
-                                                                                        </select>
-                                                                                    </td>
-                                                                                    <td class="px-6 py-4 whitespace-nowrap text-right">
-                                                                                        <button onclick="removeVolunteerFromEvent(${volunteer.id})" class="text-red-600 hover:text-red-900 p-1 rounded transition-colors duration-150">
-                                                                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                                                            </svg>
-                                                                                        </button>
-                                                                                    </td>
-                                                                                `;
+                                                                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                                                                    <div class="flex items-center">
+                                                                                                        <img class="w-10 h-10 rounded-full mr-3 object-cover" 
+                                                                                                             src="${volunteer.profile_picture_url}" 
+                                                                                                             alt="${volunteer.full_name}">
+                                                                                                        <div>
+                                                                                                            <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
+                                                                                                            <div class="text-xs text-gray-500">ID: ${volunteer.id}</div>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                </td>
+                                                                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                                                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                                                                                                        ${volunteer.ministry_name}
+                                                                                                    </span>
+                                                                                                </td>
+                                                                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                                                                    <select class="attendance-select px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" 
+                                                                                                            data-volunteer-id="${volunteer.id}"
+                                                                                                            onchange="updateAttendanceSummary()">
+                                                                                                        <option value="">Select Status</option>
+                                                                                                        <option value="present" ${volunteer.pivot.attendance_status === 'present' ? 'selected' : ''}>✅ Present</option>
+                                                                                                        <option value="absent" ${volunteer.pivot.attendance_status === 'absent' ? 'selected' : ''}>❌ Absent</option>
+                                                                                                    </select>
+                                                                                                </td>
+                                                                                                <td class="px-6 py-4 whitespace-nowrap text-right">
+                                                                                                    <button onclick="removeVolunteerFromEvent(${volunteer.id})" class="text-red-600 hover:text-red-900 p-1 rounded transition-colors duration-150">
+                                                                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                                                                        </svg>
+                                                                                                    </button>
+                                                                                                </td>
+                                                                                            `;
 
                         tableBody.appendChild(row);
                     });
@@ -1505,6 +1564,78 @@
                 closeEditModal();
                 closeAttendanceModal();
             }
+        });
+
+        function showPreRegVolunteers(eventId) {
+            fetch(`/events/${eventId}/volunteers`)
+                .then(response => response.json())
+                .then(volunteers => {
+                    const tableBody = document.getElementById('preRegTableBody');
+                    tableBody.innerHTML = '';
+
+                    volunteers.forEach(volunteer => {
+                        const row = document.createElement('tr');
+                        row.className = 'hover:bg-gray-50';
+
+                        let rowContent = `
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <img class="w-8 h-8 rounded-full mr-3" 
+                                     src="${volunteer.profile_picture_url || '/images/default-profile.png'}" 
+                                     alt="${volunteer.full_name}">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ${volunteer.ministry_name}
+                        </td>
+                    `;
+
+                        // Add email column for admin users
+                        if (volunteer.email) {
+                            rowContent += `
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                ${volunteer.email}
+                            </td>
+                        `;
+                        }
+
+                        row.innerHTML = rowContent;
+                        tableBody.appendChild(row);
+                    });
+
+                    document.getElementById('preRegModal').classList.remove('hidden');
+                    document.body.classList.add('overflow-hidden');
+                })
+                .catch(error => {
+                    console.error('Error fetching pre-registered volunteers:', error);
+                    toastr.error('Error loading pre-registered volunteers');
+                });
+        }
+
+        function closePreRegModal() {
+            document.getElementById('preRegModal').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        // Add search functionality for pre-reg modal
+        document.getElementById('preRegSearch').addEventListener('input', function () {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#preRegTableBody tr');
+
+            rows.forEach(row => {
+                const name = row.querySelector('td:first-child .text-sm.font-medium').textContent.toLowerCase();
+                const ministry = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                const email = row.querySelector('td:nth-child(3)') ? row.querySelector('td:nth-child(3)').textContent.toLowerCase() : '';
+
+                if (name.includes(searchTerm) || ministry.includes(searchTerm) || email.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
         });
     </script>
 @endsection

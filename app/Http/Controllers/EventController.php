@@ -138,24 +138,76 @@ class EventController extends Controller
             'message' => 'Volunteer pre-registered successfully'
         ]);
     }
+    // EventController.php
     public function getEventVolunteers(Event $event)
     {
+        $user = Auth::user();
         $volunteers = $event->volunteers()
             ->with(['detail.ministry'])
             ->get()
-            ->map(function ($volunteer) {
-                return [
+            ->map(function ($volunteer) use ($user) {
+                $data = [
                     'id' => $volunteer->id,
                     'full_name' => $volunteer->detail->full_name ?? 'No Name',
                     'ministry_name' => $volunteer->detail->ministry->ministry_name ?? 'No Ministry',
                     'profile_picture_url' => $volunteer->profile_picture_url,
-                    'pivot' => [
-                        'attendance_status' => $volunteer->pivot->attendance_status
-                    ]
                 ];
+
+                // Add email for admin users
+                if ($user->isAdmin()) {
+                    $data['email'] = $volunteer->email ?? 'No Email';
+                }
+
+                return $data;
             });
 
         return response()->json($volunteers);
+    }
+
+    public function searchVolunteers(Request $request)
+    {
+        $request->validate([
+            'q' => 'required|string|min:1',
+            'event_id' => 'required|exists:events,id'
+        ]);
+
+        $searchTerm = $request->query('q');
+        $eventId = $request->query('event_id');
+        $user = Auth::user();
+
+        try {
+            $query = Volunteer::with(['detail.ministry'])
+                ->whereHas('detail', function ($q) use ($searchTerm) {
+                    $q->where('full_name', 'like', "%{$searchTerm}%");
+                })
+                ->whereDoesntHave('events', function ($q) use ($eventId) {
+                    $q->where('event_id', $eventId);
+                })
+                ->where('is_archived', false);
+
+            // For staff users, filter by ministry
+            if ($user->isStaff() && $user->ministry_id) {
+                $query->whereHas('detail', function ($q) use ($user) {
+                    $q->where('ministry_id', $user->ministry_id);
+                });
+            }
+
+            $volunteers = $query->limit(10)
+                ->get()
+                ->map(function ($volunteer) {
+                    return [
+                        'id' => $volunteer->id,
+                        'full_name' => $volunteer->detail->full_name ?? 'No Name',
+                        'ministry_name' => $volunteer->detail->ministry->ministry_name ?? 'No Ministry',
+                        'profile_picture_url' => $volunteer->profile_picture_url ?? '/images/default-profile.png',
+                        'email' => $volunteer->email ?? 'No Email' // Include email for display
+                    ];
+                });
+
+            return response()->json($volunteers->toArray());
+        } catch (\Exception $e) {
+            return response()->json([], 500);
+        }
     }
 
     public function saveAttendance(Request $request, Event $event)
@@ -175,41 +227,7 @@ class EventController extends Controller
         ]);
     }
 
-    public function searchVolunteers(Request $request)
-    {
-        $request->validate([
-            'q' => 'required|string|min:1',
-            'event_id' => 'required|exists:events,id'
-        ]);
 
-        $searchTerm = $request->query('q');
-        $eventId = $request->query('event_id');
-
-        try {
-            $volunteers = Volunteer::with(['detail.ministry'])
-                ->whereHas('detail', function ($q) use ($searchTerm) {
-                    $q->where('full_name', 'like', "%{$searchTerm}%");
-                })
-                ->whereDoesntHave('events', function ($q) use ($eventId) {
-                    $q->where('event_id', $eventId);
-                })
-                ->where('is_archived', false)
-                ->limit(10)
-                ->get()
-                ->map(function ($volunteer) {
-                    return [
-                        'id' => $volunteer->id,
-                        'full_name' => $volunteer->detail->full_name ?? 'No Name',
-                        'ministry_name' => $volunteer->detail->ministry->ministry_name ?? 'No Ministry',
-                        'profile_picture_url' => $volunteer->profile_picture_url ?? '/images/default-profile.png',
-                    ];
-                });
-
-            return response()->json($volunteers->toArray());
-        } catch (\Exception $e) {
-            return response()->json([], 500);
-        }
-    }
 
     public function addVolunteer(Event $event, Volunteer $volunteer)
     {
