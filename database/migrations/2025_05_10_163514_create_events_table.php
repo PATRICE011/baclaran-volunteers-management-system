@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -17,9 +16,11 @@ return new class extends Migration
             $table->date('date');
             $table->time('start_time');
             $table->time('end_time');
+            $table->timestamp('pre_registration_deadline')->nullable();
+            $table->boolean('allow_pre_registration')->default(false);
             $table->text('description')->nullable();
             $table->foreignId('ministry_id')->nullable()->constrained()->onDelete('set null');
-              // archive fields
+            // archive fields
             $table->boolean('is_archived')->default(false);
             $table->dateTime('archived_at')->nullable();  // Add the column properly
             $table->foreignId('archived_by')->nullable()->constrained('users')->onDelete('set null');

@@ -59,6 +59,7 @@ class EventController extends Controller
         return response()->json($event);
     }
 
+    // In EventController.php
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -67,6 +68,8 @@ class EventController extends Controller
             'date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
+            'allow_pre_registration' => 'boolean',
+            'pre_registration_deadline' => 'nullable|date|before:date',
         ]);
 
         $event = Event::create($validated);
@@ -86,6 +89,8 @@ class EventController extends Controller
             'date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
+            'allow_pre_registration' => 'boolean',
+            'pre_registration_deadline' => 'nullable|date|before:date',
         ]);
 
         $event->update($validated);
@@ -97,6 +102,42 @@ class EventController extends Controller
         ]);
     }
 
+    public function preRegister(Request $request, Event $event)
+    {
+        if (!$event->allow_pre_registration) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pre-registration is not enabled for this event'
+            ], 400);
+        }
+
+        if ($event->pre_registration_deadline && now()->gt($event->pre_registration_deadline)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pre-registration deadline has passed'
+            ], 400);
+        }
+
+        $volunteerId = $request->input('volunteer_id');
+
+        if ($event->volunteers()->where('volunteer_id', $volunteerId)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Volunteer is already registered for this event'
+            ], 400);
+        }
+
+        $event->volunteers()->attach($volunteerId, [
+            'attendance_status' => 'pending',
+            'checked_in_at' => null,
+            'pre_registered_at' => now()
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Volunteer pre-registered successfully'
+        ]);
+    }
     public function getEventVolunteers(Event $event)
     {
         $volunteers = $event->volunteers()

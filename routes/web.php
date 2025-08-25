@@ -82,6 +82,8 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
             Route::prefix('attendance')->group(function () {
                 Route::post('/save', [EventController::class, 'saveAttendance'])->name('events.attendance.save');
             });
+
+            Route::post('/pre-register', [EventController::class, 'preRegister'])->name('events.pre_register');
         });
     });
 

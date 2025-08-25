@@ -18,7 +18,9 @@ class Event extends Model
         'is_archived',
         'archived_at',
         'archived_by',
-        'archive_reason'
+        'archive_reason',
+        'pre_registration_deadline',
+        'allow_pre_registration'
     ];
 
     protected $casts = [
@@ -26,7 +28,16 @@ class Event extends Model
         'start_time' => 'datetime:H:i',
         'end_time' => 'datetime:H:i',
         'archived_at' => 'datetime',
+        'pre_registration_deadline' => 'datetime', // Add this
     ];
+
+    public function preRegisteredVolunteers(): BelongsToMany
+    {
+        return $this->belongsToMany(Volunteer::class)
+            ->wherePivotNotNull('pre_registered_at')
+            ->withPivot('pre_registered_at');
+    }
+
     public function archive($reason)
     {
         $this->update([

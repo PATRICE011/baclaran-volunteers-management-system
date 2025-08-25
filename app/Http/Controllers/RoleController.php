@@ -34,6 +34,7 @@ class RoleController extends Controller
                 'role' => $user->role,
                 'ministry_id' => $user->ministry_id,
                 'ministry_name' => $user->ministry ? $user->ministry->ministry_name : null,
+                'created_at' => $user->created_at, // Make sure this is included
                 'dateAdded' => $user->created_at->format('Y-m-d'),
                 'profile_picture' => $user->profile_picture,
             ];
@@ -62,10 +63,10 @@ class RoleController extends Controller
         ]);
 
         try {
-            // Create the new user
+            // Create the new user - DON'T manually hash password, let the 'hashed' cast handle it
             $user = User::create([
                 'email' => $request->email,
-                'password' => Hash::make($request->password),
+                'password' => $request->password, // ← Changed: Remove Hash::make()
                 'role' => $request->role,
                 'ministry_id' => $request->ministry_id,
             ]);
@@ -158,7 +159,6 @@ class RoleController extends Controller
             ], 500);
         }
     }
-
 
     public function restore(User $user)
     {
