@@ -31,6 +31,13 @@ class VolunteersController extends Controller
             $query = Volunteer::with(['detail.ministry', 'timelines', 'affiliations'])
                 ->where('is_archived', false);
 
+            // If user is staff, filter by their ministry
+            if ($user->isStaff() && $user->ministry_id) {
+                $query->whereHas('detail', function ($q) use ($user) {
+                    $q->where('ministry_id', $user->ministry_id);
+                });
+            }
+
 
             // Search filter
             if ($request->filled('search')) {
