@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\Volunteer;
 use App\Models\Ministry;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -59,7 +60,6 @@ class EventController extends Controller
         return response()->json($event);
     }
 
-    // In EventController.php
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -101,6 +101,7 @@ class EventController extends Controller
             'event' => $event
         ]);
     }
+
     public function getAvailableVolunteers(Request $request, Event $event)
     {
         $user = Auth::user();
@@ -131,6 +132,7 @@ class EventController extends Controller
 
         return response()->json($volunteers);
     }
+
     public function preRegister(Request $request, Event $event)
     {
         if (!$event->allow_pre_registration) {
@@ -174,7 +176,8 @@ class EventController extends Controller
         $event->volunteers()->attach($volunteerId, [
             'attendance_status' => 'pending',
             'checked_in_at' => null,
-            'pre_registered_at' => now()
+            'pre_registered_at' => now(),
+            'pre_registered_by' => auth()->id()
         ]);
 
         return response()->json([
@@ -182,7 +185,6 @@ class EventController extends Controller
             'message' => 'Volunteer pre-registered successfully'
         ]);
     }
-
 
     public function getEventVolunteers(Event $event)
     {
@@ -208,12 +210,13 @@ class EventController extends Controller
 
         return response()->json($volunteers);
     }
+
     public function getPreRegisteredVolunteers(Event $event)
     {
         $user = Auth::user();
         $volunteers = $event->volunteers()
             ->with(['detail.ministry'])
-            ->wherePivotNotNull('pre_registered_at') // Only get pre-registered volunteers
+            ->wherePivotNotNull('pre_registered_at')
             ->get()
             ->map(function ($volunteer) use ($user) {
                 $data = [
@@ -226,6 +229,14 @@ class EventController extends Controller
                 // Add email for admin users
                 if ($user->isAdmin()) {
                     $data['email'] = $volunteer->email ?? 'No Email';
+
+                    // Get the email of the user who pre-registered this volunteer
+                    if ($volunteer->pivot->pre_registered_by) {
+                        $preRegisteredByUser = User::find($volunteer->pivot->pre_registered_by);
+                        $data['registered_by_email'] = $preRegisteredByUser ? $preRegisteredByUser->email : 'Unknown User';
+                    } else {
+                        $data['registered_by_email'] = 'System';
+                    }
                 }
 
                 return $data;
@@ -233,6 +244,7 @@ class EventController extends Controller
 
         return response()->json($volunteers);
     }
+
     public function searchVolunteers(Request $request)
     {
         $request->validate([
@@ -269,7 +281,7 @@ class EventController extends Controller
                         'full_name' => $volunteer->detail->full_name ?? 'No Name',
                         'ministry_name' => $volunteer->detail->ministry->ministry_name ?? 'No Ministry',
                         'profile_picture_url' => $volunteer->profile_picture_url ?? '/images/default-profile.png',
-                        'email' => $volunteer->email ?? 'No Email' // Include email for display
+                        'email' => $volunteer->email ?? 'No Email'
                     ];
                 });
 
@@ -295,8 +307,6 @@ class EventController extends Controller
             'message' => 'Attendance saved successfully!'
         ]);
     }
-
-
 
     public function addVolunteer(Event $event, Volunteer $volunteer)
     {
@@ -383,6 +393,7 @@ class EventController extends Controller
             ]
         ]);
     }
+
     public function archive(Event $event)
     {
         $validated = request()->validate([
@@ -394,7 +405,6 @@ class EventController extends Controller
             'archive_reason' => $validated['reason'],
             'archived_at' => now(),
             'archived_by' => Auth::id(),
-
         ]);
 
         return response()->json([

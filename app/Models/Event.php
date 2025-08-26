@@ -28,14 +28,14 @@ class Event extends Model
         'start_time' => 'datetime:H:i',
         'end_time' => 'datetime:H:i',
         'archived_at' => 'datetime',
-        'pre_registration_deadline' => 'datetime', // Add this
+        'pre_registration_deadline' => 'datetime',
     ];
 
     public function preRegisteredVolunteers(): BelongsToMany
     {
         return $this->belongsToMany(Volunteer::class)
             ->wherePivotNotNull('pre_registered_at')
-            ->withPivot('pre_registered_at');
+            ->withPivot('pre_registered_at', 'pre_registered_by');
     }
 
     public function archive($reason)
@@ -72,7 +72,7 @@ class Event extends Model
     public function volunteers(): BelongsToMany
     {
         return $this->belongsToMany(Volunteer::class)
-            ->withPivot('attendance_status', 'checked_in_at')
+            ->withPivot('attendance_status', 'checked_in_at', 'pre_registered_at', 'pre_registered_by')
             ->withTimestamps();
     }
 }

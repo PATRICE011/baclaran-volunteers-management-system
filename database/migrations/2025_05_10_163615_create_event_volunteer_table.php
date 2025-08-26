@@ -17,6 +17,10 @@ return new class extends Migration {
             $table->enum('attendance_status', ['present', 'absent', 'pending'])->default('pending');
             $table->timestamp('checked_in_at')->nullable();
             $table->timestamp('pre_registered_at')->nullable();
+            $table->foreignId('pre_registered_by')
+                ->nullable()
+                ->constrained('users')
+                ->onDelete('set null');
             $table->timestamps();
         });
     }

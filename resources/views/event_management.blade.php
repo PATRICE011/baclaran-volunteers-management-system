@@ -1032,21 +1032,21 @@
                             const row = document.createElement('tr');
                             row.className = 'hover:bg-gray-50';
                             row.innerHTML = `
-                                                                                                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                                                                                                    <div class="flex items-center">
-                                                                                                                                        <img class="w-8 h-8 rounded-full mr-3" src="${volunteer.profile_picture_url || '/images/default-profile.png'}" alt="${volunteer.full_name}">
-                                                                                                                                        <div>
-                                                                                                                                            <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
-                                                                                                                                            <div class="text-xs text-gray-500">${volunteer.ministry_name}</div>
-                                                                                                                                        </div>
-                                                                                                                                    </div>
-                                                                                                                                </td>
-                                                                                                                                <td class="px-6 py-4 whitespace-nowrap text-right">
-                                                                                                                                    <button onclick="addVolunteerToEvent(${volunteer.id})" class="text-blue-600 hover:text-blue-900 px-3 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors duration-200">
-                                                                                                                                        Add
-                                                                                                                                    </button>
-                                                                                                                                </td>
-                                                                                                                            `;
+                                                                                                                                        <td class="px-6 py-4 whitespace-nowrap">
+                                                                                                                                            <div class="flex items-center">
+                                                                                                                                                <img class="w-8 h-8 rounded-full mr-3" src="${volunteer.profile_picture_url || '/images/default-profile.png'}" alt="${volunteer.full_name}">
+                                                                                                                                                <div>
+                                                                                                                                                    <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
+                                                                                                                                                    <div class="text-xs text-gray-500">${volunteer.ministry_name}</div>
+                                                                                                                                                </div>
+                                                                                                                                            </div>
+                                                                                                                                        </td>
+                                                                                                                                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                                                                                                                                            <button onclick="addVolunteerToEvent(${volunteer.id})" class="text-blue-600 hover:text-blue-900 px-3 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors duration-200">
+                                                                                                                                                Add
+                                                                                                                                            </button>
+                                                                                                                                        </td>
+                                                                                                                                    `;
                             resultsBody.appendChild(row);
                         });
                     }
@@ -1286,39 +1286,39 @@
                         row.dataset.volunteerId = volunteer.id;
 
                         row.innerHTML = `
-                                                                                                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                                                                                                <div class="flex items-center">
-                                                                                                                                    <img class="w-10 h-10 rounded-full mr-3 object-cover" 
-                                                                                                                                         src="${volunteer.profile_picture_url}" 
-                                                                                                                                         alt="${volunteer.full_name}">
-                                                                                                                                    <div>
-                                                                                                                                        <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
-                                                                                                                                        <div class="text-xs text-gray-500">ID: ${volunteer.id}</div>
-                                                                                                                                    </div>
-                                                                                                                                </div>
-                                                                                                                            </td>
-                                                                                                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                                                                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
-                                                                                                                                    ${volunteer.ministry_name}
-                                                                                                                                </span>
-                                                                                                                            </td>
-                                                                                                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                                                                                                <select class="attendance-select px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" 
-                                                                                                                                        data-volunteer-id="${volunteer.id}"
-                                                                                                                                        onchange="updateAttendanceSummary()">
-                                                                                                                                    <option value="">Select Status</option>
-                                                                                                                                    <option value="present" ${volunteer.pivot.attendance_status === 'present' ? 'selected' : ''}>✅ Present</option>
-                                                                                                                                    <option value="absent" ${volunteer.pivot.attendance_status === 'absent' ? 'selected' : ''}>❌ Absent</option>
-                                                                                                                                </select>
-                                                                                                                            </td>
-                                                                                                                            <td class="px-6 py-4 whitespace-nowrap text-right">
-                                                                                                                                <button onclick="removeVolunteerFromEvent(${volunteer.id})" class="text-red-600 hover:text-red-900 p-1 rounded transition-colors duration-150">
-                                                                                                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                                                                                                    </svg>
-                                                                                                                                </button>
-                                                                                                                            </td>
-                                                                                                                        `;
+                                                                                                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                                                                                                        <div class="flex items-center">
+                                                                                                                                            <img class="w-10 h-10 rounded-full mr-3 object-cover" 
+                                                                                                                                                 src="${volunteer.profile_picture_url}" 
+                                                                                                                                                 alt="${volunteer.full_name}">
+                                                                                                                                            <div>
+                                                                                                                                                <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
+                                                                                                                                                <div class="text-xs text-gray-500">ID: ${volunteer.id}</div>
+                                                                                                                                            </div>
+                                                                                                                                        </div>
+                                                                                                                                    </td>
+                                                                                                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                                                                                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                                                                                                                                            ${volunteer.ministry_name}
+                                                                                                                                        </span>
+                                                                                                                                    </td>
+                                                                                                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                                                                                                        <select class="attendance-select px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" 
+                                                                                                                                                data-volunteer-id="${volunteer.id}"
+                                                                                                                                                onchange="updateAttendanceSummary()">
+                                                                                                                                            <option value="">Select Status</option>
+                                                                                                                                            <option value="present" ${volunteer.pivot.attendance_status === 'present' ? 'selected' : ''}>✅ Present</option>
+                                                                                                                                            <option value="absent" ${volunteer.pivot.attendance_status === 'absent' ? 'selected' : ''}>❌ Absent</option>
+                                                                                                                                        </select>
+                                                                                                                                    </td>
+                                                                                                                                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                                                                                                                                        <button onclick="removeVolunteerFromEvent(${volunteer.id})" class="text-red-600 hover:text-red-900 p-1 rounded transition-colors duration-150">
+                                                                                                                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                                                                                                            </svg>
+                                                                                                                                        </button>
+                                                                                                                                    </td>
+                                                                                                                                `;
 
                         tableBody.appendChild(row);
                     });
@@ -1647,30 +1647,28 @@
                         row.className = 'hover:bg-gray-50';
 
                         let rowContent = `
-                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                    <div class="flex items-center">
-                                                        <img class="w-8 h-8 rounded-full mr-3" 
-                                                             src="${volunteer.profile_picture_url || '/images/default-profile.png'}" 
-                                                             alt="${volunteer.full_name}">
-                                                        <div>
-                                                            <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    ${volunteer.ministry_name}
-                                                </td>
-                                            `;
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <img class="w-8 h-8 rounded-full mr-3" 
+                                        src="${volunteer.profile_picture_url || '/images/default-profile.png'}" 
+                                        alt="${volunteer.full_name}">
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                ${volunteer.ministry_name}
+                            </td>
+                        `;
 
-                        // Add email column for admin users
-                        if (volunteer.email) {
+                        // Add registered by email for admin users
+                        if (volunteer.registered_by_email) {
                             rowContent += `
-                                                    @if(auth()->user()->isAdmin())
-                                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                            {{ $volunteer->pivot->pre_registered_by_email ?? 'System' }}
-                                                        </td>
-                                                    @endif
-                                                `;
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    ${volunteer.registered_by_email}
+                                </td>
+                            `;
                         }
 
                         row.innerHTML = rowContent;
@@ -1725,26 +1723,26 @@
                         const row = document.createElement('tr');
                         row.className = 'hover:bg-gray-50';
                         row.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <img class="w-8 h-8 rounded-full mr-3" 
-                                     src="${volunteer.profile_picture_url || '/images/default-profile.png'}" 
-                                     alt="${volunteer.full_name}">
-                                <div>
-                                    <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            ${volunteer.ministry_name}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right">
-                            <button onclick="preRegisterVolunteer(${eventId}, ${volunteer.id})" 
-                                    class="text-blue-600 hover:text-blue-900 px-3 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors duration-200">
-                                Pre-register
-                            </button>
-                        </td>
-                    `;
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <img class="w-8 h-8 rounded-full mr-3" 
+                                             src="${volunteer.profile_picture_url || '/images/default-profile.png'}" 
+                                             alt="${volunteer.full_name}">
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">${volunteer.full_name}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    ${volunteer.ministry_name}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right">
+                                    <button onclick="preRegisterVolunteer(${eventId}, ${volunteer.id})" 
+                                            class="text-blue-600 hover:text-blue-900 px-3 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors duration-200">
+                                        Pre-register
+                                    </button>
+                                </td>
+                            `;
                         tableBody.appendChild(row);
                     });
 
