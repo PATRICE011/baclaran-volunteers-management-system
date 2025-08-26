@@ -52,24 +52,24 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
         Route::post('/bulk-force-delete', [TasksController::class, 'bulkForceDelete'])->name('tasks.bulkForceDelete');
     });
 
-    // Event routes - Modified to match our new implementation
+    // Event routes 
     Route::prefix('events')->group(function () {
         Route::get('/', [EventController::class, 'index'])->name('events.index');
         Route::post('/', [EventController::class, 'store'])->name('events.store');
 
-        // Volunteer search route (outside the {event} group since it's not specific to one event)
-        Route::get('/volunteers/search', [EventController::class, 'searchVolunteers'])->name('events.volunteers.search');
 
-        Route::post('/{event}/restore', [EventController::class, 'restore'])->name('events.restore');
-        Route::delete('/{event}/force-delete', [EventController::class, 'forceDelete'])->name('events.forceDelete');
+        Route::get('/volunteers/search', [EventController::class, 'searchVolunteers'])->name('events.volunteers.search');
 
         Route::post('/bulk-restore', [EventController::class, 'bulkRestore'])->name('events.bulkRestore');
         Route::post('/bulk-force-delete', [EventController::class, 'bulkForceDelete'])->name('events.bulkForceDelete');
+
         // Single event operations
         Route::prefix('{event}')->group(function () {
             Route::get('/', [EventController::class, 'show'])->name('events.show');
             Route::put('/', [EventController::class, 'update'])->name('events.update');
             Route::post('/archive', [EventController::class, 'archive'])->name('events.archive');
+            Route::post('/restore', [EventController::class, 'restore'])->name('events.restore');
+            Route::delete('/force-delete', [EventController::class, 'forceDelete'])->name('events.forceDelete');
 
             // Volunteer-related routes
             Route::get('/volunteers', [EventController::class, 'getEventVolunteers'])->name('events.volunteers');
@@ -84,6 +84,10 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
             });
 
             Route::post('/pre-register', [EventController::class, 'preRegister'])->name('events.pre_register');
+            Route::get('/show-preregister-modal', [EventController::class, 'showPreRegisterModal']);
+
+            Route::get('/available-volunteers', [EventController::class, 'getAvailableVolunteers'])->name('events.available_volunteers');
+            Route::get('/pre-registered-volunteers', [EventController::class, 'getPreRegisteredVolunteers'])->name('events.pre_registered_volunteers');
         });
     });
 

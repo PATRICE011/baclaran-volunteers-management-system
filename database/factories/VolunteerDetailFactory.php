@@ -15,7 +15,6 @@ class VolunteerDetailFactory extends Factory
     public function definition(): array
     {
         return [
-            // No need to generate new volunteer_id here!
             'volunteer_id' => null,
             'ministry_id' => Ministry::whereNotNull('parent_id')->inRandomOrder()->value('id'),
             'line_group' => Arr::random(['RMM', 'RYM', 'RCCOM']),

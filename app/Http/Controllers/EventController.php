@@ -101,7 +101,36 @@ class EventController extends Controller
             'event' => $event
         ]);
     }
+    public function getAvailableVolunteers(Request $request, Event $event)
+    {
+        $user = Auth::user();
+        $ministryId = $user->ministry_id;
 
+        $query = Volunteer::with(['detail.ministry'])
+            ->whereDoesntHave('events', function ($q) use ($event) {
+                $q->where('event_id', $event->id);
+            })
+            ->where('is_archived', false);
+
+        // For staff users, filter by their ministry
+        if ($user->isStaff() && $ministryId) {
+            $query->whereHas('detail', function ($q) use ($ministryId) {
+                $q->where('ministry_id', $ministryId);
+            });
+        }
+
+        $volunteers = $query->get()
+            ->map(function ($volunteer) {
+                return [
+                    'id' => $volunteer->id,
+                    'full_name' => $volunteer->detail->full_name ?? 'No Name',
+                    'ministry_name' => $volunteer->detail->ministry->ministry_name ?? 'No Ministry',
+                    'profile_picture_url' => $volunteer->profile_picture_url,
+                ];
+            });
+
+        return response()->json($volunteers);
+    }
     public function preRegister(Request $request, Event $event)
     {
         if (!$event->allow_pre_registration) {
@@ -119,8 +148,23 @@ class EventController extends Controller
         }
 
         $volunteerId = $request->input('volunteer_id');
+        $volunteer = Volunteer::findOrFail($volunteerId);
 
-        if ($event->volunteers()->where('volunteer_id', $volunteerId)->exists()) {
+        // Check if user is staff and volunteer belongs to their ministry
+        if (auth()->user()->isStaff()) {
+            $userMinistryId = auth()->user()->ministry_id;
+            $volunteerMinistryId = $volunteer->detail->ministry_id ?? null;
+
+            if ($userMinistryId != $volunteerMinistryId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You can only pre-register volunteers from your ministry'
+                ], 403);
+            }
+        }
+
+        // Fix: Specify the table name to avoid ambiguity
+        if ($event->volunteers()->where('event_volunteer.volunteer_id', $volunteerId)->exists()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Volunteer is already registered for this event'
@@ -138,7 +182,8 @@ class EventController extends Controller
             'message' => 'Volunteer pre-registered successfully'
         ]);
     }
-    // EventController.php
+
+
     public function getEventVolunteers(Event $event)
     {
         $user = Auth::user();
@@ -163,7 +208,31 @@ class EventController extends Controller
 
         return response()->json($volunteers);
     }
+    public function getPreRegisteredVolunteers(Event $event)
+    {
+        $user = Auth::user();
+        $volunteers = $event->volunteers()
+            ->with(['detail.ministry'])
+            ->wherePivotNotNull('pre_registered_at') // Only get pre-registered volunteers
+            ->get()
+            ->map(function ($volunteer) use ($user) {
+                $data = [
+                    'id' => $volunteer->id,
+                    'full_name' => $volunteer->detail->full_name ?? 'No Name',
+                    'ministry_name' => $volunteer->detail->ministry->ministry_name ?? 'No Ministry',
+                    'profile_picture_url' => $volunteer->profile_picture_url,
+                ];
 
+                // Add email for admin users
+                if ($user->isAdmin()) {
+                    $data['email'] = $volunteer->email ?? 'No Email';
+                }
+
+                return $data;
+            });
+
+        return response()->json($volunteers);
+    }
     public function searchVolunteers(Request $request)
     {
         $request->validate([
@@ -259,6 +328,61 @@ class EventController extends Controller
         ]);
     }
 
+    public function showPreRegisterModal(Event $event)
+    {
+        $user = Auth::user();
+
+        // Check if pre-registration is allowed
+        if (!$event->allow_pre_registration) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pre-registration is not enabled for this event'
+            ], 400);
+        }
+
+        // Check if deadline has passed
+        if ($event->pre_registration_deadline && now()->gt($event->pre_registration_deadline)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pre-registration deadline has passed'
+            ], 400);
+        }
+
+        // Get available volunteers
+        $query = Volunteer::with(['detail.ministry'])
+            ->whereDoesntHave('events', function ($q) use ($event) {
+                $q->where('event_id', $event->id);
+            })
+            ->where('is_archived', false);
+
+        // For staff users, filter by their ministry
+        if ($user->isStaff() && $user->ministry_id) {
+            $query->whereHas('detail', function ($q) use ($user) {
+                $q->where('ministry_id', $user->ministry_id);
+            });
+        }
+
+        $volunteers = $query->get()
+            ->map(function ($volunteer) {
+                return [
+                    'id' => $volunteer->id,
+                    'full_name' => $volunteer->detail->full_name ?? 'No Name',
+                    'ministry_name' => $volunteer->detail->ministry->ministry_name ?? 'No Ministry',
+                    'profile_picture_url' => $volunteer->profile_picture_url,
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'volunteers' => $volunteers,
+            'event' => [
+                'id' => $event->id,
+                'title' => $event->title,
+                'allow_pre_registration' => $event->allow_pre_registration,
+                'pre_registration_deadline' => $event->pre_registration_deadline
+            ]
+        ]);
+    }
     public function archive(Event $event)
     {
         $validated = request()->validate([
@@ -267,7 +391,10 @@ class EventController extends Controller
 
         $event->update([
             'is_archived' => true,
-            'archive_reason' => $validated['reason']
+            'archive_reason' => $validated['reason'],
+            'archived_at' => now(),
+            'archived_by' => Auth::id(),
+
         ]);
 
         return response()->json([

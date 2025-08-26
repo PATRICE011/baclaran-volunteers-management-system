@@ -416,8 +416,10 @@ class VolunteersController extends Controller
                     $remainingMonths = $months % 12;
 
                     $parts = [];
-                    if ($years) $parts[] = "$years year" . ($years > 1 ? 's' : '');
-                    if ($remainingMonths) $parts[] = "$remainingMonths month" . ($remainingMonths > 1 ? 's' : '');
+                    if ($years)
+                        $parts[] = "$years year" . ($years > 1 ? 's' : '');
+                    if ($remainingMonths)
+                        $parts[] = "$remainingMonths month" . ($remainingMonths > 1 ? 's' : '');
                     $volunteer->active_for = $parts ? implode(' ', $parts) : 'Less than a month';
                 } catch (\Exception) {
                     $volunteer->active_for = 'Invalid date';
@@ -711,7 +713,7 @@ class VolunteersController extends Controller
         $volunteer->update([
             'is_archived' => true,
             'archived_at' => now(),
-            'archived_by' => auth()->id(),
+            'archived_by' => Auth::id(),
             'archive_reason' => $request->reason,
         ]);
 

@@ -18,8 +18,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(UserSeeder::class);
         $this->call(MinistrySeeder::class);
-  
-        // Volunteer::factory()->count(15)->create();
-        
+
+        Volunteer::factory()->count(15)->create();
+
     }
 }
