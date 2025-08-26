@@ -85,14 +85,17 @@
                             <h1 class="text-3xl font-bold text-gray-900">Task Management</h1>
                             <p class="mt-2 text-gray-600">Manage and track tasks across your organization</p>
                         </div>
-                        <button onclick="openAddModal()"
-                            class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
-                            Add New Task
-                        </button>
+                        @if (auth()->user()->role !== 'staff')
+                            <button onclick="openAddModal()"
+                                class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                Add New Task
+                            </button>
+                        @endif
+
                     </div>
                 </div>
 
@@ -314,27 +317,29 @@
                                         Created {{ $task->created_at->format('M d, Y') }}
                                     </div>
                                 </div>
+                                @if (auth()->user()->role !== 'staff')
+                                    <div
+                                        class="flex items-center space-x-1 task-actions opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                        <button onclick="editTask({{ $task->id }})"
+                                            class="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200 tooltip"
+                                            title="Edit Task">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </button>
 
-                                <div
-                                    class="flex items-center space-x-1 task-actions opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                    <button onclick="editTask({{ $task->id }})"
-                                        class="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200 tooltip"
-                                        title="Edit Task">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
-                                    </button>
+                                        <button onclick="deleteTask({{ $task->id }}, '{{ addslashes($task->title) }}')"
+                                            class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200 tooltip"
+                                            title="Delete Task">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                @endif
 
-                                    <button onclick="deleteTask({{ $task->id }}, '{{ addslashes($task->title) }}')"
-                                        class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200 tooltip"
-                                        title="Delete Task">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                </div>
                             </div>
 
                             <!-- Progress indicator for overdue/due soon tasks -->
@@ -528,15 +533,15 @@
 
     <!-- Toast Notification -->
     <!-- <div id="toast" class="fixed top-4 right-4 z-50 hidden">
-                                                        <div class="bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center">
-                                                            <span id="toast-message"></span>
-                                                            <button onclick="hideToast()" class="ml-4">
-                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    </div> -->
+                                                                <div class="bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center">
+                                                                    <span id="toast-message"></span>
+                                                                    <button onclick="hideToast()" class="ml-4">
+                                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                                        </svg>
+                                                                    </button>
+                                                                </div>
+                                                            </div> -->
 @endsection
 
 <!-- In admin_tasks.blade.php -->

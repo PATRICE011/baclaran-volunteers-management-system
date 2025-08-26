@@ -22,6 +22,18 @@ class MinistryController extends Controller
                 ->withCount(['children'])
                 ->whereNotNull('parent_id'); // Exclude main ministries
 
+            // Apply user role-based restrictions
+            if ($user->isStaff()) {
+                // Staff can only see their assigned ministry and its sub-ministries
+                if ($user->ministry_id) {
+                    $ministryIds = $this->getAllDescendantIds(Ministry::find($user->ministry_id));
+                    $query->whereIn('id', $ministryIds);
+                } else {
+                    // Staff with no assigned ministry see nothing
+                    $query->where('id', 0); // Force empty result
+                }
+            }
+
             // Apply search filter
             if ($request->filled('search')) {
                 $search = $request->get('search');
@@ -437,6 +449,13 @@ class MinistryController extends Controller
     }
     private function getAllDescendantIds($ministry)
     {
+        // Handle case where we might get an ID instead of a Ministry object
+        if (!($ministry instanceof Ministry)) {
+            $ministry = Ministry::find($ministry);
+            if (!$ministry)
+                return collect([]);
+        }
+
         $ids = collect([$ministry->id]);
 
         foreach ($ministry->children as $child) {
