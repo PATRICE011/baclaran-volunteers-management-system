@@ -12,11 +12,18 @@ class Task extends Model
         'description',
         'due_date',
         'status',
+        'ministry_id',
         'is_archived',
         'archived_at',
         'archived_by',
         'archive_reason'
     ];
+
+
+    public function ministry(): BelongsTo
+    {
+        return $this->belongsTo(Ministry::class);
+    }
     protected $casts = [
         'due_date' => 'date:Y-m-d',
         'archived_at' => 'datetime',

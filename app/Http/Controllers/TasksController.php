@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Task;
+use App\Models\Ministry;
 use Carbon\Carbon;
 class TasksController extends Controller
 {
@@ -12,6 +13,8 @@ class TasksController extends Controller
     {
         $user = Auth::user();
         $query = Task::where('is_archived', false);
+
+        $ministries = Ministry::mainMinistries()->with('children.children')->get();
 
         // Search functionality (both title and description)
         if ($request->has('search') && !empty($request->search)) {
@@ -40,7 +43,8 @@ class TasksController extends Controller
             'todoTasks',
             'inProgressTasks',
             'completedTasks',
-            'user'
+            'user',
+            'ministries'
         ));
     }
 
@@ -56,6 +60,7 @@ class TasksController extends Controller
             'description' => 'nullable|string',
             'due_date' => 'nullable|date',
             'status' => 'required|in:To Do,In Progress,Completed',
+            'ministry_id' => 'nullable|exists:ministries,id', // Add this validation
         ]);
 
         Task::create($request->all());
@@ -66,6 +71,7 @@ class TasksController extends Controller
         ]);
     }
 
+
     public function update(Request $request, Task $task)
     {
         $validated = $request->validate([
@@ -73,6 +79,7 @@ class TasksController extends Controller
             'description' => 'nullable|string',
             'due_date' => 'nullable|date_format:Y-m-d',
             'status' => 'required|in:To Do,In Progress,Completed',
+            'ministry_id' => 'nullable|exists:ministries,id', // Add this validation
         ]);
 
         // Format the date before saving
