@@ -405,8 +405,14 @@ class VolunteersController extends Controller
     public function show($id)
     {
         try {
-            $volunteer = Volunteer::with(['detail.ministry', 'timelines', 'affiliations'])
-                ->findOrFail($id);
+            $volunteer = Volunteer::with([
+                'detail.ministry',
+                'timelines',
+                'affiliations',
+                'sacraments',
+                'formations'
+            ])->findOrFail($id);
+            $volunteer->volunteer_id = $volunteer->volunteer_id ?? 'N/A';
 
             $volunteer->has_complete_profile = $volunteer->hasCompleteProfile();
 
@@ -461,78 +467,74 @@ class VolunteersController extends Controller
 
     public function update(Request $request, $id)
     {
-        try {
-            $volunteer = Volunteer::findOrFail($id);
+        $volunteer = Volunteer::findOrFail($id);
 
-            // Convert empty strings to null
-            $request->merge(array_map(function ($value) {
-                return $value === '' ? null : $value;
-            }, $request->all()));
+        // Update basic info
+        $volunteer->update($request->only([
+            'nickname',
+            'date_of_birth',
+            'sex',
+            'address',
+            'mobile_number',
+            'email_address',
+            'occupation',
+            'civil_status'
+        ]));
 
-            $validated = $request->validate([
-                'nickname' => 'sometimes|string|max:255',
-                'date_of_birth' => 'sometimes|date',
-                'sex' => 'sometimes|in:male,female,Male,Female',
-                'address' => 'sometimes|string|max:255',
-                'mobile_number' => 'sometimes|string|max:20',
-                'email_address' => 'sometimes|email|max:255',
-                'occupation' => 'sometimes|string|max:255',
-                'civil_status' => 'sometimes|string|max:255',
-                'full_name' => 'sometimes|string|max:255',
-                'timelines' => 'sometimes|array',
-                'affiliations' => 'sometimes|array',
-                'profile_picture' => 'sometimes|image|mimes:jpg,jpeg,png,webp|max:2048',
-                'volunteer_status' => 'sometimes|string|in:Active,Inactive',
-                'ministry_id' => 'sometimes|nullable|integer|exists:ministries,id',
-
-            ]);
-
-            // Handle profile picture upload
-            if ($request->hasFile('profile_picture')) {
-                $path = $request->file('profile_picture')->store('volunteer_avatars', 'public');
-                $validated['profile_picture'] = $path;
-            }
-
-            // Capitalize specific fields
-            foreach (['nickname', 'full_name', 'occupation', 'address', 'civil_status'] as $field) {
-                if (isset($validated[$field])) {
-                    $validated[$field] = Str::title($validated[$field]);
+        // Update sacraments
+        if ($request->has('sacraments')) {
+            $volunteer->sacraments()->delete(); // Remove existing
+            foreach ($request->sacraments as $sacramentData) {
+                if (!empty($sacramentData['sacrament_name'])) {
+                    $volunteer->sacraments()->create([
+                        'sacrament_name' => $sacramentData['sacrament_name'],
+                        'year' => $sacramentData['year'] ?? null
+                    ]);
                 }
             }
-
-            // Normalize casing for 'sex'
-            if (isset($validated['sex'])) {
-                $validated['sex'] = ucfirst(strtolower($validated['sex']));
-            }
-
-            // Fill Volunteer (excluding detail fields)
-            $volunteer->fill(Arr::except($validated, ['full_name', 'volunteer_status', 'ministry_name']));
-            $volunteer->save();
-
-            // Fill VolunteerDetail
-            if ($volunteer->detail) {
-                if (isset($validated['volunteer_status'])) {
-                    $volunteer->detail->volunteer_status = $validated['volunteer_status'];
-                }
-
-                if (isset($validated['full_name'])) {
-                    $volunteer->detail->full_name = $validated['full_name'];
-                }
-
-                // Convert ministry_name to ministry_id if present
-                if (array_key_exists('ministry_id', $validated)) {
-                    $volunteer->detail->ministry_id = $validated['ministry_id'];
-                }
-
-                $volunteer->detail->save();
-            }
-
-            return response()->json(['message' => 'Profile updated successfully.']);
-        } catch (\Throwable $e) {
-            Log::error('Update error: ' . $e->getMessage());
-            return response()->json(['error' => 'Failed to update volunteer.'], 500);
         }
+
+        // Update formations
+        if ($request->has('formations')) {
+            $volunteer->formations()->delete(); // Remove existing
+            foreach ($request->formations as $formationData) {
+                if (!empty($formationData['formation_name'])) {
+                    $volunteer->formations()->create([
+                        'formation_name' => $formationData['formation_name'],
+                        'year' => $formationData['year'] ?? null
+                    ]);
+                }
+            }
+        }
+
+        // Update timelines and affiliations similarly
+        if ($request->has('timelines')) {
+            $volunteer->timelines()->delete(); // Remove existing
+            foreach ($request->timelines as $timelineData) {
+                $volunteer->timelines()->create([
+                    'organization_name' => $timelineData['organization_name'],
+                    'year_started' => $timelineData['year_started'],
+                    'year_ended' => $timelineData['year_ended'],
+                    'total_years' => $timelineData['total_years'] ?? null,
+                ]);
+            }
+        }
+
+        if ($request->has('affiliations')) {
+            $volunteer->affiliations()->delete(); // Remove existing
+            foreach ($request->affiliations as $affiliationData) {
+                $volunteer->affiliations()->create([
+                    'organization_name' => $affiliationData['organization_name'],
+                    'year_started' => $affiliationData['year_started'],
+                    'year_ended' => $affiliationData['year_ended'],
+                    'total_years' => $affiliationData['total_years'] ?? null,
+                ]);
+            }
+        }
+
+        return response()->json(['success' => true]);
     }
+
 
     public function updateProfilePicture(Request $request, $id)
     {
@@ -672,12 +674,6 @@ class VolunteersController extends Controller
                 $volunteer->save();
             }
 
-            // Update basic info
-            if (!empty($request->all())) {
-                $volunteer->fill($request->all());
-                $volunteer->save();
-            }
-
             // Update timelines
             if ($request->has('timelines')) {
                 $volunteer->timelines()->delete();
@@ -694,16 +690,27 @@ class VolunteersController extends Controller
                 }
             }
 
-            // Update sacraments and formations
+            // Update sacraments
             if ($request->has('sacraments')) {
-                $volunteer->sacraments_received = $request->sacraments;
+                $volunteer->sacraments()->delete();
+                foreach ($request->sacraments as $sacramentData) {
+                    $volunteer->sacraments()->create([
+                        'sacrament_name' => $sacramentData['sacrament_name'],
+                        'year' => $sacramentData['year'] ?? null
+                    ]);
+                }
             }
 
+            // Update formations
             if ($request->has('formations')) {
-                $volunteer->formations_received = $request->formations;
+                $volunteer->formations()->delete();
+                foreach ($request->formations as $formationData) {
+                    $volunteer->formations()->create([
+                        'formation_name' => $formationData['formation_name'],
+                        'year' => $formationData['year'] ?? null
+                    ]);
+                }
             }
-
-            $volunteer->save();
 
             return response()->json(['message' => 'Volunteer updated successfully.']);
         } catch (\Exception $e) {

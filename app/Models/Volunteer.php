@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Str;
 
 class Volunteer extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'volunteer_id',
         'nickname',
@@ -21,20 +23,20 @@ class Volunteer extends Model
         'email_address',
         'occupation',
         'civil_status',
-        'sacraments_received',
-        'formations_received',
         'profile_picture',
         'is_archived',
         'archived_at',
         'archived_by',
         'archive_reason'
     ];
+
     protected $casts = [
-        'sacraments_received' => 'array',
-        'formations_received' => 'array',
         'date_of_birth' => 'date',
         'archived_at' => 'datetime',
     ];
+
+    protected $appends = ['profile_picture_url'];
+
     protected static function boot()
     {
         parent::boot();
@@ -45,29 +47,32 @@ class Volunteer extends Model
             }
         });
     }
-    protected $appends = ['profile_picture_url'];
 
-    // Volunteer.php (getProfilePictureUrlAttribute)
     public function getProfilePictureUrlAttribute()
     {
         if ($this->profile_picture) {
             return asset('storage/' . $this->profile_picture);
         }
 
-        return 'https://api.dicebear.com/7.x/avataaars/svg?seed=' .
-            urlencode($this->detail->full_name ?? 'default');
+        // Use the full_name from the detail relationship if available
+        $name = $this->detail ? $this->detail->full_name : ($this->nickname ?? 'default');
+        return 'https://api.dicebear.com/7.x/avataaars/svg?seed=' . urlencode($name);
     }
-    public function detail()
+
+    // Relationships
+    public function detail(): HasOne
     {
         return $this->hasOne(VolunteerDetail::class);
     }
-    public function getMinistryNameAttribute()
+
+    public function sacraments(): HasMany
     {
-        return $this->detail?->ministry?->ministry_name ?? 'No Ministry Assigned';
+        return $this->hasMany(VolunteerSacrament::class);
     }
-    public function hasCompleteProfile(): bool
+
+    public function formations(): HasMany
     {
-        return $this->detail !== null;
+        return $this->hasMany(VolunteerFormation::class);
     }
 
     public function timelines(): HasMany
@@ -79,15 +84,36 @@ class Volunteer extends Model
     {
         return $this->hasMany(OtherAffiliation::class);
     }
+
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
     }
+
+    public function events(): BelongsToMany
+    {
+        return $this->belongsToMany(Event::class, 'event_volunteer')
+            ->withPivot('attendance_status', 'checked_in_at')
+            ->withTimestamps();
+    }
+
     public function archiver()
     {
         return $this->belongsTo(User::class, 'archived_by')->withDefault([
             'full_name' => 'System'
         ]);
+    }
+
+    // Accessors
+    public function getMinistryNameAttribute()
+    {
+        return $this->detail?->ministry?->ministry_name ?? 'No Ministry Assigned';
+    }
+
+    // Methods
+    public function hasCompleteProfile(): bool
+    {
+        return $this->detail !== null;
     }
 
     public function archive($reason)
@@ -108,11 +134,5 @@ class Volunteer extends Model
             'archived_by' => null,
             'archive_reason' => null
         ]);
-    }
-    public function events(): BelongsToMany
-    {
-        return $this->belongsToMany(Event::class, 'event_volunteer')
-            ->withPivot('attendance_status', 'checked_in_at')
-            ->withTimestamps();
     }
 }

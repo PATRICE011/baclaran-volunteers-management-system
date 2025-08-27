@@ -12,9 +12,43 @@ function initializeChanges(volunteerData) {
         basicInfo: {},
         timelines: [...(volunteerData.timelines || [])],
         affiliations: [...(volunteerData.affiliations || [])],
-        sacraments: [...(volunteerData.sacraments_received || [])],
-        formations: [...(volunteerData.formations_received || [])],
+        sacraments: [...(volunteerData.sacraments || [])],
+        formations: [...(volunteerData.formations || [])],
     };
+}
+
+function calculateTotalYears(startYear, endYear) {
+    if (!startYear) return 0;
+
+    const currentYear = new Date().getFullYear();
+    const start = parseInt(startYear);
+    const end = endYear === "present" ? currentYear : parseInt(endYear);
+
+    if (isNaN(start) || isNaN(end)) return 0;
+
+    return end - start + 1; // +1 to include both start and end years
+}
+
+function attachYearCalculators() {
+    document.querySelectorAll(".year-select").forEach((select) => {
+        select.addEventListener("change", function () {
+            const entry =
+                this.closest(".timeline-entry") ||
+                this.closest(".affiliation-entry");
+            const startSelect = entry.querySelector(
+                'select[data-field="year_started"]'
+            );
+            const endSelect = entry.querySelector(
+                'select[data-field="year_ended"]'
+            );
+            const totalInput = entry.querySelector(".total-years");
+
+            const startYear = startSelect.value;
+            const endYear = endSelect.value;
+
+            totalInput.value = calculateTotalYears(startYear, endYear);
+        });
+    });
 }
 function renderMinistryOptions(ministries, selectedId = null, level = 0) {
     return ministries
@@ -170,19 +204,8 @@ function renderEditableProfile(
             ? "bg-emerald-100 text-emerald-800 border-emerald-200"
             : "bg-red-100 text-red-800 border-red-200";
 
-    const sacraments = Array.isArray(volunteer.sacraments_received)
-        ? volunteer.sacraments_received
-        : (volunteer.sacraments_received || "")
-              .split(",")
-              .map((s) => s.trim())
-              .filter((s) => s);
-
-    const formations = Array.isArray(volunteer.formations_received)
-        ? volunteer.formations_received
-        : (volunteer.formations_received || "")
-              .split(",")
-              .map((f) => f.trim())
-              .filter((f) => f);
+    const sacraments = volunteer.sacraments || [];
+    const formations = volunteer.formations || [];
 
     const standardSacraments = [
         "baptism",
@@ -227,7 +250,9 @@ function renderEditableProfile(
                         </div>`
                             : ""
                     }
+                    
                 </div>
+               
                 <div class="flex-1">
                     <div class="flex items-center gap-2 mb-2">
                         <div class="relative group flex items-center">
@@ -310,6 +335,12 @@ function renderEditableProfile(
                             Active for ${activeTime}
                         </div>
                     </div>
+                     <div class="flex items-center">
+                    <svg class="w-4 h-4 mr-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                    </svg>
+                    ID: ${volunteer.volunteer_id || "N/A"}
+                </div>
                 </div>
             </div>
         </div>
@@ -906,20 +937,16 @@ function generateYearOptions(selectedYear) {
 function generateSacramentsDisplay(sacraments) {
     return sacraments
         .map((sacrament, index) => {
-            const sacramentParts = sacrament.split(" (");
-            const sacramentName = sacramentParts[0];
-            const sacramentYear = sacramentParts[1]
-                ? sacramentParts[1].replace(")", "")
-                : "";
-
             return `
             <div class="sacrament-entry bg-white border border-gray-200 rounded-lg p-4 mb-3" data-index="${index}">
                 <div class="display-mode">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="text-sm font-medium text-gray-800">${sacramentName}</p>
+                            <p class="text-sm font-medium text-gray-800">${
+                                sacrament.sacrament_name
+                            }</p>
                             <p class="text-sm text-gray-500">${
-                                sacramentYear ? sacramentYear : "Year not set"
+                                sacrament.year || "Year not set"
                             }</p>
                         </div>
                         <div class="flex gap-2">
@@ -940,19 +967,21 @@ function generateSacramentsDisplay(sacraments) {
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Sacrament Name</label>
-                            <input type="text" class="form-input w-full" value="${sacramentName}" data-index="${index}">
+                            <input type="text" class="form-input w-full" value="${
+                                sacrament.sacrament_name
+                            }" data-index="${index}">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Year Received</label>
                             <select class="form-select w-full" data-index="${index}">
                                 <option value="">Select Year</option>
-                                ${generateYearOptions(sacramentYear)}
+                                ${generateYearOptions(sacrament.year)}
                             </select>
                         </div>
                     </div>
                     <div class="flex justify-end gap-2 mt-4">
                         <button onclick="cancelEditSacrament(this, ${index})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
-                        <button onclick="cancelEditSacrament(this, ${index})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Done</button>
+                        <button onclick="saveSacramentEdit(this, ${index})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
                     </div>
                 </div>
             </div>
@@ -960,24 +989,19 @@ function generateSacramentsDisplay(sacraments) {
         })
         .join("");
 }
-
 function generateFormationsDisplay(formations) {
     return formations
         .map((formation, index) => {
-            const formationParts = formation.split(" (");
-            const formationName = formationParts[0];
-            const formationYear = formationParts[1]
-                ? formationParts[1].replace(")", "")
-                : "";
-
             return `
             <div class="formation-entry bg-white border border-gray-200 rounded-lg p-4 mb-3" data-index="${index}">
                 <div class="display-mode">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="text-sm font-medium text-gray-800">${formationName}</p>
+                            <p class="text-sm font-medium text-gray-800">${
+                                formation.formation_name
+                            }</p>
                             <p class="text-sm text-gray-500">${
-                                formationYear ? formationYear : "Year not set"
+                                formation.year || "Year not set"
                             }</p>
                         </div>
                         <div class="flex gap-2">
@@ -998,19 +1022,21 @@ function generateFormationsDisplay(formations) {
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Formation Name</label>
-                            <input type="text" class="form-input w-full" value="${formationName}" data-index="${index}">
+                            <input type="text" class="form-input w-full" value="${
+                                formation.formation_name
+                            }" data-index="${index}">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Year Received</label>
                             <select class="form-select w-full" data-index="${index}">
                                 <option value="">Select Year</option>
-                                ${generateYearOptions(formationYear)}
+                                ${generateYearOptions(formation.year)}
                             </select>
                         </div>
                     </div>
                     <div class="flex justify-end gap-2 mt-4">
                         <button onclick="cancelEditFormation(this, ${index})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
-                        <button onclick="cancelEditFormation(this, ${index})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Done</button>
+                        <button onclick="saveFormationEdit(this, ${index})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
                     </div>
                 </div>
             </div>
@@ -1199,23 +1225,42 @@ function saveTimelineEdit(button, index) {
         data[input.dataset.field] = input.value;
     });
 
+    // Calculate total years
+    data.total_years = calculateTotalYears(data.year_started, data.year_ended);
+
     // Update the changes object
     if (volunteerChanges.timelines[index]) {
-        // Update existing entry
         volunteerChanges.timelines[index] = {
             ...volunteerChanges.timelines[index],
             ...data,
         };
     } else {
-        // Add new entry
         volunteerChanges.timelines.push(data);
     }
 
-    // Update UI only
+    // Update UI
     entry.querySelector(".display-mode").classList.remove("hidden");
     entry.querySelector(".edit-mode").classList.add("hidden");
+
+    // Update display values
+    const displayOrg = entry.querySelector(".display-mode p:nth-child(1)");
+    const displayYears = entry.querySelector(".display-mode p:nth-child(2)");
+    const displayTotal = entry.querySelector(".display-mode p:nth-child(3)");
+
+    if (displayOrg)
+        displayOrg.textContent = data.organization_name || "No Organization";
+    if (displayYears)
+        displayYears.textContent = `${data.year_started || "?"} - ${
+            data.year_ended === "present" ? "Present" : data.year_ended || "?"
+        }`;
+    if (displayTotal && data.total_years) {
+        displayTotal.textContent = `${data.total_years} year${
+            data.total_years > 1 ? "s" : ""
+        }`;
+    }
+
     toastr.info(
-        "Changes staged. Click 'Save Changes' to save all modifications."
+        'Changes staged. Click "Save Changes" to save all modifications.'
     );
 }
 
