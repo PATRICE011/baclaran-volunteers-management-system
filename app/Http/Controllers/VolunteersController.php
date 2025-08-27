@@ -388,7 +388,7 @@ class VolunteersController extends Controller
                         'organization_name' => $orgName,
                         'year_started' => $startYear,
                         'year_ended' => $isActive ? null : $endYear,
-                        'is_active' => $isActive,
+                        'is_active' => $isActive, // Add this line
                     ]);
                 }
             }

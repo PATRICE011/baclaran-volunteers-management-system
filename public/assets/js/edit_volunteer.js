@@ -945,9 +945,7 @@ function generateSacramentsDisplay(sacraments) {
                             <p class="text-sm font-medium text-gray-800">${
                                 sacrament.sacrament_name
                             }</p>
-                            <p class="text-sm text-gray-500">${
-                                sacrament.year || "Year not set"
-                            }</p>
+                            <!-- Remove the year display line below -->
                         </div>
                         <div class="flex gap-2">
                             <button onclick="editSacrament(this, ${index})" class="text-gray-400 hover:text-blue-600 transition-colors">
@@ -963,6 +961,7 @@ function generateSacramentsDisplay(sacraments) {
                         </div>
                     </div>
                 </div>
+                <!-- Keep edit mode intact for data integrity -->
                 <div class="edit-mode hidden mt-3 p-4 bg-gray-50 rounded-lg">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -989,6 +988,7 @@ function generateSacramentsDisplay(sacraments) {
         })
         .join("");
 }
+
 function generateFormationsDisplay(formations) {
     return formations
         .map((formation, index) => {
