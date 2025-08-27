@@ -202,6 +202,8 @@ function renderEditableProfile(
     const statusClass =
         volunteerStatus === "Active"
             ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+            : volunteerStatus === "On-Leave"
+            ? "bg-yellow-100 text-yellow-800 border-yellow-200"
             : "bg-red-100 text-red-800 border-red-200";
 
     const sacraments = volunteer.sacraments || [];
@@ -271,32 +273,39 @@ function renderEditableProfile(
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-3 mb-3">
-                        <div class="flex items-center gap-1">
-                            <div class="relative group flex items-center">
-                                <span id="volunteer-status-display" class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${statusClass}">
-                                    <span class="w-2 h-2 bg-current rounded-full mr-2"></span>
-                                    ${volunteerStatus}
-                                </span>
-                                <select id="volunteer-status-input" data-field="volunteer_status" data-original="${volunteerStatus}" 
-                                        class="editable-input hidden px-3 py-1 text-sm font-medium rounded-full border border-gray-300 bg-white">
-                                    <option value="Active" ${
-                                        volunteerStatus === "Active"
-                                            ? "selected"
-                                            : ""
-                                    }>Active</option>
-                                    <option value="Inactive" ${
-                                        volunteerStatus === "Inactive"
-                                            ? "selected"
-                                            : ""
-                                    }>Inactive</option>
-                                </select>
-                                <button onclick="toggleEditField('volunteer-status', event)" class="ml-2 text-gray-400 hover:text-blue-600 transition-colors">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                    </svg>
-                                </button>
-                            </div>
+                        <!-- Status Section -->
+                    <div class="flex items-center gap-1">
+                        <div class="relative group flex items-center">
+                            <span id="volunteer-status-display" class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full border ${statusClass}">
+                                <span class="w-2 h-2 bg-current rounded-full mr-2"></span>
+                                ${volunteerStatus}
+                            </span>
+                            <select id="volunteer-status-input" data-field="volunteer_status" data-original="${volunteerStatus}" 
+                                    class="editable-input hidden px-3 py-1 text-sm font-medium rounded-full border border-gray-300 bg-white">
+                                <option value="Active" ${
+                                    volunteerStatus === "Active"
+                                        ? "selected"
+                                        : ""
+                                }>Active</option>
+                                <option value="Inactive" ${
+                                    volunteerStatus === "Inactive"
+                                        ? "selected"
+                                        : ""
+                                }>Inactive</option>
+                                <option value="On-Leave" ${
+                                    volunteerStatus === "On-Leave"
+                                        ? "selected"
+                                        : ""
+                                }>On-Leave</option>
+                            </select>
+                            <button onclick="toggleEditField('volunteer-status', event)" class="ml-2 text-gray-400 hover:text-blue-600 transition-colors">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </button>
                         </div>
+                    </div>
+
                         <div class="relative group flex items-center">
                             <span id="ministry-display" class="inline-flex items-center px-3 py-1 text-sm bg-blue-50 text-blue-700 rounded-full border border-blue-200">
                                 ${ministryName}

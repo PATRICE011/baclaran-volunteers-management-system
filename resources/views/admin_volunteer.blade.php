@@ -172,6 +172,10 @@
                                 {{ $status }}
                             </option>
                         @endforeach
+                        <!-- Add On-Leave option if it's not in $statuses -->
+                        <option value="On-Leave" {{ request('status') == 'On-Leave' ? 'selected' : '' }}>
+                            On-Leave
+                        </option>
                     </select>
                 </div>
 

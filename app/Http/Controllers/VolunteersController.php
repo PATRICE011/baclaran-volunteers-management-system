@@ -66,13 +66,12 @@ class VolunteersController extends Controller
             // Status filter
             if ($request->filled('status')) {
                 $status = $request->status;
-                if (in_array($status, ['Active', 'Inactive'])) {
+                if (in_array($status, ['Active', 'Inactive', 'On-Leave'])) { // Added 'On-Leave'
                     $query->whereHas('detail', function ($q) use ($status) {
                         $q->where('volunteer_status', $status);
                     });
                 }
             }
-
             // Run the query, newest first
             $volunteers = $query->latest()
                 ->paginate(12)
