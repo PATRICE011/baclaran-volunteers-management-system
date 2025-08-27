@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 use Illuminate\Http\Request;
 use App\Models\Volunteer;
@@ -16,8 +17,6 @@ use App\Models\Ministry;
 
 use App\Exports\VolunteersExport;
 use Maatwebsite\Excel\Facades\Excel;
-
-use Illuminate\Container\Attributes\Auth;
 
 class VolunteersController extends Controller
 {
@@ -303,15 +302,37 @@ class VolunteersController extends Controller
                 'email_address' => $email,
                 'occupation' => $occupation,
                 'civil_status' => $civilStatus,
-                'sacraments_received' => $request->sacraments ?? [],
-                'formations_received' => $formations,
                 'profile_picture' => $profilePicturePath,
             ];
 
             Log::info('Creating volunteer with data', ['volunteer_data' => $volunteerData]);
 
             $volunteer = Volunteer::create($volunteerData);
+            // Create sacraments
+            if ($request->has('sacraments')) {
+                foreach ($request->sacraments as $sacrament) {
+                    $volunteer->sacraments()->create([
+                        'sacrament_name' => $sacrament
+                    ]);
+                }
+            }
 
+            // Create formations
+            foreach ($formations as $formation) {
+                // Extract year if present (format: "Formation Name (Year)")
+                $year = null;
+                $formationName = $formation;
+
+                if (preg_match('/(.*)\s\((\d{4})\)$/', $formation, $matches)) {
+                    $formationName = trim($matches[1]);
+                    $year = $matches[2];
+                }
+
+                $volunteer->formations()->create([
+                    'formation_name' => $formationName,
+                    'year' => $year
+                ]);
+            }
             // Create detail
             $detailData = [
                 'ministry_id' => $request->ministry_id,
@@ -412,8 +433,8 @@ class VolunteersController extends Controller
                 'sacraments',
                 'formations'
             ])->findOrFail($id);
-            $volunteer->volunteer_id = $volunteer->volunteer_id ?? 'N/A';
 
+            $volunteer->volunteer_id = $volunteer->volunteer_id ?? 'N/A';
             $volunteer->has_complete_profile = $volunteer->hasCompleteProfile();
 
             $applied = $volunteer->detail?->applied_month_year;
@@ -445,7 +466,6 @@ class VolunteersController extends Controller
                 ->with('children.children') // Load grandchildren
                 ->get();
 
-
             return response()->json([
                 'volunteer' => $volunteer,
                 'ministries' => $ministries,
@@ -456,7 +476,6 @@ class VolunteersController extends Controller
             ], 404);
         }
     }
-
 
     public function edit($id)
     {
@@ -693,22 +712,25 @@ class VolunteersController extends Controller
             // Update sacraments
             if ($request->has('sacraments')) {
                 $volunteer->sacraments()->delete();
-                foreach ($request->sacraments as $sacramentData) {
-                    $volunteer->sacraments()->create([
-                        'sacrament_name' => $sacramentData['sacrament_name'],
-                        'year' => $sacramentData['year'] ?? null
-                    ]);
+                foreach ($request->sacraments as $sacrament) {
+                    if (!empty($sacrament)) {
+                        $volunteer->sacraments()->create([
+                            'sacrament_name' => $sacrament
+                        ]);
+                    }
                 }
             }
 
             // Update formations
             if ($request->has('formations')) {
                 $volunteer->formations()->delete();
-                foreach ($request->formations as $formationData) {
-                    $volunteer->formations()->create([
-                        'formation_name' => $formationData['formation_name'],
-                        'year' => $formationData['year'] ?? null
-                    ]);
+                foreach ($request->formations as $formation) {
+                    if (!empty($formation['formation_name'])) {
+                        $volunteer->formations()->create([
+                            'formation_name' => $formation['formation_name'],
+                            'year' => $formation['year'] ?? null
+                        ]);
+                    }
                 }
             }
 
@@ -727,7 +749,7 @@ class VolunteersController extends Controller
         $volunteer->update([
             'is_archived' => true,
             'archived_at' => now(),
-            'archived_by' => Auth::id(),
+            'archived_by' => auth()->id(),
             'archive_reason' => $request->reason,
         ]);
 

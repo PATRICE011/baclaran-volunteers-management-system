@@ -8,7 +8,7 @@ use App\Models\Volunteer;
 use App\Models\User;
 use App\Models\Event;
 use App\Models\Task;
-use App\Models\Ministry; // Add this import
+use App\Models\Ministry;
 use Illuminate\Support\Carbon;
 
 class ArchivesController extends Controller

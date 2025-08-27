@@ -18,6 +18,8 @@ class VolunteersExport implements FromCollection, WithHeadings, WithMapping, Sho
 {
     use RegistersEventListeners;
 
+    private $rowNumber = 1;
+
     public function collection()
     {
         return Volunteer::with(['detail.ministry'])
@@ -31,6 +33,7 @@ class VolunteersExport implements FromCollection, WithHeadings, WithMapping, Sho
     public function headings(): array
     {
         return [
+            'No.',
             'Volunteer ID',
             'Full Name',
             'Nickname',
@@ -45,6 +48,7 @@ class VolunteersExport implements FromCollection, WithHeadings, WithMapping, Sho
 
         // Optionally add color coding based on status
         return [
+            $this->rowNumber++,
             $volunteer->volunteer_id,
             $volunteer->detail->full_name ?? 'N/A',
             $volunteer->nickname,
@@ -59,7 +63,7 @@ class VolunteersExport implements FromCollection, WithHeadings, WithMapping, Sho
         $sheet = $event->sheet->getDelegate();
 
         // Style the header row (row 1)
-        $headerRange = 'A1:E1';
+        $headerRange = 'A1:F1';
 
         // Apply background color and font style to header
         $sheet->getStyle($headerRange)->applyFromArray([
@@ -86,7 +90,7 @@ class VolunteersExport implements FromCollection, WithHeadings, WithMapping, Sho
 
         // Style the data rows
         $lastRow = $sheet->getHighestRow();
-        $dataRange = 'A2:E' . $lastRow;
+        $dataRange = 'A2:F' . $lastRow;
 
         $sheet->getStyle($dataRange)->applyFromArray([
             'borders' => [
@@ -97,8 +101,15 @@ class VolunteersExport implements FromCollection, WithHeadings, WithMapping, Sho
             ],
         ]);
 
-        // Add conditional formatting for status column
-        $statusColumn = 'E';
+        // Style the numbering column to center align
+        $sheet->getStyle('A2:A' . $lastRow)->applyFromArray([
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+            ],
+        ]);
+
+        // Add conditional formatting for status column (now column F)
+        $statusColumn = 'F';
         for ($row = 2; $row <= $lastRow; $row++) {
             $status = $sheet->getCell($statusColumn . $row)->getValue();
 
