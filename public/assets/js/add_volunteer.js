@@ -135,25 +135,46 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!this.checked) safeguardingYear.value = "";
         });
 
-        // Other Formation
-        const otherFormationCheckbox = document.getElementById(
-            "other_formation_check"
-        );
-        const otherFormationInput = document.getElementById(
-            "other_formation_input"
-        );
-        const otherFormationYear = document.getElementById(
-            "other_formation_year"
-        );
+        document
+            .getElementById("add-other-formation")
+            .addEventListener("click", function () {
+                const container = document.getElementById(
+                    "other-formations-container"
+                );
+                const entry = document.createElement("div");
+                entry.className =
+                    "other-formation-entry flex items-center gap-2";
+                entry.innerHTML = `
+        <input type="text" name="other_formations[]" placeholder="Formation Name" 
+               class="w-48 border rounded px-2 py-1 text-sm">
+        <select name="other_formation_years[]" class="border rounded px-2 py-1 text-sm">
+            <option value="">Select Year</option>
+            ${getYearOptions()}
+        </select>
+        <button type="button" class="remove-other-formation text-red-600 hover:text-red-800">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    `;
+                container.appendChild(entry);
 
-        otherFormationCheckbox.addEventListener("change", function () {
-            otherFormationInput.disabled = !this.checked;
-            otherFormationYear.disabled = !this.checked;
-            if (!this.checked) {
-                otherFormationInput.value = "";
-                otherFormationYear.value = "";
+                // Add event listener to the remove button
+                entry
+                    .querySelector(".remove-other-formation")
+                    .addEventListener("click", function () {
+                        entry.remove();
+                    });
+            });
+
+        // Helper function to generate year options
+        function getYearOptions() {
+            let options = "";
+            for (let y = new Date().getFullYear(); y >= 1980; y--) {
+                options += `<option value="${y}">${y}</option>`;
             }
-        });
+            return options;
+        }
     }
 
     // Add timeline entry
@@ -342,35 +363,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (el) formData.append(name, el.value);
             });
 
-            // Handle Other Formation properly
-            const otherFormationCheckbox = document.getElementById(
-                "other_formation_check"
-            );
-            const otherFormationInput = document.getElementById(
-                "other_formation_input"
-            );
-            const otherFormationYear = document.getElementById(
-                "other_formation_year"
-            );
-
-            // Add other formation checkbox status
-            formData.append(
-                "other_formation_check",
-                otherFormationCheckbox.checked ? "1" : "0"
-            );
-
-            // Only add other formation data if checkbox is checked
-            if (otherFormationCheckbox.checked) {
-                formData.append(
-                    "other_formation",
-                    otherFormationInput.value || ""
-                );
-                formData.append(
-                    "other_formation_year",
-                    otherFormationYear.value || ""
-                );
-            }
-
             formData.append(
                 "sex",
                 document.querySelector('[name="sex"]:checked')?.value || ""
@@ -398,19 +390,28 @@ document.addEventListener("DOMContentLoaded", function () {
                     selectedFormations.push(cb.value);
                 });
 
-            // Add other formation if checked and has value
-            if (
-                otherFormationCheckbox.checked &&
-                otherFormationInput.value.trim()
-            ) {
-                selectedFormations.push("Other Formation"); // This will be processed server-side
-            }
+            // Add other formations
+            document
+                .querySelectorAll('input[name="other_formations[]"]')
+                .forEach((input, index) => {
+                    const formationName = input.value.trim();
+                    const yearSelect = document.querySelectorAll(
+                        'select[name="other_formation_years[]"]'
+                    )[index];
+                    const year = yearSelect ? yearSelect.value : "";
+
+                    if (formationName) {
+                        const formationWithYear = year
+                            ? `${formationName} (${year})`
+                            : formationName;
+                        selectedFormations.push(formationWithYear);
+                    }
+                });
 
             // Send all formations
             selectedFormations.forEach((formation) => {
                 formData.append("formations[]", formation);
             });
-
             // Timeline
             [
                 "timeline_org",
@@ -521,19 +522,13 @@ document.addEventListener("DOMContentLoaded", function () {
         if (removeBtn) {
             removeBtn.classList.add("hidden");
         }
-
+        // Clear other formations
+        document.getElementById("other-formations-container").innerHTML = "";
         // Reset formation year selects
         document.querySelectorAll(".formation-year").forEach((select) => {
             select.disabled = true;
             select.value = "";
         });
-
-        // Reset other formation input
-        document.getElementById("other_formation_check").checked = false;
-        document.getElementById("other_formation_input").disabled = true;
-        document.getElementById("other_formation_input").value = "";
-        document.getElementById("other_formation_year").disabled = true;
-        document.getElementById("other_formation_year").value = "";
 
         // Reset timeline and affiliations to one entry each
         const timelineContainer = document.getElementById("timeline-container");

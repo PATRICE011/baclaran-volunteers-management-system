@@ -277,14 +277,14 @@ class VolunteersController extends Controller
                     }
                 }
             }
+            // Process other formations
+            $otherFormations = $request->input('other_formations', []);
+            $otherFormationYears = $request->input('other_formation_years', []);
 
-            // Process other formation separately - FIXED
-            if ($request->other_formation_check == '1' && !empty($request->other_formation)) {
-                $otherFormation = trim($request->other_formation);
-                $otherYear = $request->other_formation_year;
-
-                if (!empty($otherFormation)) {
-                    $formations[] = $otherYear ? "{$otherFormation} ({$otherYear})" : $otherFormation;
+            foreach ($otherFormations as $index => $formationName) {
+                if (!empty(trim($formationName))) {
+                    $year = $otherFormationYears[$index] ?? null;
+                    $formations[] = $year ? "{$formationName} ({$year})" : $formationName;
                 }
             }
 

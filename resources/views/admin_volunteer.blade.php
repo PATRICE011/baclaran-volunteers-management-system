@@ -450,18 +450,18 @@
                                     </select>
                                 </div>
 
-                                <!-- Other Formation -->
-                                <div class="flex items-center gap-2">
-                                    <input type="checkbox" id="other_formation_check" class="formation-checkbox">
-                                    <input type="text" id="other_formation_input" placeholder="Other Formation"
-                                        class="w-48 border rounded px-2 py-1 text-sm" disabled>
-                                    <select id="other_formation_year" class="border rounded px-2 py-1 text-sm" disabled>
-                                        <option value="">Select Year</option>
-                                        @for ($y = date('Y'); $y >= 1980; $y--)
-                                            <option value="{{ $y }}">{{ $y }}</option>
-                                        @endfor
-                                    </select>
+                                <!-- Other Formations -->
+                                <div id="other-formations-container" class="space-y-2">
+                                    <!-- Existing other formations will be added here -->
                                 </div>
+                                <button type="button" id="add-other-formation"
+                                    class="mt-2 px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">
+                                    + Add Other Formation Received
+                                </button>
+                                <!-- <button type="button" id="add-other-formation"
+                                            class="mt-2 px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">
+                                            + Add Other Formation Received
+                                        </button> -->
                             </div>
                         </div>
 
