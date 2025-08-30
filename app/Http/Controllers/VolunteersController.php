@@ -173,7 +173,7 @@ class VolunteersController extends Controller
                 'other_formation_year' => $request->other_formation_year
             ]);
 
-            // Normalize inputs
+            // Normalize inputs with proper capitalization
             $firstName = Str::title(trim($request->first_name));
             $lastName = Str::title(trim($request->last_name));
             $middleInitial = strtoupper(trim($request->middle_initial));
@@ -223,7 +223,7 @@ class VolunteersController extends Controller
                 }
             }
 
-            // Normalize other fields
+            // Normalize other fields with proper capitalization
             $address = Str::title(trim($request->address));
             $occupation = Str::title(trim($request->occupation));
             $civilStatusMap = [
@@ -235,14 +235,14 @@ class VolunteersController extends Controller
                 ? ($request->civil_status_other ?: 'Others')
                 : $request->civil_status;
 
-            // Map to database values
+            // Map to database values with proper capitalization
             if (array_key_exists(strtolower($civilStatus), $civilStatusMap)) {
                 $civilStatus = $civilStatusMap[strtolower($civilStatus)];
             } else {
                 $civilStatus = Str::title($civilStatus);
             }
 
-            // Handle formations with years - FIXED VERSION
+            // Handle formations with years - WITH PROPER CAPITALIZATION
             $formations = [];
 
             // Process predefined formations with years
@@ -277,20 +277,22 @@ class VolunteersController extends Controller
                     }
                 }
             }
-            // Process other formations
+
+            // Process other formations WITH PROPER CAPITALIZATION
             $otherFormations = $request->input('other_formations', []);
             $otherFormationYears = $request->input('other_formation_years', []);
 
             foreach ($otherFormations as $index => $formationName) {
                 if (!empty(trim($formationName))) {
+                    $capitalizedFormationName = Str::title(trim($formationName));
                     $year = $otherFormationYears[$index] ?? null;
-                    $formations[] = $year ? "{$formationName} ({$year})" : $formationName;
+                    $formations[] = $year ? "{$capitalizedFormationName} ({$year})" : $capitalizedFormationName;
                 }
             }
 
             Log::info('Formations processed', ['formations' => $formations]);
 
-            // Create volunteer
+            // Create volunteer with normalized data
             $volunteerData = [
                 'volunteer_id' => $volunteerId,
                 'nickname' => $nickname,
@@ -307,7 +309,8 @@ class VolunteersController extends Controller
             Log::info('Creating volunteer with data', ['volunteer_data' => $volunteerData]);
 
             $volunteer = Volunteer::create($volunteerData);
-            // Create sacraments
+
+            // Create sacraments with proper capitalization
             if ($request->has('sacraments')) {
                 $sacramentMapping = [
                     'baptism' => 'Baptism',
@@ -317,14 +320,14 @@ class VolunteersController extends Controller
                 ];
 
                 foreach ($request->sacraments as $sacrament) {
-                    $sacramentName = $sacramentMapping[$sacrament] ?? ucwords(str_replace('_', ' ', $sacrament));
+                    $sacramentName = $sacramentMapping[$sacrament] ?? Str::title(str_replace('_', ' ', $sacrament));
                     $volunteer->sacraments()->create([
                         'sacrament_name' => $sacramentName
                     ]);
                 }
             }
 
-            // Create formations
+            // Create formations with proper capitalization
             foreach ($formations as $formation) {
                 // Extract year if present (format: "Formation Name (Year)")
                 $year = null;
@@ -335,12 +338,16 @@ class VolunteersController extends Controller
                     $year = $matches[2];
                 }
 
+                // Apply title case to formation name
+                $formationName = Str::title($formationName);
+
                 $volunteer->formations()->create([
                     'formation_name' => $formationName,
                     'year' => $year
                 ]);
             }
-            // Create detail
+
+            // Create detail with proper capitalization
             $detailData = [
                 'ministry_id' => $request->ministry_id,
                 'line_group' => $request->ministry_id,
@@ -353,7 +360,7 @@ class VolunteersController extends Controller
             Log::info('Creating volunteer detail', ['detail_data' => $detailData]);
             $volunteer->detail()->create($detailData);
 
-            // Timeline entries
+            // Timeline entries with proper capitalization
             $timelineOrgs = $request->timeline_org ?? [];
             $timelineStartYears = $request->timeline_start_year ?? [];
             $timelineEndYears = $request->timeline_end_year ?? [];
@@ -374,7 +381,7 @@ class VolunteersController extends Controller
                 }
             }
 
-            // Affiliations
+            // Affiliations with proper capitalization
             $affilOrgs = $request->affil_org ?? [];
             $affilStartYears = $request->affil_start_year ?? [];
             $affilEndYears = $request->affil_end_year ?? [];
@@ -490,66 +497,146 @@ class VolunteersController extends Controller
     {
         $volunteer = Volunteer::findOrFail($id);
 
-        // Update basic info
-        $volunteer->update($request->only([
-            'nickname',
-            'date_of_birth',
-            'sex',
-            'address',
-            'mobile_number',
-            'email_address',
-            'occupation',
-            'civil_status'
-        ]));
+        // Normalize and capitalize inputs before updating
+        $updateData = [];
 
-        // Update sacraments
+        if ($request->has('nickname')) {
+            $updateData['nickname'] = Str::title(trim($request->nickname));
+        }
+
+        if ($request->has('address')) {
+            $updateData['address'] = Str::title(trim($request->address));
+        }
+
+        if ($request->has('email_address')) {
+            $updateData['email_address'] = strtolower(trim($request->email_address));
+        }
+
+        if ($request->has('occupation')) {
+            $updateData['occupation'] = Str::title(trim($request->occupation));
+        }
+
+        if ($request->has('civil_status')) {
+            $civilStatus = $request->civil_status === 'others'
+                ? ($request->civil_status_other ?: 'Others')
+                : $request->civil_status;
+
+            // Apply civil status mapping
+            $civilStatusMap = [
+                'widower' => 'Widow/er',
+                // Add other mappings if needed
+            ];
+
+            if (array_key_exists(strtolower($civilStatus), $civilStatusMap)) {
+                $updateData['civil_status'] = $civilStatusMap[strtolower($civilStatus)];
+            } else {
+                $updateData['civil_status'] = Str::title($civilStatus);
+            }
+        }
+
+        // Add other fields that don't need capitalization
+        if ($request->has('date_of_birth')) {
+            $updateData['date_of_birth'] = $request->date_of_birth;
+        }
+
+        if ($request->has('sex')) {
+            $updateData['sex'] = strtolower($request->sex);
+        }
+
+        if ($request->has('mobile_number')) {
+            $updateData['mobile_number'] = $request->mobile_number;
+        }
+
+        // Update basic info with normalized data
+        $volunteer->update($updateData);
+
+        // Update volunteer detail with proper capitalization
+        if ($volunteer->detail) {
+            $detailUpdateData = [];
+
+            if ($request->has('volunteer_status')) {
+                $detailUpdateData['volunteer_status'] = $request->volunteer_status;
+            }
+
+            if ($request->has('ministry_id')) {
+                $detailUpdateData['ministry_id'] = $request->ministry_id;
+            }
+
+            if ($request->has('full_name')) {
+                $detailUpdateData['full_name'] = Str::title(trim($request->full_name));
+            }
+
+            // If we need to reconstruct full name from parts
+            if ($request->has('first_name') || $request->has('last_name') || $request->has('middle_initial')) {
+                $firstName = $request->has('first_name') ? Str::title(trim($request->first_name)) : null;
+                $lastName = $request->has('last_name') ? Str::title(trim($request->last_name)) : null;
+                $middleInitial = $request->has('middle_initial') ? strtoupper(trim($request->middle_initial)) : null;
+
+                if ($firstName && $lastName) {
+                    $detailUpdateData['full_name'] = "{$firstName} {$middleInitial} {$lastName}";
+                }
+            }
+
+            if (!empty($detailUpdateData)) {
+                $volunteer->detail->update($detailUpdateData);
+            }
+        }
+
+        // Update sacraments with proper capitalization
         if ($request->has('sacraments')) {
             $volunteer->sacraments()->delete(); // Remove existing
             foreach ($request->sacraments as $sacramentData) {
                 if (!empty($sacramentData['sacrament_name'])) {
                     $volunteer->sacraments()->create([
-                        'sacrament_name' => $sacramentData['sacrament_name'],
+                        'sacrament_name' => Str::title(trim($sacramentData['sacrament_name'])),
                         'year' => $sacramentData['year'] ?? null
                     ]);
                 }
             }
         }
 
-        // Update formations
+        // Update formations with proper capitalization
         if ($request->has('formations')) {
             $volunteer->formations()->delete(); // Remove existing
             foreach ($request->formations as $formationData) {
                 if (!empty($formationData['formation_name'])) {
                     $volunteer->formations()->create([
-                        'formation_name' => $formationData['formation_name'],
+                        'formation_name' => Str::title(trim($formationData['formation_name'])),
                         'year' => $formationData['year'] ?? null
                     ]);
                 }
             }
         }
 
-        // Update timelines and affiliations similarly
+        // Update timelines with proper capitalization
         if ($request->has('timelines')) {
             $volunteer->timelines()->delete(); // Remove existing
             foreach ($request->timelines as $timelineData) {
-                $volunteer->timelines()->create([
-                    'organization_name' => $timelineData['organization_name'],
-                    'year_started' => $timelineData['year_started'],
-                    'year_ended' => $timelineData['year_ended'],
-                    'total_years' => $timelineData['total_years'] ?? null,
-                ]);
+                if (!empty($timelineData['organization_name'])) {
+                    $volunteer->timelines()->create([
+                        'organization_name' => Str::title(trim($timelineData['organization_name'])),
+                        'year_started' => $timelineData['year_started'],
+                        'year_ended' => $timelineData['year_ended'],
+                        'total_years' => $timelineData['total_years'] ?? null,
+                        'is_active' => $timelineData['year_ended'] === 'present',
+                    ]);
+                }
             }
         }
 
+        // Update affiliations with proper capitalization
         if ($request->has('affiliations')) {
             $volunteer->affiliations()->delete(); // Remove existing
             foreach ($request->affiliations as $affiliationData) {
-                $volunteer->affiliations()->create([
-                    'organization_name' => $affiliationData['organization_name'],
-                    'year_started' => $affiliationData['year_started'],
-                    'year_ended' => $affiliationData['year_ended'],
-                    'total_years' => $affiliationData['total_years'] ?? null,
-                ]);
+                if (!empty($affiliationData['organization_name'])) {
+                    $volunteer->affiliations()->create([
+                        'organization_name' => Str::title(trim($affiliationData['organization_name'])),
+                        'year_started' => $affiliationData['year_started'],
+                        'year_ended' => $affiliationData['year_ended'],
+                        'total_years' => $affiliationData['total_years'] ?? null,
+                        'is_active' => $affiliationData['year_ended'] === 'present',
+                    ]);
+                }
             }
         }
 
