@@ -1465,6 +1465,8 @@ function saveTimelineEdit(button, index) {
         data[input.dataset.field] = input.value;
     });
 
+    // Handle "present" value
+    data.is_active = data.year_ended === "present";
     data.total_years = calculateTotalYears(data.year_started, data.year_ended);
 
     // Stage into changes
@@ -1489,7 +1491,7 @@ function saveTimelineEdit(button, index) {
         displayOrg.textContent = data.organization_name || "No Organization";
     if (displayYears) {
         displayYears.textContent = `${data.year_started || "?"} - ${
-            data.year_ended === "present" ? "Present" : data.year_ended || "?"
+            data.is_active ? "Present" : data.year_ended || "?"
         }`;
     }
     if (displayTotal) {
@@ -1694,9 +1696,9 @@ function saveAffiliationEdit(button, index) {
         data[input.dataset.field] = input.value;
     });
 
-    // compute years
+    // Handle "present" value
+    data.is_active = data.year_ended === "present";
     data.total_years = calculateTotalYears(data.year_started, data.year_ended);
-
     // Stage
     if (volunteerChanges.affiliations[index]) {
         volunteerChanges.affiliations[index] = {

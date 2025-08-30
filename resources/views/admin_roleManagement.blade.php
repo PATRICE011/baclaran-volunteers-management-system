@@ -325,7 +325,7 @@
                         <div class="stat-number text-blue-600" id="total-users">{{ count($nonArchivedUsers) }}</div>
                         <div class="stat-label">Total Users</div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card ml-6">
                         <div class="stat-number text-red-600" id="admin-count">
                             {{ $nonArchivedUsers->where('role', 'admin')->count() }}
                         </div>
@@ -1096,42 +1096,42 @@
                     if (elements.showingCount) elements.showingCount.textContent = displayUsers.length;
 
                     elements.rolesTableBody.innerHTML = displayUsers.map(user => `
-                                <tr data-user-id="${user.id}">
-                                    <td>
-                                        <div class="flex items-center">
-                                            <div class="flex-shrink-0 h-8 w-8 mr-3">
-                                                <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium overflow-hidden">
-                                                    ${user.profile_picture ?
+                                    <tr data-user-id="${user.id}">
+                                        <td>
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 h-8 w-8 mr-3">
+                                                    <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium overflow-hidden">
+                                                        ${user.profile_picture ?
                             `<img src="${config.storageBaseUrl}/${user.profile_picture}" alt="${user.email}" class="w-full h-full object-cover rounded-full">`
                             :
                             `<img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.email)}" alt="${user.email}" class="w-full h-full object-cover rounded-full">`
                         }
+                                                    </div>
                                                 </div>
+                                                <div class="text-sm font-medium text-gray-900">${user.email}</div>
                                             </div>
-                                            <div class="text-sm font-medium text-gray-900">${user.email}</div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="role-badge role-${user.role}">${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</span>
-                                    </td>
-                                    <td class="text-sm text-gray-500">
-                                        ${user.ministry_name || 'Not Assigned'}
-                                    </td>
-                                    <td class="text-sm text-gray-500">
-                                        ${formatDate(user.dateAdded || user.created_at || user.created_at)}
-                                    </td>
-                                    <td>
-                                        <div class="flex space-x-2">
-                                            <button onclick="editUser(${user.id})" class="text-blue-600 hover:text-blue-900 transition-colors text-sm">
-                                                Edit
-                                            </button>
-                                            <button onclick="archiveUser(${user.id}, '${user.email}')" class="text-red-600 hover:text-red-900 transition-colors text-sm">
-                                                Archive
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            `).join('');
+                                        </td>
+                                        <td>
+                                            <span class="role-badge role-${user.role}">${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</span>
+                                        </td>
+                                        <td class="text-sm text-gray-500">
+                                            ${user.ministry_name || 'Not Assigned'}
+                                        </td>
+                                        <td class="text-sm text-gray-500">
+                                            ${formatDate(user.dateAdded || user.created_at || user.created_at)}
+                                        </td>
+                                        <td>
+                                            <div class="flex space-x-2">
+                                                <button onclick="editUser(${user.id})" class="text-blue-600 hover:text-blue-900 transition-colors text-sm">
+                                                    Edit
+                                                </button>
+                                                <button onclick="archiveUser(${user.id}, '${user.email}')" class="text-red-600 hover:text-red-900 transition-colors text-sm">
+                                                    Archive
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('');
                 }
 
                 if (elements.totalCount) {

@@ -357,21 +357,18 @@ class VolunteersController extends Controller
             $timelineOrgs = $request->timeline_org ?? [];
             $timelineStartYears = $request->timeline_start_year ?? [];
             $timelineEndYears = $request->timeline_end_year ?? [];
-            $timelineTotals = $request->timeline_total ?? [];
 
             foreach ($timelineOrgs as $i => $org) {
                 if (!empty(trim($org))) {
                     $orgName = Str::title(trim($org));
                     $startYear = !empty($timelineStartYears[$i]) ? $timelineStartYears[$i] : null;
                     $endYear = !empty($timelineEndYears[$i]) ? $timelineEndYears[$i] : null;
-                    $totalYears = isset($timelineTotals[$i]) ? $timelineTotals[$i] : null;
                     $isActive = $endYear === 'present';
 
                     $volunteer->timelines()->create([
                         'organization_name' => $orgName,
                         'year_started' => $startYear,
-                        'year_ended' => $isActive ? null : $endYear,
-                        'total_years' => $totalYears,
+                        'year_ended' => $isActive ? 'present' : $endYear, // Store 'present' string instead of null
                         'is_active' => $isActive,
                     ]);
                 }
@@ -381,21 +378,19 @@ class VolunteersController extends Controller
             $affilOrgs = $request->affil_org ?? [];
             $affilStartYears = $request->affil_start_year ?? [];
             $affilEndYears = $request->affil_end_year ?? [];
-            $affilTotals = $request->affil_total ?? [];
 
             foreach ($affilOrgs as $i => $org) {
                 if (!empty(trim($org))) {
                     $orgName = Str::title(trim($org));
                     $startYear = !empty($affilStartYears[$i]) ? $affilStartYears[$i] : null;
                     $endYear = !empty($affilEndYears[$i]) ? $affilEndYears[$i] : null;
-                    $totalYears = isset($affilTotals[$i]) ? $affilTotals[$i] : null;
                     $isActive = $endYear === 'present';
 
                     $volunteer->affiliations()->create([
                         'organization_name' => $orgName,
                         'year_started' => $startYear,
-                        'year_ended' => $isActive ? null : $endYear,
-                        'is_active' => $isActive, // Add this line
+                        'year_ended' => $isActive ? 'present' : $endYear, // Store 'present' string instead of null
+                        'is_active' => $isActive,
                     ]);
                 }
             }

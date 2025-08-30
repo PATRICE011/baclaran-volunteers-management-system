@@ -322,9 +322,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Submit registration form
-    // In your add_volunteer.js file, replace the formation handling section in submitRegistration with this:
-
-    // Submit registration form
     document
         .getElementById("submitRegistration")
         .addEventListener("click", () => {
@@ -412,34 +409,53 @@ document.addEventListener("DOMContentLoaded", function () {
             selectedFormations.forEach((formation) => {
                 formData.append("formations[]", formation);
             });
-            // Timeline
-            [
-                "timeline_org",
-                "timeline_start_year",
-                "timeline_end_year",
-                "timeline_total",
-            ].forEach((name) => {
-                document
-                    .querySelectorAll(`[name="${name}[]"]`)
-                    .forEach((el) => {
-                        formData.append(`${name}[]`, el.value);
-                    });
+            // Timeline entries
+            const timelineOrgs = document.querySelectorAll(
+                '[name="timeline_org[]"]'
+            );
+            const timelineStartYears = document.querySelectorAll(
+                '[name="timeline_start_year[]"]'
+            );
+            const timelineEndYears = document.querySelectorAll(
+                '[name="timeline_end_year[]"]'
+            );
+
+            timelineOrgs.forEach((org, i) => {
+                if (org.value.trim()) {
+                    formData.append("timeline_org[]", org.value);
+                    formData.append(
+                        "timeline_start_year[]",
+                        timelineStartYears[i].value
+                    );
+
+                    // Handle "present" value - send as string "present"
+                    const endYear = timelineEndYears[i].value;
+                    formData.append("timeline_end_year[]", endYear);
+                }
             });
 
-            // Affiliations
-            [
-                "affil_org",
-                "affil_start_year",
-                "affil_end_year",
-                "affil_total",
-            ].forEach((name) => {
-                document
-                    .querySelectorAll(`[name="${name}[]"]`)
-                    .forEach((el) => {
-                        formData.append(`${name}[]`, el.value);
-                    });
-            });
+            // Affiliation entries
+            const affilOrgs = document.querySelectorAll('[name="affil_org[]"]');
+            const affilStartYears = document.querySelectorAll(
+                '[name="affil_start_year[]"]'
+            );
+            const affilEndYears = document.querySelectorAll(
+                '[name="affil_end_year[]"]'
+            );
 
+            affilOrgs.forEach((org, i) => {
+                if (org.value.trim()) {
+                    formData.append("affil_org[]", org.value);
+                    formData.append(
+                        "affil_start_year[]",
+                        affilStartYears[i].value
+                    );
+
+                    // Handle "present" value - send as string "present"
+                    const endYear = affilEndYears[i].value;
+                    formData.append("affil_end_year[]", endYear);
+                }
+            });
             // Debug: Log form data to console
             console.log("Form data being sent:");
             for (let pair of formData.entries()) {
