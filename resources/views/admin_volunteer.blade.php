@@ -172,10 +172,6 @@
                                 {{ $status }}
                             </option>
                         @endforeach
-                        <!-- Add On-Leave option if it's not in $statuses -->
-                        <option value="On-Leave" {{ request('status') == 'On-Leave' ? 'selected' : '' }}>
-                            On-Leave
-                        </option>
                     </select>
                 </div>
 
@@ -459,9 +455,9 @@
                                     + Add Other Formation Received
                                 </button>
                                 <!-- <button type="button" id="add-other-formation"
-                                                    class="mt-2 px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">
-                                                    + Add Other Formation Received
-                                                </button> -->
+                                                        class="mt-2 px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">
+                                                        + Add Other Formation Received
+                                                    </button> -->
                             </div>
                         </div>
 

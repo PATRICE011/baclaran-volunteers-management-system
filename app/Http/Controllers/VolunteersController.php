@@ -786,7 +786,15 @@ class VolunteersController extends Controller
             if ($request->has('timelines')) {
                 $volunteer->timelines()->delete();
                 foreach ($request->timelines as $timelineData) {
-                    $volunteer->timelines()->create($timelineData);
+                    if (!empty($timelineData['organization_name'])) {
+                        $volunteer->timelines()->create([
+                            'organization_name' => $timelineData['organization_name'],
+                            'year_started' => $timelineData['year_started'] ?? null,
+                            'year_ended' => $timelineData['year_ended'] ?? null,
+                            'total_years' => $timelineData['total_years'] ?? null,
+                            'is_active' => ($timelineData['year_ended'] ?? '') === 'present',
+                        ]);
+                    }
                 }
             }
 
@@ -794,7 +802,15 @@ class VolunteersController extends Controller
             if ($request->has('affiliations')) {
                 $volunteer->affiliations()->delete();
                 foreach ($request->affiliations as $affiliationData) {
-                    $volunteer->affiliations()->create($affiliationData);
+                    if (!empty($affiliationData['organization_name'])) {
+                        $volunteer->affiliations()->create([
+                            'organization_name' => $affiliationData['organization_name'],
+                            'year_started' => $affiliationData['year_started'] ?? null,
+                            'year_ended' => $affiliationData['year_ended'] ?? null,
+                            'total_years' => $affiliationData['total_years'] ?? null,
+                            'is_active' => ($affiliationData['year_ended'] ?? '') === 'present',
+                        ]);
+                    }
                 }
             }
 
@@ -803,9 +819,17 @@ class VolunteersController extends Controller
                 $volunteer->sacraments()->delete();
                 foreach ($request->sacraments as $sacrament) {
                     if (!empty($sacrament)) {
-                        $volunteer->sacraments()->create([
-                            'sacrament_name' => $sacrament
-                        ]);
+                        // Handle both string and object formats
+                        if (is_array($sacrament)) {
+                            $volunteer->sacraments()->create([
+                                'sacrament_name' => $sacrament['sacrament_name'] ?? $sacrament,
+                                'year' => $sacrament['year'] ?? null
+                            ]);
+                        } else {
+                            $volunteer->sacraments()->create([
+                                'sacrament_name' => $sacrament
+                            ]);
+                        }
                     }
                 }
             }
