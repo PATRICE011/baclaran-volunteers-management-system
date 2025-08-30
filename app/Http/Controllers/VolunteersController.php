@@ -227,10 +227,10 @@ class VolunteersController extends Controller
             $address = Str::title(trim($request->address));
             $occupation = Str::title(trim($request->occupation));
             $civilStatusMap = [
+                'widowed' => 'Widow/er',
                 'widower' => 'Widow/er',
                 // Add other mappings if needed
             ];
-
             $civilStatus = $request->civil_status === 'others'
                 ? ($request->civil_status_other ?: 'Others')
                 : $request->civil_status;
@@ -523,6 +523,7 @@ class VolunteersController extends Controller
 
             // Apply civil status mapping
             $civilStatusMap = [
+                'widowed' => 'Widow/er',
                 'widower' => 'Widow/er',
                 // Add other mappings if needed
             ];
@@ -946,4 +947,19 @@ class VolunteersController extends Controller
 
         return Excel::download(new VolunteersExport, $fileName);
     }
+    public function printProfile(Volunteer $volunteer)
+    {
+        // Load all necessary relationships
+        $volunteer->load([
+            'detail.ministry',
+            'sacraments',
+            'formations',
+            'timelines',
+            'affiliations'
+        ]);
+
+        // Return the print view with volunteer data
+        return view('print_volunteer', compact('volunteer'));
+    }
+
 }

@@ -134,6 +134,10 @@ function generateEditableField(
                 </select>
             `;
         }
+        // Special handling for civil_status
+        if (fieldName === "civil_status" && value === "Widowed") {
+            value = "Widow/er";
+        }
 
         if (inputType === "textarea") {
             return `
@@ -716,7 +720,29 @@ function renderEditableProfile(
             Save Changes
         `;
     }
-
+    const archiveButton = document.getElementById("archiveVolunteer");
+    if (archiveButton) {
+        archiveButton.innerHTML = `
+        <svg class="mr-2 h-4 w-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+        </svg>
+        Archive
+    `;
+        archiveButton.onclick = () => confirmArchiveVolunteer(id);
+    }
+    // const printButton = document.getElementById("printProfile");
+    // if (printButton) {
+    //     printButton.innerHTML = `
+    //     <svg class="mr-2 h-4 w-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    //         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+    //             d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m4 4h6a2 2 0 002-2v-4a2 2 0 00-2-2h-6a2 2 0 00-2 2v4a2 2 0 002 2zM6 9V5a2 2 0 012-2h8a2 2 0 012 2v4">
+    //         </path>
+    //     </svg>
+    //     Print Profile
+    // `;
+    //     printButton.onclick = confirmPrintProfile;
+    // }
     // Set active tab and wire up save buttons
     setTimeout(() => {
         const activeTabBtn = document.querySelector(
@@ -726,6 +752,7 @@ function renderEditableProfile(
     }, 50);
 
     wireSaveButtons(id);
+    profileContent.setAttribute("data-volunteer-id", id);
     attachYearCalculators();
 }
 
@@ -2110,4 +2137,13 @@ function saveFormationCheckboxes() {
         .join("");
 
     toastr.info("Formations staged. Use Save Changes to persist.");
+}
+
+// =============================================================================
+// PRINT PROFILE
+// =============================================================================
+function confirmPrintProfile() {
+    if (confirm("Are you sure you want to print this profile?")) {
+        window.print();
+    }
 }

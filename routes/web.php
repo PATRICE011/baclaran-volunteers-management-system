@@ -114,6 +114,9 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
         Route::post('/bulk-force-delete', [VolunteersController::class, 'bulkForceDelete'])->name('volunteers.bulkForceDelete');
 
         Route::get('/export/excel', [VolunteersController::class, 'exportExcel'])->name('volunteers.export');
+
+
+        Route::get('/{volunteer}/print', [VolunteersController::class, 'printProfile'])->name('volunteers.print');
     });
 
     // ministry page

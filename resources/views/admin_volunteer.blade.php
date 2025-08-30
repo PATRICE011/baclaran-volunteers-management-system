@@ -337,9 +337,10 @@
                             <div class="grid grid-cols-2 gap-2">
                                 @foreach (['Single', 'Married', 'Widow/er', 'Separated', 'Others'] as $status)
                                     <label class="inline-flex items-center text-sm">
-                                        <input type="radio" name="civil_status" value="{{ $status }}" required
+                                        <input type="radio" name="civil_status"
+                                            value="{{ $status === 'Widow/er' ? 'Widowed' : $status }}" required
                                             class="form-radio mr-2">
-                                        {{ ucfirst($status) }}
+                                        {{ $status }}
                                     </label>
                                 @endforeach
                             </div>
@@ -455,9 +456,9 @@
                                     + Add Other Formation Received
                                 </button>
                                 <!-- <button type="button" id="add-other-formation"
-                                                        class="mt-2 px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">
-                                                        + Add Other Formation Received
-                                                    </button> -->
+                                                                                        class="mt-2 px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">
+                                                                                        + Add Other Formation Received
+                                                                                    </button> -->
                             </div>
                         </div>
 
@@ -568,22 +569,28 @@
             </button>
 
             <!-- Profile Content -->
-            <div id="profileContent"></div>
+            <div id="profileContent">
+                <!-- content will be rendered via js -->
+            </div>
 
             <!-- Action Buttons -->
             <div class="flex justify-end gap-2 mt-4">
-                <button id="editProfile" class="px-4 py-2 bg-blue-600 text-white rounded flex items-center">
-                    <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button id="printProfile"
+                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors">
+                    <svg class="mr-2 h-4 w-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M11 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-5" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m4 4h6a2 2 0 002-2v-4a2 2 0 00-2-2h-6a2 2 0 00-2 2v4a2 2 0 002 2zM6 9V5a2 2 0 012-2h8a2 2 0 012 2v4">
+                        </path>
                     </svg>
-                    Edit Profile
+                    Print Profile
                 </button>
+                <!-- <button id="archiveVolunteer"
+                                    class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
 
-                <button id="saveChanges" class="px-4 py-2 bg-green-600 text-white rounded hidden">Save</button>
-                <button id="cancelEdit" class="px-4 py-2 bg-gray-300 text-gray-800 rounded hidden">Cancel</button>
+                                </button> -->
+                <button id="editProfile" class="px-4 py-2 bg-blue-600 text-white rounded flex items-center">
+                    <!-- content will be rendered via js -->
+                </button>
             </div>
         </div>
     </div>
@@ -636,6 +643,7 @@
     <script src="{{ asset('assets/js/add_volunteer.js') }}"></script>
     <script src="{{ asset('assets/js/edit_volunteer.js') }}"></script>
     <script src="{{ asset('assets/js/archive_volunteer.js') }}"></script>
+    <script src="{{ asset('assets/js/print_volunteer.js') }}"></script>
     {{-- Alpine.js CDN --}}
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
