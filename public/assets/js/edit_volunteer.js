@@ -503,103 +503,118 @@ function renderEditableProfile(
             ${
                 sacraments.length > 0 || formations.length > 0
                     ? `
-            <div id="spiritual-tab" class="tab-content hidden">
-                <div class="space-y-6">
-                    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                                <svg class="w-5 h-5 mr-2 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                Sacraments Received
-                            </h3>
-                           <button onclick="openSacramentEditor(${id})" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 flex items-center">
-                            ...
-                            Add Sacrament
-                            </button>
-                        </div>
-                        <div class="space-y-4" id="sacraments-display">
+           <div id="spiritual-tab" class="tab-content hidden">
+            <div class="space-y-6">
+                <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Sacraments Received
+                        </h3>
+                        <button onclick="openSacramentEditor(${id})" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
                             ${
                                 sacraments.length > 0
-                                    ? generateSacramentsDisplay(sacraments)
-                                    : `<p class="text-gray-500">No sacraments added yet.</p>`
+                                    ? "Edit Sacraments"
+                                    : "Add Sacrament"
                             }
-                        </div>
-                        <div id="sacraments-editor" class="hidden mt-4 border rounded-lg p-4 bg-gray-50">
+                        </button>
+                    </div>
+                    <div class="space-y-4" id="sacraments-display">
+                        ${
+                            sacraments.length > 0
+                                ? generateSacramentsDisplay(sacraments)
+                                : '<p class="text-gray-500">No sacraments added yet.</p>'
+                        }
+                    </div>
+                    <div id="sacraments-editor" class="hidden mt-4 border rounded-lg p-4 bg-gray-50">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <label class="inline-flex items-center gap-2">
-                            <input type="checkbox" value="Baptism" class="sacrament-cb"> Baptism
+                                <input type="checkbox" value="Baptism" class="sacrament-cb"> Baptism
                             </label>
                             <label class="inline-flex items-center gap-2">
-                            <input type="checkbox" value="Marriage" class="sacrament-cb"> Marriage
+                                <input type="checkbox" value="Marriage" class="sacrament-cb"> Marriage
                             </label>
                             <label class="inline-flex items-center gap-2">
-                            <input type="checkbox" value="First Communion" class="sacrament-cb"> First Communion
+                                <input type="checkbox" value="First Communion" class="sacrament-cb"> First Communion
                             </label>
                             <label class="inline-flex items-center gap-2">
-                            <input type="checkbox" value="Confirmation" class="sacrament-cb"> Confirmation
+                                <input type="checkbox" value="Confirmation" class="sacrament-cb"> Confirmation
                             </label>
                         </div>
                         <div class="flex justify-end gap-2 mt-4">
                             <button type="button" onclick="closeSacramentEditor()" class="px-3 py-1 text-sm">Cancel</button>
                             <button type="button" onclick="saveSacramentCheckboxes(${id})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded">Save</button>
                         </div>
-                        </div>
                     </div>
+                </div>
 
-                    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                                <svg class="w-5 h-5 mr-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"></path>
-                                </svg>
-                                Formations Received
-                            </h3>
-                            <button onclick="openFormationEditor(${id})" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 flex items-center">
-                            ...
-                            Add Formation
-                            </button>
-                        </div>
-                        <div class="space-y-4" id="formations-display">
+                <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"></path>
+                            </svg>
+                            Formations Received
+                        </h3>
+                        <button onclick="openFormationEditor(${id})" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
                             ${
                                 formations.length > 0
-                                    ? generateFormationsDisplay(formations)
-                                    : `<p class="text-gray-500">No formations added yet.</p>`
+                                    ? "Edit Formations"
+                                    : "Add Formation"
                             }
-                        </div>
-                        <div id="formations-editor" class="hidden mt-4 border rounded-lg p-4 bg-gray-50">
+                        </button>
+                    </div>
+                    <div class="space-y-4" id="formations-display">
+                        ${
+                            formations.length > 0
+                                ? generateFormationsDisplay(formations)
+                                : '<p class="text-gray-500">No formations added yet.</p>'
+                        }
+                    </div>
+                    <div id="formations-editor" class="hidden mt-4 border rounded-lg p-4 bg-gray-50">
                         <div class="space-y-3">
                             <!-- Standard formations -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                            <label class="inline-flex items-center gap-2">
-                                <input type="checkbox" class="formation-cb" data-name="BOS"> Basic Orientation Seminar (BOS)
-                            </label>
-                            <select class="form-select formation-year" data-for="BOS" disabled>
-                                <option value="">Select Year</option>
-                            </select>
+                                <label class="inline-flex items-center gap-2">
+                                    <input type="checkbox" class="formation-cb" data-name="BOS"> Basic Orientation Seminar (BOS)
+                                </label>
+                                <select class="form-select formation-year" data-for="BOS" disabled>
+                                    <option value="">Select Year</option>
+                                    ${generateYearOptions()}
+                                </select>
 
-                            <label class="inline-flex items-center gap-2">
-                                <input type="checkbox" class="formation-cb" data-name="Diocesan Basic Formation"> Diocesan Basic Formation
-                            </label>
-                            <select class="form-select formation-year" data-for="Diocesan Basic Formation" disabled>
-                                <option value="">Select Year</option>
-                            </select>
+                                <label class="inline-flex items-center gap-2">
+                                    <input type="checkbox" class="formation-cb" data-name="Diocesan Basic Formation"> Diocesan Basic Formation
+                                </label>
+                                <select class="form-select formation-year" data-for="Diocesan Basic Formation" disabled>
+                                    <option value="">Select Year</option>
+                                    ${generateYearOptions()}
+                                </select>
 
-                            <label class="inline-flex items-center gap-2">
-                                <input type="checkbox" class="formation-cb" data-name="Safeguarding Policy"> Safeguarding Policy
-                            </label>
-                            <select class="form-select formation-year" data-for="Safeguarding Policy" disabled>
-                                <option value="">Select Year</option>
-                            </select>
+                                <label class="inline-flex items-center gap-2">
+                                    <input type="checkbox" class="formation-cb" data-name="Safeguarding Policy"> Safeguarding Policy
+                                </label>
+                                <select class="form-select formation-year" data-for="Safeguarding Policy" disabled>
+                                    <option value="">Select Year</option>
+                                    ${generateYearOptions()}
+                                </select>
                             </div>
 
                             <!-- Other formations -->
                             <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <p class="text-sm font-medium text-gray-700">Other Formation Received</p>
-                                <button type="button" id="add-other-formation-row" class="text-blue-600 text-sm hover:underline">+ Add other</button>
-                            </div>
-                            <div id="other-formation-rows" class="space-y-2"></div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="text-sm font-medium text-gray-700">Other Formation Received</p>
+                                    <button type="button" id="add-other-formation-row" class="text-blue-600 text-sm hover:underline">+ Add other</button>
+                                </div>
+                                <div id="other-formation-rows" class="space-y-2"></div>
                             </div>
                         </div>
 
@@ -607,10 +622,10 @@ function renderEditableProfile(
                             <button type="button" onclick="closeFormationEditor()" class="px-3 py-1 text-sm">Cancel</button>
                             <button type="button" onclick="saveFormationCheckboxes(${id})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded">Save</button>
                         </div>
-                        </div>
                     </div>
                 </div>
-            </div>`
+            </div>
+        </div>`
                     : ""
             }
 
@@ -1005,51 +1020,21 @@ function generateYearOptions(selectedYear) {
 
 function generateSacramentsDisplay(sacraments) {
     return sacraments
-        .map((sacrament, index) => {
+        .map((sacrament) => {
             return `
-            <div class="sacrament-entry bg-white border border-gray-200 rounded-lg p-4 mb-3" data-index="${index}">
+            <div class="sacrament-entry bg-white border border-gray-200 rounded-lg p-4 mb-3">
                 <div class="display-mode">
                     <div class="flex justify-between items-start">
                         <div>
                             <p class="text-sm font-medium text-gray-800">${
                                 sacrament.sacrament_name
                             }</p>
-                            <!-- Remove the year display line below -->
+                            ${
+                                sacrament.year
+                                    ? `<p class="text-sm text-gray-500">${sacrament.year}</p>`
+                                    : ""
+                            }
                         </div>
-                        <div class="flex gap-2">
-                            <button onclick="editSacrament(this, ${index})" class="text-gray-400 hover:text-blue-600 transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
-                            </button>
-                            <button onclick="deleteSacrament(this, ${index})" class="text-gray-400 hover:text-red-600 transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <!-- Keep edit mode intact for data integrity -->
-                <div class="edit-mode hidden mt-3 p-4 bg-gray-50 rounded-lg">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Sacrament Name</label>
-                            <input type="text" class="form-input w-full" value="${
-                                sacrament.sacrament_name
-                            }" data-index="${index}">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Year Received</label>
-                            <select class="form-select w-full" data-index="${index}">
-                                <option value="">Select Year</option>
-                                ${generateYearOptions(sacrament.year)}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="flex justify-end gap-2 mt-4">
-                        <button onclick="cancelEditSacrament(this, ${index})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
-                        <button onclick="saveSacramentEdit(this, ${index})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
                     </div>
                 </div>
             </div>
@@ -1060,52 +1045,21 @@ function generateSacramentsDisplay(sacraments) {
 
 function generateFormationsDisplay(formations) {
     return formations
-        .map((formation, index) => {
+        .map((formation) => {
             return `
-            <div class="formation-entry bg-white border border-gray-200 rounded-lg p-4 mb-3" data-index="${index}">
+            <div class="formation-entry bg-white border border-gray-200 rounded-lg p-4 mb-3">
                 <div class="display-mode">
                     <div class="flex justify-between items-start">
                         <div>
                             <p class="text-sm font-medium text-gray-800">${
                                 formation.formation_name
                             }</p>
-                            <p class="text-sm text-gray-500">${
-                                formation.year || "Year not set"
-                            }</p>
+                            ${
+                                formation.year
+                                    ? `<p class="text-sm text-gray-500">${formation.year}</p>`
+                                    : ""
+                            }
                         </div>
-                        <div class="flex gap-2">
-                            <button onclick="editFormation(this, ${index})" class="text-gray-400 hover:text-blue-600 transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
-                            </button>
-                            <button onclick="deleteFormation(this, ${index})" class="text-gray-400 hover:text-red-600 transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="edit-mode hidden mt-3 p-4 bg-gray-50 rounded-lg">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Formation Name</label>
-                            <input type="text" class="form-input w-full" value="${
-                                formation.formation_name
-                            }" data-index="${index}">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Year Received</label>
-                            <select class="form-select w-full" data-index="${index}">
-                                <option value="">Select Year</option>
-                                ${generateYearOptions(formation.year)}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="flex justify-end gap-2 mt-4">
-                        <button onclick="cancelEditFormation(this, ${index})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
-                        <button onclick="saveFormationEdit(this, ${index})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
                     </div>
                 </div>
             </div>
