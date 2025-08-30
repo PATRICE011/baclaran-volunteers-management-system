@@ -388,11 +388,11 @@ function renderEditableProfile(
                     sacraments.length > 0 || formations.length > 0
                         ? `
                 <button onclick="switchTab(event, 'spiritual-tab')" class="profile-tab py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
-                    <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    Spiritual
-                </button>`
+                <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Spiritual
+            </button>`
                         : ""
                 }
                <button onclick="switchTab(event, 'timeline-tab')" class="profile-tab py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
@@ -516,7 +516,7 @@ function renderEditableProfile(
             ${
                 sacraments.length > 0 || formations.length > 0
                     ? `
-           <div id="spiritual-tab" class="tab-content hidden">
+          <div id="spiritual-tab" class="tab-content hidden">
             <div class="space-y-6">
                 <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
                     <div class="flex items-center justify-between mb-4">
@@ -547,21 +547,48 @@ function renderEditableProfile(
                     <div id="sacraments-editor" class="hidden mt-4 border rounded-lg p-4 bg-gray-50">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <label class="inline-flex items-center gap-2">
-                                <input type="checkbox" value="Baptism" class="sacrament-cb"> Baptism
+                                <input type="checkbox" value="Baptism" class="sacrament-cb" ${
+                                    sacraments.some(
+                                        (s) => s.sacrament_name === "Baptism"
+                                    )
+                                        ? "checked"
+                                        : ""
+                                }> Baptism
                             </label>
                             <label class="inline-flex items-center gap-2">
-                                <input type="checkbox" value="Marriage" class="sacrament-cb"> Marriage
+                                <input type="checkbox" value="Marriage" class="sacrament-cb" ${
+                                    sacraments.some(
+                                        (s) => s.sacrament_name === "Marriage"
+                                    )
+                                        ? "checked"
+                                        : ""
+                                }> Marriage
                             </label>
                             <label class="inline-flex items-center gap-2">
-                                <input type="checkbox" value="First Communion" class="sacrament-cb"> First Communion
+                                <input type="checkbox" value="First Communion" class="sacrament-cb" ${
+                                    sacraments.some(
+                                        (s) =>
+                                            s.sacrament_name ===
+                                            "First Communion"
+                                    )
+                                        ? "checked"
+                                        : ""
+                                }> First Communion
                             </label>
                             <label class="inline-flex items-center gap-2">
-                                <input type="checkbox" value="Confirmation" class="sacrament-cb"> Confirmation
+                                <input type="checkbox" value="Confirmation" class="sacrament-cb" ${
+                                    sacraments.some(
+                                        (s) =>
+                                            s.sacrament_name === "Confirmation"
+                                    )
+                                        ? "checked"
+                                        : ""
+                                }> Confirmation
                             </label>
                         </div>
                         <div class="flex justify-end gap-2 mt-4">
-                            <button type="button" onclick="closeSacramentEditor()" class="px-3 py-1 text-sm">Cancel</button>
-                            <button type="button" onclick="saveSacramentCheckboxes(${id})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded">Save</button>
+                            <button type="button" onclick="closeSacramentEditor()" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
+                            <button type="button" onclick="saveSacramentCheckboxes(${id})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
                         </div>
                     </div>
                 </div>
@@ -597,27 +624,87 @@ function renderEditableProfile(
                             <!-- Standard formations -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                                 <label class="inline-flex items-center gap-2">
-                                    <input type="checkbox" class="formation-cb" data-name="BOS"> Basic Orientation Seminar (BOS)
+                                    <input type="checkbox" class="formation-cb" data-name="BOS" ${
+                                        formations.some(
+                                            (f) => f.formation_name === "BOS"
+                                        )
+                                            ? "checked"
+                                            : ""
+                                    }> Basic Orientation Seminar (BOS)
                                 </label>
-                                <select class="form-select formation-year" data-for="BOS" disabled>
+                                <select class="form-select formation-year" data-for="BOS" ${
+                                    formations.some(
+                                        (f) => f.formation_name === "BOS"
+                                    )
+                                        ? ""
+                                        : "disabled"
+                                }>
                                     <option value="">Select Year</option>
-                                    ${generateYearOptions()}
+                                    ${generateYearOptions(
+                                        formations.find(
+                                            (f) => f.formation_name === "BOS"
+                                        )?.year
+                                    )}
                                 </select>
 
                                 <label class="inline-flex items-center gap-2">
-                                    <input type="checkbox" class="formation-cb" data-name="Diocesan Basic Formation"> Diocesan Basic Formation
+                                    <input type="checkbox" class="formation-cb" data-name="Diocesan Basic Formation" ${
+                                        formations.some(
+                                            (f) =>
+                                                f.formation_name ===
+                                                "Diocesan Basic Formation"
+                                        )
+                                            ? "checked"
+                                            : ""
+                                    }> Diocesan Basic Formation
                                 </label>
-                                <select class="form-select formation-year" data-for="Diocesan Basic Formation" disabled>
+                                <select class="form-select formation-year" data-for="Diocesan Basic Formation" ${
+                                    formations.some(
+                                        (f) =>
+                                            f.formation_name ===
+                                            "Diocesan Basic Formation"
+                                    )
+                                        ? ""
+                                        : "disabled"
+                                }>
                                     <option value="">Select Year</option>
-                                    ${generateYearOptions()}
+                                    ${generateYearOptions(
+                                        formations.find(
+                                            (f) =>
+                                                f.formation_name ===
+                                                "Diocesan Basic Formation"
+                                        )?.year
+                                    )}
                                 </select>
 
                                 <label class="inline-flex items-center gap-2">
-                                    <input type="checkbox" class="formation-cb" data-name="Safeguarding Policy"> Safeguarding Policy
+                                    <input type="checkbox" class="formation-cb" data-name="Safeguarding Policy" ${
+                                        formations.some(
+                                            (f) =>
+                                                f.formation_name ===
+                                                "Safeguarding Policy"
+                                        )
+                                            ? "checked"
+                                            : ""
+                                    }> Safeguarding Policy
                                 </label>
-                                <select class="form-select formation-year" data-for="Safeguarding Policy" disabled>
+                                <select class="form-select formation-year" data-for="Safeguarding Policy" ${
+                                    formations.some(
+                                        (f) =>
+                                            f.formation_name ===
+                                            "Safeguarding Policy"
+                                    )
+                                        ? ""
+                                        : "disabled"
+                                }>
                                     <option value="">Select Year</option>
-                                    ${generateYearOptions()}
+                                    ${generateYearOptions(
+                                        formations.find(
+                                            (f) =>
+                                                f.formation_name ===
+                                                "Safeguarding Policy"
+                                        )?.year
+                                    )}
                                 </select>
                             </div>
 
@@ -627,13 +714,44 @@ function renderEditableProfile(
                                     <p class="text-sm font-medium text-gray-700">Other Formation Received</p>
                                     <button type="button" id="add-other-formation-row" class="text-blue-600 text-sm hover:underline">+ Add other</button>
                                 </div>
-                                <div id="other-formation-rows" class="space-y-2"></div>
+                                <div id="other-formation-rows" class="space-y-2">
+                                    ${formations
+                                        .filter(
+                                            (f) =>
+                                                ![
+                                                    "BOS",
+                                                    "Diocesan Basic Formation",
+                                                    "Safeguarding Policy",
+                                                ].includes(f.formation_name)
+                                        )
+                                        .map(
+                                            (formation, index) => `
+                                        <div class="other-formation-row flex items-center gap-2">
+                                            <input type="text" placeholder="Formation Name" class="w-48 border rounded px-2 py-1 text-sm other-name" value="${
+                                                formation.formation_name
+                                            }">
+                                            <select class="border rounded px-2 py-1 text-sm other-year">
+                                                <option value="">Select Year</option>
+                                                ${generateYearOptions(
+                                                    formation.year
+                                                )}
+                                            </select>
+                                            <button type="button" class="text-red-600 hover:text-red-800 remove-other">
+                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    `
+                                        )
+                                        .join("")}
+                                </div>
                             </div>
                         </div>
 
                         <div class="flex justify-end gap-2 mt-4">
-                            <button type="button" onclick="closeFormationEditor()" class="px-3 py-1 text-sm">Cancel</button>
-                            <button type="button" onclick="saveFormationCheckboxes(${id})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded">Save</button>
+                            <button type="button" onclick="closeFormationEditor()" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
+                            <button type="button" onclick="saveFormationCheckboxes(${id})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
                         </div>
                     </div>
                 </div>
@@ -1080,7 +1198,6 @@ function generateFormationsDisplay(formations) {
         })
         .join("");
 }
-
 function showProfileError(id) {
     const profileContent = document.getElementById("profileContent");
     profileContent.innerHTML = `
@@ -2281,18 +2398,6 @@ function buildYearOptions() {
 // ---------- Sacraments editor ----------
 function openSacramentEditor() {
     document.getElementById("sacraments-editor")?.classList.remove("hidden");
-
-    // Pre-check based on staged or existing values
-    const selected = new Set(
-        (window.volunteerChanges?.sacraments || [])
-            .map((s) => (typeof s === "string" ? s : s?.sacrament_name))
-            .filter(Boolean)
-    );
-    document
-        .querySelectorAll("#sacraments-editor .sacrament-cb")
-        .forEach((cb) => {
-            cb.checked = selected.has(cb.value);
-        });
 }
 
 function closeSacramentEditor() {
@@ -2361,15 +2466,10 @@ function saveSacramentCheckboxes(volunteerId) {
     toastr.success("Sacraments staged. Use Save Changes to persist.");
 }
 // ---------- Formations editor ----------
-function openFormationEditor() {
+function openFormationEditor(volunteerId) {
     const ed = document.getElementById("formations-editor");
     if (!ed) return;
     ed.classList.remove("hidden");
-
-    // Seed year selects
-    ed.querySelectorAll(".formation-year").forEach((sel) => {
-        sel.innerHTML = buildYearOptions();
-    });
 
     // Enable/disable paired year selects when checkbox toggles
     ed.querySelectorAll(".formation-cb").forEach((cb) => {
@@ -2389,18 +2489,19 @@ function openFormationEditor() {
     const addBtn = document.getElementById("add-other-formation-row");
     if (addBtn && rows) {
         addBtn.onclick = () => {
-            const idx = rows.querySelectorAll(".other-formation-row").length;
             const div = document.createElement("div");
             div.className = "other-formation-row flex items-center gap-2";
             div.innerHTML = `
-        <input type="text" placeholder="Formation Name" class="w-48 border rounded px-2 py-1 text-sm other-name">
-        <select class="border rounded px-2 py-1 text-sm other-year">
-          ${buildYearOptions()}
-        </select>
-        <button type="button" class="text-red-600 hover:text-red-800 remove-other">
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-      `;
+                <input type="text" placeholder="Formation Name" class="w-48 border rounded px-2 py-1 text-sm other-name">
+                <select class="border rounded px-2 py-1 text-sm other-year">
+                    ${generateYearOptions()}
+                </select>
+                <button type="button" class="text-red-600 hover:text-red-800 remove-other">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            `;
             rows.appendChild(div);
             div.querySelector(".remove-other").onclick = () => div.remove();
         };
