@@ -733,7 +733,20 @@ class VolunteersController extends Controller
                 }
             }
 
-            return response()->json(['message' => 'Volunteer updated successfully.']);
+            // Reload the volunteer with all relationships
+            $updatedVolunteer = Volunteer::with([
+                'detail.ministry',
+                'timelines',
+                'affiliations',
+                'sacraments',
+                'formations'
+            ])->findOrFail($id);
+
+            return response()->json([
+                'message' => 'Volunteer updated successfully.',
+                'volunteer' => $updatedVolunteer
+            ]);
+
         } catch (\Exception $e) {
             Log::error('Complete update error: ' . $e->getMessage());
             return response()->json(['error' => 'Failed to update volunteer.'], 500);

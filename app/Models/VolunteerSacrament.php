@@ -12,7 +12,7 @@ class VolunteerSacrament extends Model
     protected $fillable = [
         'volunteer_id',
         'sacrament_name',
-        'year'
+        // 'year'
     ];
 
     public function volunteer()

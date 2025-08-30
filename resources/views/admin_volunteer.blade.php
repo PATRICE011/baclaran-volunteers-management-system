@@ -459,9 +459,9 @@
                                     + Add Other Formation Received
                                 </button>
                                 <!-- <button type="button" id="add-other-formation"
-                                            class="mt-2 px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">
-                                            + Add Other Formation Received
-                                        </button> -->
+                                                class="mt-2 px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">
+                                                + Add Other Formation Received
+                                            </button> -->
                             </div>
                         </div>
 
@@ -633,6 +633,9 @@
 @endsection
 
 @section('scripts')
+    <script>
+        window.globalMinistries = @json($ministries);
+    </script>
     <script src="{{ asset('assets/js/volunteer.js') }}"></script>
     <script src="{{ asset('assets/js/add_volunteer.js') }}"></script>
     <script src="{{ asset('assets/js/edit_volunteer.js') }}"></script>

@@ -99,6 +99,7 @@ function openProfile(id, activeTabId = "contact-tab") {
             return response.json();
         })
         .then((data) => {
+            window.ministriesList = data.ministries;
             renderEditableProfile(
                 data.volunteer,
                 id,
@@ -512,11 +513,9 @@ function renderEditableProfile(
                                 </svg>
                                 Sacraments Received
                             </h3>
-                            <button onclick="addNewSacrament(${id})" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 flex items-center">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                </svg>
-                                Add Sacrament
+                           <button onclick="openSacramentEditor(${id})" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 flex items-center">
+                            ...
+                            Add Sacrament
                             </button>
                         </div>
                         <div class="space-y-4" id="sacraments-display">
@@ -525,6 +524,26 @@ function renderEditableProfile(
                                     ? generateSacramentsDisplay(sacraments)
                                     : `<p class="text-gray-500">No sacraments added yet.</p>`
                             }
+                        </div>
+                        <div id="sacraments-editor" class="hidden mt-4 border rounded-lg p-4 bg-gray-50">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <label class="inline-flex items-center gap-2">
+                            <input type="checkbox" value="Baptism" class="sacrament-cb"> Baptism
+                            </label>
+                            <label class="inline-flex items-center gap-2">
+                            <input type="checkbox" value="Marriage" class="sacrament-cb"> Marriage
+                            </label>
+                            <label class="inline-flex items-center gap-2">
+                            <input type="checkbox" value="First Communion" class="sacrament-cb"> First Communion
+                            </label>
+                            <label class="inline-flex items-center gap-2">
+                            <input type="checkbox" value="Confirmation" class="sacrament-cb"> Confirmation
+                            </label>
+                        </div>
+                        <div class="flex justify-end gap-2 mt-4">
+                            <button type="button" onclick="closeSacramentEditor()" class="px-3 py-1 text-sm">Cancel</button>
+                            <button type="button" onclick="saveSacramentCheckboxes(${id})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded">Save</button>
+                        </div>
                         </div>
                     </div>
 
@@ -536,11 +555,9 @@ function renderEditableProfile(
                                 </svg>
                                 Formations Received
                             </h3>
-                            <button onclick="addNewFormation(${id})" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 flex items-center">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                </svg>
-                                Add Formation
+                            <button onclick="openFormationEditor(${id})" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 flex items-center">
+                            ...
+                            Add Formation
                             </button>
                         </div>
                         <div class="space-y-4" id="formations-display">
@@ -549,6 +566,47 @@ function renderEditableProfile(
                                     ? generateFormationsDisplay(formations)
                                     : `<p class="text-gray-500">No formations added yet.</p>`
                             }
+                        </div>
+                        <div id="formations-editor" class="hidden mt-4 border rounded-lg p-4 bg-gray-50">
+                        <div class="space-y-3">
+                            <!-- Standard formations -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                            <label class="inline-flex items-center gap-2">
+                                <input type="checkbox" class="formation-cb" data-name="BOS"> Basic Orientation Seminar (BOS)
+                            </label>
+                            <select class="form-select formation-year" data-for="BOS" disabled>
+                                <option value="">Select Year</option>
+                            </select>
+
+                            <label class="inline-flex items-center gap-2">
+                                <input type="checkbox" class="formation-cb" data-name="Diocesan Basic Formation"> Diocesan Basic Formation
+                            </label>
+                            <select class="form-select formation-year" data-for="Diocesan Basic Formation" disabled>
+                                <option value="">Select Year</option>
+                            </select>
+
+                            <label class="inline-flex items-center gap-2">
+                                <input type="checkbox" class="formation-cb" data-name="Safeguarding Policy"> Safeguarding Policy
+                            </label>
+                            <select class="form-select formation-year" data-for="Safeguarding Policy" disabled>
+                                <option value="">Select Year</option>
+                            </select>
+                            </div>
+
+                            <!-- Other formations -->
+                            <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-sm font-medium text-gray-700">Other Formation Received</p>
+                                <button type="button" id="add-other-formation-row" class="text-blue-600 text-sm hover:underline">+ Add other</button>
+                            </div>
+                            <div id="other-formation-rows" class="space-y-2"></div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end gap-2 mt-4">
+                            <button type="button" onclick="closeFormationEditor()" class="px-3 py-1 text-sm">Cancel</button>
+                            <button type="button" onclick="saveFormationCheckboxes(${id})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded">Save</button>
+                        </div>
                         </div>
                     </div>
                 </div>
@@ -632,6 +690,8 @@ function renderEditableProfile(
         );
         if (activeTabBtn) activeTabBtn.click();
     }, 50);
+
+    wireSaveButtons(id);
 }
 
 function generateEditableField(
@@ -1105,73 +1165,169 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-function saveAllChanges(volunteerId) {
-    // Collect basic info changes (existing functionality)
-    const data = {};
-    const editableInputs = document.querySelectorAll(".editable-input");
-
-    editableInputs.forEach((input) => {
+function saveAllChanges(volunteerId, btnEl) {
+    // 1) Collect changed basic fields (flat)
+    const changed = {};
+    document.querySelectorAll(".editable-input").forEach((input) => {
         const field = input.dataset.field;
         if (!field) return;
-
         const original = (input.dataset.original || "").trim();
-        let current = (input.value || "").trim();
-
-        if (current !== original) {
-            data[field] = current;
-        }
+        const current = (input.value || "").trim();
+        if (current !== original) changed[field] = current;
     });
 
-    // Add the section changes
-    data.timelines = volunteerChanges.timelines;
-    data.affiliations = volunteerChanges.affiliations;
-    data.sacraments = volunteerChanges.sacraments;
-    data.formations = volunteerChanges.formations;
+    // 2) Prepare scalar fields (works for both Volunteer & VolunteerDetail)
+    const payload = { ...changed };
 
-    if (Object.keys(data).length === 0) {
+    // If ministry changed, include BOTH a scalar and an array for backend flexibility.
+    if (Object.prototype.hasOwnProperty.call(changed, "ministry_id")) {
+        const mid =
+            changed.ministry_id === "" ? null : Number(changed.ministry_id);
+        // keep the original (for belongsTo)
+        payload.ministry_id = Number.isNaN(mid) ? null : mid;
+        // also add array form (for belongsToMany->sync)
+        payload.ministry_ids =
+            payload.ministry_id !== null ? [payload.ministry_id] : [];
+    }
+
+    // 3) Arrays from tabs in the exact, consistent shapes
+    const timelines = (window.volunteerChanges?.timelines || []).map((t) => ({
+        organization_name: (t.organization_name || "").trim(),
+        year_started: (t.year_started || "").trim(),
+        year_ended: (t.year_ended || "").trim(),
+        total_years:
+            t.total_years !== undefined && t.total_years !== null
+                ? Number(t.total_years)
+                : null,
+        // If your backend uses this, keep it numeric 0/1
+        is_active: t.is_active ? 1 : 0,
+        // include id if your server returns it (so updates don’t recreate)
+        id: t.id ?? null,
+    }));
+
+    const affiliations = (window.volunteerChanges?.affiliations || []).map(
+        (a) => ({
+            organization_name: (a.organization_name || "").trim(),
+            year_started: (a.year_started || "").trim(),
+            year_ended: (a.year_ended || "").trim(),
+            total_years:
+                a.total_years !== undefined && a.total_years !== null
+                    ? Number(a.total_years)
+                    : null,
+            id: a.id ?? null,
+        })
+    );
+
+    // Sacraments: keep as array of strings (name only). If object, take the name.
+    const sacraments = (window.volunteerChanges?.sacraments || [])
+        .map((s) =>
+            typeof s === "string" ? s.trim() : (s?.sacrament_name || "").trim()
+        )
+        .filter(Boolean);
+
+    // Formations: array of objects with name + year
+    const formations = (window.volunteerChanges?.formations || []).map((f) => ({
+        formation_name: (f.formation_name || "").trim(),
+        year: (f.year || "").trim() || null,
+        id: f.id ?? null,
+    }));
+
+    payload.timelines = timelines;
+    payload.affiliations = affiliations;
+    payload.sacraments = sacraments;
+    payload.formations = formations;
+
+    // 4) Bail if nothing changed at all
+    const hasScalars = Object.keys(changed).length > 0;
+    const hasArrays =
+        timelines.length ||
+        affiliations.length ||
+        sacraments.length ||
+        formations.length;
+    if (!hasScalars && !hasArrays) {
         toastr.info("No changes to save.");
         return;
     }
 
-    // Show loading state
-    const saveButton = document.getElementById("saveChanges");
-    const originalText = saveButton.innerHTML;
-    saveButton.innerHTML = `
-    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mx-auto"></div>
-    Saving...
-  `;
-    saveButton.disabled = true;
+    // 5) Button loading state (works for multiple Save buttons)
+    const saveButton =
+        btnEl ||
+        document.getElementById("editProfile") ||
+        document.querySelector('[data-save-all="true"]');
+    let originalHTML = null;
+    if (saveButton) {
+        originalHTML = saveButton.innerHTML;
+        saveButton.innerHTML = `
+            <div class="flex items-center gap-2">
+                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span>Saving...</span>
+            </div>`;
+        saveButton.disabled = true;
+    }
 
-    // Send all changes in one request
+    // 6) PUT
     fetch(`/volunteers/${volunteerId}/complete-update`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
+            Accept: "application/json",
             "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')
                 .content,
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
     })
-        .then((res) => {
-            if (!res.ok) throw new Error("Update failed");
-            return res.json();
+        .then(async (res) => {
+            const text = await res.text();
+            let body = {};
+            try {
+                body = text ? JSON.parse(text) : {};
+            } catch {
+                body = { raw: text };
+            }
+            return { ok: res.ok, status: res.status, body };
         })
-        .then(() => {
-            toastr.success("All changes saved successfully");
-            // Refresh the profile view
-            openProfile(volunteerId, currentActiveTabId);
+        .then(({ ok, status, body }) => {
+            if (!ok) {
+                const msg =
+                    body?.message ||
+                    body?.error ||
+                    body?.raw ||
+                    `Update failed with status ${status}`;
+                throw new Error(msg);
+            }
+
+            toastr.success(body.message || "Profile updated.");
+
+            // If API returns updated object, refresh UI
+            if (body.volunteer) {
+                window.volunteerChanges = {
+                    basicInfo: {},
+                    timelines: [...(body.volunteer.timelines || [])],
+                    affiliations: [...(body.volunteer.affiliations || [])],
+                    sacraments: [...(body.volunteer.sacraments || [])],
+                    formations: [...(body.volunteer.formations || [])],
+                };
+                renderEditableProfile(
+                    body.volunteer,
+                    volunteerId,
+                    window.currentActiveTabId,
+                    window.ministriesList
+                );
+            }
         })
         .catch((err) => {
             console.error("Save failed:", err);
-            toastr.error("There was an error saving the profile.");
+            toastr.error(
+                err.message || "There was an error saving the profile."
+            );
         })
         .finally(() => {
-            // Restore button state
-            saveButton.innerHTML = originalText;
-            saveButton.disabled = false;
+            if (saveButton) {
+                saveButton.innerHTML = originalHTML || "Save Changes";
+                saveButton.disabled = false;
+            }
         });
 }
-
 // Timeline CRUD functions
 function addNewTimelineEntry(volunteerId) {
     const container = document.getElementById("timelines-display");
@@ -1234,63 +1390,55 @@ function saveTimelineEdit(button, index) {
         data[input.dataset.field] = input.value;
     });
 
-    // Calculate total years
     data.total_years = calculateTotalYears(data.year_started, data.year_ended);
 
-    // Update the changes object
+    // Stage into changes
     if (volunteerChanges.timelines[index]) {
         volunteerChanges.timelines[index] = {
             ...volunteerChanges.timelines[index],
             ...data,
         };
     } else {
-        volunteerChanges.timelines.push(data);
+        volunteerChanges.timelines[index] = { ...data };
     }
 
     // Update UI
     entry.querySelector(".display-mode").classList.remove("hidden");
     entry.querySelector(".edit-mode").classList.add("hidden");
 
-    // Update display values
     const displayOrg = entry.querySelector(".display-mode p:nth-child(1)");
     const displayYears = entry.querySelector(".display-mode p:nth-child(2)");
     const displayTotal = entry.querySelector(".display-mode p:nth-child(3)");
 
     if (displayOrg)
         displayOrg.textContent = data.organization_name || "No Organization";
-    if (displayYears)
+    if (displayYears) {
         displayYears.textContent = `${data.year_started || "?"} - ${
             data.year_ended === "present" ? "Present" : data.year_ended || "?"
         }`;
-    if (displayTotal && data.total_years) {
-        displayTotal.textContent = `${data.total_years} year${
-            data.total_years > 1 ? "s" : ""
-        }`;
+    }
+    if (displayTotal) {
+        displayTotal.textContent = data.total_years
+            ? `${data.total_years} year${data.total_years > 1 ? "s" : ""}`
+            : "";
     }
 
-    toastr.info(
-        'Changes staged. Click "Save Changes" to save all modifications.'
-    );
+    toastr.info('Changes staged. Click "Save Changes" to persist.');
 }
 
 function deleteTimelineEntry(button, index) {
-    if (confirm("Are you sure you want to delete this timeline entry?")) {
-        // Here you would typically make an API call to delete the entry
-        button.closest(".timeline-entry").remove();
-        toastr.success("Timeline entry deleted");
-
-        // Show "no timelines" message if container is empty
-        const container = document.getElementById("timelines-display");
-        if (container.querySelectorAll(".timeline-entry").length === 0) {
-            container.innerHTML =
-                '<p class="text-gray-500">No timeline entries added yet.</p>';
-        }
-    }
+    if (!confirm("Are you sure you want to delete this timeline entry?"))
+        return;
+    volunteerChanges.timelines.splice(index, 1);
+    button.closest(".timeline-entry").remove();
+    toastr.success(
+        "Timeline entry removed (staged). Use Save Changes to persist."
+    );
 }
 
 function saveNewTimeline(button, volunteerId, index) {
     const entry = button.closest(".timeline-entry");
-    const inputs = entry.querySelectorAll("input");
+    const inputs = entry.querySelectorAll("input, select");
     const data = {};
 
     inputs.forEach((input) => {
@@ -1302,72 +1450,85 @@ function saveNewTimeline(button, volunteerId, index) {
         return;
     }
 
-    // Here you would typically make an API call to save the new timeline
-    // For now, we'll just update the display
+    data.total_years = calculateTotalYears(data.year_started, data.year_ended);
+
+    // Stage new timeline
+    volunteerChanges.timelines[index] = { ...data };
+
+    // Render compact display card
     entry.innerHTML = `
-        <div class="flex justify-between items-start">
-            <div>
-                <p class="text-sm text-gray-600 font-medium">${
-                    data.organization_name || "No Title"
-                }</p>
-                <input type="text" class="form-input w-full hidden" data-field="organization_name" value="${
-                    data.organization_name || ""
-                }" data-index="${index}">
-            </div>
-            <div class="flex gap-2">
-                <button onclick="editTimelineEntry(this, ${index})" class="text-gray-400 hover:text-blue-600 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
-                </button>
-                <button onclick="deleteTimelineEntry(this, ${index})" class="text-gray-400 hover:text-red-600 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        
         <div class="display-mode">
-            <p class="text-sm text-gray-500">${data.year_started || "?"} - ${
-        data.year_ended || "Present"
-    }</p>
-            ${
-                data.total_years
-                    ? `<p class="text-xs text-gray-400 mt-1">${
-                          data.total_years
-                      } year${data.total_years > 1 ? "s" : ""}</p>`
-                    : ""
-            }
+            <div class="flex justify-between items-start mb-2">
+                <div>
+                    <p class="text-sm font-medium text-gray-800">${
+                        data.organization_name || "No Organization"
+                    }</p>
+                    <p class="text-sm text-gray-500">
+                        ${data.year_started || "?"} - ${
+        data.year_ended === "present" ? "Present" : data.year_ended || "?"
+    }
+                    </p>
+                    ${
+                        data.total_years
+                            ? `<p class="text-xs text-gray-400 mt-1">${
+                                  data.total_years
+                              } year${data.total_years > 1 ? "s" : ""}</p>`
+                            : ""
+                    }
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="editTimelineEntry(this, ${index})" class="text-gray-400 hover:text-blue-600 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    </button>
+                    <button onclick="deleteTimelineEntry(this, ${index})" class="text-gray-400 hover:text-red-600 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                </div>
+            </div>
         </div>
-        
-        <div class="edit-mode hidden grid grid-cols-2 gap-2">
-            <div>
-                <label class="text-xs text-gray-500">Start Year</label>
-                <input type="text" class="form-input w-full" placeholder="Start Year" data-field="year_started" value="${
-                    data.year_started || ""
-                }" data-index="${index}">
+        <div class="edit-mode hidden mt-3 p-4 bg-gray-50 rounded-lg">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Organization</label>
+                    <input type="text" class="form-input w-full" value="${
+                        data.organization_name || ""
+                    }" data-field="organization_name" data-index="${index}">
+                </div>
+                <div class="flex gap-2">
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Start Year</label>
+                        <select class="form-select w-full year-select" data-field="year_started" data-index="${index}">
+                            <option value="">Start Year</option>
+                            ${generateYearOptions(data.year_started)}
+                        </select>
+                    </div>
+                    <span class="flex items-end pb-2 text-sm">–</span>
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">End Year</label>
+                        <select class="form-select w-full year-select" data-field="year_ended" data-index="${index}">
+                            <option value="">End Year</option>
+                            <option value="present" ${
+                                data.year_ended === "present" ? "selected" : ""
+                            }>Present</option>
+                            ${generateYearOptions(data.year_ended)}
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Total Years</label>
+                    <input type="number" class="form-input w-full total-years" value="${
+                        data.total_years || ""
+                    }" readonly>
+                </div>
             </div>
-            <div>
-                <label class="text-xs text-gray-500">End Year</label>
-                <input type="text" class="form-input w-full" placeholder="End Year" data-field="year_ended" value="${
-                    data.year_ended || ""
-                }" data-index="${index}">
-            </div>
-            <div class="col-span-2">
-                <label class="text-xs text-gray-500">Total Years</label>
-                <input type="text" class="form-input w-full" placeholder="Total Years" data-field="total_years" value="${
-                    data.total_years || ""
-                }" data-index="${index}">
-            </div>
-            <div class="col-span-2 flex justify-end gap-2 mt-2">
+            <div class="flex justify-end gap-2 mt-4">
                 <button onclick="cancelEditTimeline(this)" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
-                <button onclick="saveTimelineEdit(this, ${index})" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">Save</button>
+                <button onclick="saveTimelineEdit(this, ${index})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
             </div>
         </div>
     `;
 
-    toastr.success("Timeline entry added");
+    toastr.success("Timeline entry staged. Use Save Changes to persist.");
 }
 
 function cancelAddTimeline(button) {
@@ -1458,33 +1619,30 @@ function saveAffiliationEdit(button, index) {
         data[input.dataset.field] = input.value;
     });
 
-    // Calculate total years if both start and end years are provided
-    if (data.year_started && data.year_ended) {
-        const startYear = parseInt(data.year_started);
-        const endYear =
-            data.year_ended === "present"
-                ? new Date().getFullYear()
-                : parseInt(data.year_ended);
-        data.total_years = endYear - startYear + 1;
-        entry.querySelector(".total-years").value = data.total_years;
+    // compute years
+    data.total_years = calculateTotalYears(data.year_started, data.year_ended);
+
+    // Stage
+    if (volunteerChanges.affiliations[index]) {
+        volunteerChanges.affiliations[index] = {
+            ...volunteerChanges.affiliations[index],
+            ...data,
+        };
+    } else {
+        volunteerChanges.affiliations[index] = { ...data };
     }
 
-    // Update the display
+    // UI
     entry.querySelector(".display-mode p:nth-child(1)").textContent =
-        data.organization_name || "No Title";
+        data.organization_name || "No Organization";
     entry.querySelector(".display-mode p:nth-child(2)").textContent = `${
         data.year_started || "?"
-    } - ${data.year_ended || "Present"}`;
+    } - ${data.year_ended === "present" ? "Present" : data.year_ended || "?"}`;
 
-    // Switch back to display mode
     entry.querySelector(".display-mode").classList.remove("hidden");
     entry.querySelector(".edit-mode").classList.add("hidden");
 
-    // Make API call to save changes
-    saveAffiliationToServer(entry.dataset.index, data);
-    toastr.info(
-        "Changes staged. Click 'Save Changes' to save all modifications."
-    );
+    toastr.info("Affiliation staged. Use Save Changes to persist.");
 }
 
 function saveTimelineToServer(index, data) {
@@ -1550,23 +1708,17 @@ function saveAffiliationToServer(index, data) {
 }
 
 function deleteAffiliation(button, index) {
-    if (confirm("Are you sure you want to delete this affiliation?")) {
-        // Here you would typically make an API call to delete the entry
-        button.closest(".affiliation-entry").remove();
-        toastr.success("Affiliation deleted");
-
-        // Show "no affiliations" message if container is empty
-        const container = document.getElementById("affiliations-display");
-        if (container.querySelectorAll(".affiliation-entry").length === 0) {
-            container.innerHTML =
-                '<p class="text-gray-500 col-span-full">No affiliations added yet.</p>';
-        }
-    }
+    if (!confirm("Are you sure you want to delete this affiliation?")) return;
+    volunteerChanges.affiliations.splice(index, 1);
+    button.closest(".affiliation-entry").remove();
+    toastr.success(
+        "Affiliation removed (staged). Use Save Changes to persist."
+    );
 }
 
 function saveNewAffiliation(button, volunteerId, index) {
     const entry = button.closest(".affiliation-entry");
-    const inputs = entry.querySelectorAll("input");
+    const inputs = entry.querySelectorAll("input, select");
     const data = {};
 
     inputs.forEach((input) => {
@@ -1578,67 +1730,76 @@ function saveNewAffiliation(button, volunteerId, index) {
         return;
     }
 
-    // Here you would typically make an API call to save the new affiliation
-    // For now, we'll just update the display
-    entry.innerHTML = `
-        <div class="flex justify-between items-start">
-            <div>
-                <div class="font-medium text-gray-800">${
-                    data.organization_name || "Unnamed Organization"
-                }</div>
-                <input type="text" class="form-input w-full hidden" data-field="organization_name" value="${
-                    data.organization_name || ""
-                }" data-index="${index}">
-            </div>
-            <div class="flex gap-2">
-                <button onclick="editAffiliation(this, ${index})" class="text-gray-400 hover:text-blue-600 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
-                </button>
-                <button onclick="deleteAffiliation(this, ${index})" class="text-gray-400 hover:text-red-600 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        
-        <div class="display-mode">
-        <p class="text-sm text-gray-500">
-            ${data.year_started || "?"} - ${data.year_ended || "Present"}
-        </p>
-        ${
-            data.total_years
-                ? `<p class="text-xs text-gray-400 mt-1">${
-                      data.total_years
-                  } year${data.total_years > 1 ? "s" : ""}</p>`
-                : ""
-        }
-        </div>
+    data.total_years = calculateTotalYears(data.year_started, data.year_ended);
+    volunteerChanges.affiliations[index] = { ...data };
 
-        
-        <div class="edit-mode hidden grid grid-cols-2 gap-2">
-            <div>
-                <label class="text-xs text-gray-500">Start Year</label>
-                <input type="text" class="form-input w-full" placeholder="Start Year" data-field="year_started" value="${
-                    data.year_started || ""
-                }" data-index="${index}">
+    entry.innerHTML = `
+        <div class="display-mode">
+            <div class="flex justify-between items-start mb-2">
+                <div>
+                    <p class="text-sm font-medium text-gray-800">${
+                        data.organization_name
+                    }</p>
+                    <p class="text-sm text-gray-500">${
+                        data.year_started || "?"
+                    } - ${
+        data.year_ended === "present" ? "Present" : data.year_ended || "?"
+    }</p>
+                    ${
+                        data.total_years
+                            ? `<p class="text-xs text-gray-400 mt-1">${
+                                  data.total_years
+                              } year${data.total_years > 1 ? "s" : ""}</p>`
+                            : ""
+                    }
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="editAffiliation(this, ${index})" class="text-gray-400 hover:text-blue-600 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    </button>
+                    <button onclick="deleteAffiliation(this, ${index})" class="text-gray-400 hover:text-red-600 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                </div>
             </div>
-            <div>
-                <label class="text-xs text-gray-500">End Year</label>
-                <input type="text" class="form-input w-full" placeholder="End Year" data-field="year_ended" value="${
-                    data.year_ended || ""
-                }" data-index="${index}">
+        </div>
+        <div class="edit-mode hidden mt-3 p-4 bg-gray-50 rounded-lg">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Organization</label>
+                    <input type="text" class="form-input w-full" value="${
+                        data.organization_name
+                    }" data-field="organization_name" data-index="${index}">
+                </div>
+                <div class="flex gap-2">
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Start Year</label>
+                        <select class="form-select w-full year-select" data-field="year_started" data-index="${index}">
+                            <option value="">Start Year</option>
+                            ${generateYearOptions(data.year_started)}
+                        </select>
+                    </div>
+                    <span class="flex items-end pb-2 text-sm">–</span>
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">End Year</label>
+                        <select class="form-select w-full year-select" data-field="year_ended" data-index="${index}">
+                            <option value="">End Year</option>
+                            <option value="present" ${
+                                data.year_ended === "present" ? "selected" : ""
+                            }>Present</option>
+                            ${generateYearOptions(data.year_ended)}
+                        </select>
+                    </div>
+                </div>
             </div>
-            <div class="col-span-2 flex justify-end gap-2 mt-2">
+            <div class="flex justify-end gap-2 mt-4">
                 <button onclick="cancelEditAffiliation(this)" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
                 <button onclick="saveAffiliationEdit(this, ${index})" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">Save</button>
             </div>
         </div>
     `;
 
-    toastr.success("Affiliation added");
+    toastr.success("Affiliation staged. Use Save Changes to persist.");
 }
 
 function cancelAddAffiliation(button) {
@@ -1707,28 +1868,29 @@ function saveSacramentEdit(button, index) {
     const nameInput = entry.querySelector('input[type="text"]');
     const yearSelect = entry.querySelector("select");
 
-    const name = nameInput.value.trim();
-    const year = yearSelect.value;
+    const name = (nameInput?.value || "").trim();
+    const year = (yearSelect?.value || "").trim();
 
     if (!name) {
         toastr.error("Sacrament name is required");
         return;
     }
 
-    const sacramentValue = year ? `${name} (${year})` : name;
+    // Stage as { sacrament_name, year }
+    volunteerChanges.sacraments[index] = {
+        sacrament_name: name,
+        year: year || "",
+    };
 
     // Update display
-    entry.querySelector(".display-mode span").textContent = sacramentValue;
+    const ps = entry.querySelectorAll(".display-mode p");
+    if (ps[0]) ps[0].textContent = name;
+    if (ps[1]) ps[1].textContent = year || "Year not set";
 
-    // Switch back to display mode
-    entry.querySelector(".display-mode").classList.remove("hidden");
-    entry.querySelector(".edit-mode").classList.add("hidden");
+    entry.querySelector(".display-mode")?.classList.remove("hidden");
+    entry.querySelector(".edit-mode")?.classList.add("hidden");
 
-    // Save to server
-    saveSacramentToServer(index, sacramentValue);
-    toastr.info(
-        "Changes staged. Click 'Save Changes' to save all modifications."
-    );
+    toastr.info('Sacrament staged. Click "Save Changes" to persist.');
 }
 
 function saveSacramentToServer(index, value) {
@@ -1736,16 +1898,25 @@ function saveSacramentToServer(index, value) {
         document.getElementById("editProfile")?.dataset.volunteerId;
     if (!volunteerId) return;
 
-    // Get current sacraments
-    const sacramentsContainer = document.getElementById("sacraments-display");
+    // Rebuild the sacraments array from the DOM safely
+    const container = document.getElementById("sacraments-display");
     const sacraments = Array.from(
-        sacramentsContainer.querySelectorAll(".sacrament-entry")
-    ).map((entry) => entry.querySelector(".display-mode span").textContent);
+        container.querySelectorAll(".sacrament-entry")
+    ).map((entry) => {
+        const ps = entry.querySelectorAll(".display-mode p");
+        const nameText = (ps[0]?.textContent || "").trim();
+        const yearText = (ps[1]?.textContent || "").trim();
 
-    // Update the specific sacrament
+        // If yearText exists and isn't the placeholder, combine it
+        if (yearText && yearText.toLowerCase() !== "year not set") {
+            return `${nameText} (${yearText})`;
+        }
+        return nameText;
+    });
+
+    // Apply the edited value at the right index
     sacraments[index] = value;
 
-    // Send to server
     fetch(`/volunteers/${volunteerId}/sacraments`, {
         method: "PUT",
         headers: {
@@ -1753,9 +1924,9 @@ function saveSacramentToServer(index, value) {
             "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')
                 .content,
         },
-        body: JSON.stringify({ sacraments: sacraments }),
+        body: JSON.stringify({ sacraments }),
     })
-        .then((response) => response.json())
+        .then((r) => r.json())
         .then((data) => {
             if (data.success) {
                 toastr.success("Sacrament updated successfully");
@@ -1763,25 +1934,17 @@ function saveSacramentToServer(index, value) {
                 toastr.error("Failed to update sacrament");
             }
         })
-        .catch((error) => {
-            console.error("Error:", error);
+        .catch((err) => {
+            console.error(err);
             toastr.error("An error occurred while updating the sacrament");
         });
 }
 
 function deleteSacrament(button, index) {
-    if (confirm("Are you sure you want to delete this sacrament?")) {
-        // Here you would typically make an API call to delete the entry
-        button.closest(".sacrament-entry").remove();
-        toastr.success("Sacrament deleted");
-
-        // Show "no sacraments" message if container is empty
-        const container = document.getElementById("sacraments-display");
-        if (container.querySelectorAll(".sacrament-entry").length === 0) {
-            container.innerHTML =
-                '<p class="text-gray-500">No sacraments added yet.</p>';
-        }
-    }
+    if (!confirm("Are you sure you want to delete this sacrament?")) return;
+    volunteerChanges.sacraments.splice(index, 1);
+    button.closest(".sacrament-entry").remove();
+    toastr.success("Sacrament removed (staged). Use Save Changes to persist.");
 }
 
 function saveNewSacrament(button, volunteerId, index) {
@@ -1789,50 +1952,62 @@ function saveNewSacrament(button, volunteerId, index) {
     const nameInput = entry.querySelector('input[type="text"]');
     const yearSelect = entry.querySelector("select");
 
-    const name = nameInput.value.trim();
-    const year = yearSelect.value;
+    const name = (nameInput?.value || "").trim();
+    const year = (yearSelect?.value || "").trim();
 
     if (!name) {
         toastr.error("Sacrament name is required");
         return;
     }
 
-    const sacramentValue = year ? `${name} (${year})` : name;
+    // Stage new
+    volunteerChanges.sacraments[index] = {
+        sacrament_name: name,
+        year: year || "",
+    };
 
-    // Create display mode HTML
-    const displayHtml = `
-    <div class="display-mode">
-        <div class="flex justify-between items-start">
-            <div>
-                <p class="text-sm font-medium text-gray-800">${sacramentValue.replace(
-                    /\s+\(\d{4}\)$/,
-                    ""
-                )}</p>
-                <p class="text-sm text-gray-500">${
-                    year ? year : "Year not set"
-                }</p>
-            </div>
-            <div class="flex gap-2">
-                <button onclick="editSacrament(this, ${index})" class="text-gray-400 hover:text-blue-600 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
-                </button>
-                <button onclick="deleteSacrament(this, ${index})" class="text-gray-400 hover:text-red-600 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                </button>
+    // Render display
+    entry.innerHTML = `
+        <div class="display-mode">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm font-medium text-gray-800">${name}</p>
+                    <p class="text-sm text-gray-500">${
+                        year || "Year not set"
+                    }</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="editSacrament(this, ${index})" class="text-gray-400 hover:text-blue-600 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    </button>
+                    <button onclick="deleteSacrament(this, ${index})" class="text-gray-400 hover:text-red-600 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="edit-mode hidden mt-3 p-4 bg-gray-50 rounded-lg"></div>
-`;
+        <div class="edit-mode hidden mt-3 p-4 bg-gray-50 rounded-lg">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Sacrament Name</label>
+                    <input type="text" class="form-input w-full" value="${name}" data-index="${index}">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Year Received</label>
+                    <select class="form-select w-full" data-index="${index}">
+                        <option value="">Select Year</option>
+                        ${generateYearOptions(year)}
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 mt-4">
+                <button onclick="cancelEditSacrament(this, ${index})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
+                <button onclick="saveSacramentEdit(this, ${index})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+            </div>
+        </div>
+    `;
 
-    entry.innerHTML = displayHtml;
-
-    // Save to server
-    saveSacramentToServer(index, sacramentValue);
+    toastr.success("Sacrament staged. Use Save Changes to persist.");
 }
 
 function cancelAddSacrament(button) {
@@ -1902,28 +2077,29 @@ function saveFormationEdit(button, index) {
     const nameInput = entry.querySelector('input[type="text"]');
     const yearSelect = entry.querySelector("select");
 
-    const name = nameInput.value.trim();
-    const year = yearSelect.value;
+    const name = (nameInput?.value || "").trim();
+    const year = (yearSelect?.value || "").trim();
 
     if (!name) {
         toastr.error("Formation name is required");
         return;
     }
 
-    const formationValue = year ? `${name} (${year})` : name;
+    // Stage as { formation_name, year }
+    volunteerChanges.formations[index] = {
+        formation_name: name,
+        year: year || "",
+    };
 
     // Update display
-    entry.querySelector(".display-mode span").textContent = formationValue;
+    const ps = entry.querySelectorAll(".display-mode p");
+    if (ps[0]) ps[0].textContent = name;
+    if (ps[1]) ps[1].textContent = year || "Year not set";
 
-    // Switch back to display mode
-    entry.querySelector(".display-mode").classList.remove("hidden");
-    entry.querySelector(".edit-mode").classList.add("hidden");
+    entry.querySelector(".display-mode")?.classList.remove("hidden");
+    entry.querySelector(".edit-mode")?.classList.add("hidden");
 
-    // Save to server
-    saveFormationToServer(index, formationValue);
-    toastr.info(
-        "Changes staged. Click 'Save Changes' to save all modifications."
-    );
+    toastr.info('Formation staged. Click "Save Changes" to persist.');
 }
 
 function saveFormationToServer(index, value) {
@@ -1931,16 +2107,23 @@ function saveFormationToServer(index, value) {
         document.getElementById("editProfile")?.dataset.volunteerId;
     if (!volunteerId) return;
 
-    // Get current formations
-    const formationsContainer = document.getElementById("formations-display");
+    // Rebuild formations from DOM using <p> tags (not span)
+    const container = document.getElementById("formations-display");
     const formations = Array.from(
-        formationsContainer.querySelectorAll(".formation-entry")
-    ).map((entry) => entry.querySelector(".display-mode span").textContent);
+        container.querySelectorAll(".formation-entry")
+    ).map((entry) => {
+        const ps = entry.querySelectorAll(".display-mode p");
+        const nameText = (ps[0]?.textContent || "").trim();
+        const yearText = (ps[1]?.textContent || "").trim();
 
-    // Update the specific formation
+        if (yearText && yearText.toLowerCase() !== "year not set") {
+            return `${nameText} (${yearText})`;
+        }
+        return nameText;
+    });
+
     formations[index] = value;
 
-    // Send to server
     fetch(`/volunteers/${volunteerId}/formations`, {
         method: "PUT",
         headers: {
@@ -1948,9 +2131,9 @@ function saveFormationToServer(index, value) {
             "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')
                 .content,
         },
-        body: JSON.stringify({ formations: formations }),
+        body: JSON.stringify({ formations }),
     })
-        .then((response) => response.json())
+        .then((r) => r.json())
         .then((data) => {
             if (data.success) {
                 toastr.success("Formation updated successfully");
@@ -1958,76 +2141,78 @@ function saveFormationToServer(index, value) {
                 toastr.error("Failed to update formation");
             }
         })
-        .catch((error) => {
-            console.error("Error:", error);
+        .catch((err) => {
+            console.error(err);
             toastr.error("An error occurred while updating the formation");
         });
 }
 
 function deleteFormation(button, index) {
-    if (confirm("Are you sure you want to delete this formation?")) {
-        // Here you would typically make an API call to delete the entry
-        button.closest(".formation-entry").remove();
-        toastr.success("Formation deleted");
-
-        // Show "no formations" message if container is empty
-        const container = document.getElementById("formations-display");
-        if (container.querySelectorAll(".formation-entry").length === 0) {
-            container.innerHTML =
-                '<p class="text-gray-500">No formations added yet.</p>';
-        }
-    }
+    if (!confirm("Are you sure you want to delete this formation?")) return;
+    volunteerChanges.formations.splice(index, 1);
+    button.closest(".formation-entry").remove();
+    toastr.success("Formation removed (staged). Use Save Changes to persist.");
 }
-
 function saveNewFormation(button, volunteerId, index) {
     const entry = button.closest(".formation-entry");
     const nameInput = entry.querySelector('input[type="text"]');
     const yearSelect = entry.querySelector("select");
 
-    const name = nameInput.value.trim();
-    const year = yearSelect.value;
+    const name = (nameInput?.value || "").trim();
+    const year = (yearSelect?.value || "").trim();
 
     if (!name) {
         toastr.error("Formation name is required");
         return;
     }
 
-    const formationValue = year ? `${name} (${year})` : name;
+    // Stage new
+    volunteerChanges.formations[index] = {
+        formation_name: name,
+        year: year || "",
+    };
 
-    // Create display mode HTML
-    const displayHtml = `
-    <div class="display-mode">
-        <div class="flex justify-between items-start">
-            <div>
-                <p class="text-sm font-medium text-gray-800">${formationValue.replace(
-                    /\s+\(\d{4}\)$/,
-                    ""
-                )}</p>
-                <p class="text-sm text-gray-500">${
-                    year ? year : "Year not set"
-                }</p>
-            </div>
-            <div class="flex gap-2">
-                <button onclick="editFormation(this, ${index})" class="text-gray-400 hover:text-blue-600 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
-                </button>
-                <button onclick="deleteFormation(this, ${index})" class="text-gray-400 hover:text-red-600 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                </button>
+    entry.innerHTML = `
+        <div class="display-mode">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm font-medium text-gray-800">${name}</p>
+                    <p class="text-sm text-gray-500">${
+                        year || "Year not set"
+                    }</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="editFormation(this, ${index})" class="text-gray-400 hover:text-blue-600 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    </button>
+                    <button onclick="deleteFormation(this, ${index})" class="text-gray-400 hover:text-red-600 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="edit-mode hidden mt-3 p-4 bg-gray-50 rounded-lg"></div>
-`;
+        <div class="edit-mode hidden mt-3 p-4 bg-gray-50 rounded-lg">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Formation Name</label>
+                    <input type="text" class="form-input w-full" value="${name}" data-index="${index}">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Year Received</label>
+                    <select class="form-select w-full" data-index="${index}">
+                        <option value="">Select Year</option>
+                        ${generateYearOptions(year)}
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 mt-4">
+                <button onclick="cancelEditFormation(this, ${index})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
+                <button onclick="saveFormationEdit(this, ${index})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+            </div>
+        </div>
+    `;
 
-    entry.innerHTML = displayHtml;
-
-    // Save to server
-    saveFormationToServer(index, formationValue);
+    toastr.success("Formation staged. Use Save Changes to persist.");
 }
 
 function cancelAddFormation(button) {
@@ -2106,4 +2291,241 @@ function updateDisplayValue(inputEl) {
     } else {
         displayEl.textContent = newValue || "Not provided";
     }
+}
+function wireSaveButtons(volunteerId) {
+    const buttons = [
+        ...document.querySelectorAll('#editProfile, [data-save-all="true"]'),
+    ];
+    buttons.forEach((btn) => {
+        btn.onclick = (e) => saveAllChanges(volunteerId, e.currentTarget);
+        btn.setAttribute("data-volunteer-id", volunteerId);
+    });
+}
+// Build year <option> list, reuse your existing helper if present
+function buildYearOptions() {
+    const current = new Date().getFullYear();
+    let opts = '<option value="">Select Year</option>';
+    for (let y = current; y >= 1980; y--) {
+        opts += `<option value="${y}">${y}</option>`;
+    }
+    return opts;
+}
+
+// ---------- Sacraments editor ----------
+function openSacramentEditor() {
+    document.getElementById("sacraments-editor")?.classList.remove("hidden");
+
+    // Pre-check based on staged or existing values
+    const selected = new Set(
+        (window.volunteerChanges?.sacraments || [])
+            .map((s) => (typeof s === "string" ? s : s?.sacrament_name))
+            .filter(Boolean)
+    );
+    document
+        .querySelectorAll("#sacraments-editor .sacrament-cb")
+        .forEach((cb) => {
+            cb.checked = selected.has(cb.value);
+        });
+}
+
+function closeSacramentEditor() {
+    document.getElementById("sacraments-editor")?.classList.add("hidden");
+}
+
+function saveSacramentCheckboxes(volunteerId) {
+    const checked = Array.from(
+        document.querySelectorAll("#sacraments-editor .sacrament-cb:checked")
+    ).map((cb) => cb.value);
+
+    if (checked.length === 0) {
+        toastr.warning("Please select at least one sacrament.");
+        return;
+    }
+
+    // Stage as array of strings to match saveAllChanges expectations
+    window.volunteerChanges.sacraments = [...checked]; // compatible with current payload
+    closeSacramentEditor();
+
+    // Re-render list display
+    const container = document.getElementById("sacraments-display");
+    container.innerHTML = checked
+        .map(
+            (name, idx) => `
+    <div class="sacrament-entry bg-white border border-gray-200 rounded-lg p-4 mb-3" data-index="${idx}">
+      <div class="display-mode">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-sm font-medium text-gray-800">${name}</p>
+            <p class="text-sm text-gray-500">Year not set</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="editSacrament(this, ${idx})" class="text-gray-400 hover:text-blue-600 transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            </button>
+            <button onclick="deleteSacrament(this, ${idx})" class="text-gray-400 hover:text-red-600 transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="edit-mode hidden mt-3 p-4 bg-gray-50 rounded-lg">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Sacrament Name</label>
+              <input type="text" class="form-input w-full" value="${name}" data-index="${idx}">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Year Received</label>
+              <select class="form-select w-full" data-index="${idx}">
+                ${buildYearOptions()}
+              </select>
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 mt-4">
+            <button onclick="cancelEditSacrament(this, ${idx})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
+            <button onclick="saveSacramentEdit(this, ${idx})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
+        )
+        .join("");
+
+    toastr.success("Sacraments staged. Use Save Changes to persist.");
+}
+// ---------- Formations editor ----------
+function openFormationEditor() {
+    const ed = document.getElementById("formations-editor");
+    if (!ed) return;
+    ed.classList.remove("hidden");
+
+    // Seed year selects
+    ed.querySelectorAll(".formation-year").forEach((sel) => {
+        sel.innerHTML = buildYearOptions();
+    });
+
+    // Enable/disable paired year selects when checkbox toggles
+    ed.querySelectorAll(".formation-cb").forEach((cb) => {
+        cb.addEventListener("change", () => {
+            const yearSel = ed.querySelector(
+                `.formation-year[data-for="${cb.dataset.name}"]`
+            );
+            if (yearSel) {
+                yearSel.disabled = !cb.checked;
+                if (!cb.checked) yearSel.value = "";
+            }
+        });
+    });
+
+    // Other formations
+    const rows = document.getElementById("other-formation-rows");
+    const addBtn = document.getElementById("add-other-formation-row");
+    if (addBtn && rows) {
+        addBtn.onclick = () => {
+            const idx = rows.querySelectorAll(".other-formation-row").length;
+            const div = document.createElement("div");
+            div.className = "other-formation-row flex items-center gap-2";
+            div.innerHTML = `
+        <input type="text" placeholder="Formation Name" class="w-48 border rounded px-2 py-1 text-sm other-name">
+        <select class="border rounded px-2 py-1 text-sm other-year">
+          ${buildYearOptions()}
+        </select>
+        <button type="button" class="text-red-600 hover:text-red-800 remove-other">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      `;
+            rows.appendChild(div);
+            div.querySelector(".remove-other").onclick = () => div.remove();
+        };
+    }
+}
+
+function closeFormationEditor() {
+    document.getElementById("formations-editor")?.classList.add("hidden");
+}
+
+function saveFormationCheckboxes(volunteerId) {
+    const ed = document.getElementById("formations-editor");
+    if (!ed) return;
+
+    const result = [];
+
+    // Standard formations
+    ed.querySelectorAll(".formation-cb").forEach((cb) => {
+        if (cb.checked) {
+            const name = cb.dataset.name;
+            const yearSel = ed.querySelector(
+                `.formation-year[data-for="${name}"]`
+            );
+            const year = yearSel?.value || "";
+            result.push({ formation_name: name, year: year || null });
+        }
+    });
+
+    // Other formations
+    ed.querySelectorAll("#other-formation-rows .other-formation-row").forEach(
+        (row) => {
+            const nm = row.querySelector(".other-name")?.value?.trim() || "";
+            const yr = row.querySelector(".other-year")?.value || "";
+            if (nm) result.push({ formation_name: nm, year: yr || null });
+        }
+    );
+
+    if (result.length === 0) {
+        toastr.warning("Please select or add at least one formation.");
+        return;
+    }
+
+    // Stage to match existing payload contract in saveAllChanges
+    window.volunteerChanges.formations = result;
+    closeFormationEditor();
+
+    // Refresh simple display list
+    const container = document.getElementById("formations-display");
+    container.innerHTML = result
+        .map(
+            (f, idx) => `
+    <div class="formation-entry bg-white border border-gray-200 rounded-lg p-4 mb-3" data-index="${idx}">
+      <div class="display-mode">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-sm font-medium text-gray-800">${f.formation_name}</p>
+            <p class="text-sm text-gray-500">${f.year || "Year not set"}</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="editFormation(this, ${idx})" class="text-gray-400 hover:text-blue-600 transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            </button>
+            <button onclick="deleteFormation(this, ${idx})" class="text-gray-400 hover:text-red-600 transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="edit-mode hidden mt-3 p-4 bg-gray-50 rounded-lg">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Formation Name</label>
+            <input type="text" class="form-input w-full" value="${
+                f.formation_name
+            }" data-index="${idx}">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Year Received</label>
+            <select class="form-select w-full" data-index="${idx}">
+              ${buildYearOptions()}
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 mt-4">
+          <button onclick="cancelEditFormation(this, ${idx})" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
+          <button onclick="saveFormationEdit(this, ${idx})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+        </div>
+      </div>
+    </div>
+  `
+        )
+        .join("");
+
+    toastr.success("Formations staged. Use Save Changes to persist.");
 }
