@@ -384,17 +384,12 @@ function renderEditableProfile(
                     </svg>
                     Personal
                 </button>
-                ${
-                    sacraments.length > 0 || formations.length > 0
-                        ? `
                 <button onclick="switchTab(event, 'spiritual-tab')" class="profile-tab py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
                 <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 Spiritual
-            </button>`
-                        : ""
-                }
+            </button>
                <button onclick="switchTab(event, 'timeline-tab')" class="profile-tab py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
                 <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
@@ -513,9 +508,7 @@ function renderEditableProfile(
             </div>
 
             <!-- Spiritual Journey Tab -->
-            ${
-                sacraments.length > 0 || formations.length > 0
-                    ? `
+   
           <div id="spiritual-tab" class="tab-content hidden">
             <div class="space-y-6">
                 <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
@@ -756,9 +749,7 @@ function renderEditableProfile(
                     </div>
                 </div>
             </div>
-        </div>`
-                    : ""
-            }
+        </div>
 
             <!-- Timeline Tab -->
             <div id="timeline-tab" class="tab-content hidden">

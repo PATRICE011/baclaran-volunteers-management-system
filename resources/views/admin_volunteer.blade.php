@@ -352,11 +352,11 @@
                         <div class="mt-6">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Sacrament/s Received</label>
                             <div class="grid grid-cols-3 gap-3 text-sm">
-                                @foreach (['baptism', 'first_communion', 'confirmation', 'marriage'] as $sacrament)
+                                @foreach (['Baptism', 'First Communion', 'Confirmation', 'Marriage'] as $sacrament)
                                     <label class="inline-flex items-center">
                                         <input type="checkbox" name="sacraments[]" value="{{ $sacrament }}"
                                             class="form-checkbox mr-2">
-                                        {{ ucwords(str_replace('_', ' ', $sacrament)) }}
+                                        {{ $sacrament }}
                                     </label>
                                 @endforeach
                             </div>
@@ -459,9 +459,9 @@
                                     + Add Other Formation Received
                                 </button>
                                 <!-- <button type="button" id="add-other-formation"
-                                                class="mt-2 px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">
-                                                + Add Other Formation Received
-                                            </button> -->
+                                                    class="mt-2 px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">
+                                                    + Add Other Formation Received
+                                                </button> -->
                             </div>
                         </div>
 

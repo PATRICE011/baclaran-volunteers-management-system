@@ -309,9 +309,17 @@ class VolunteersController extends Controller
             $volunteer = Volunteer::create($volunteerData);
             // Create sacraments
             if ($request->has('sacraments')) {
+                $sacramentMapping = [
+                    'baptism' => 'Baptism',
+                    'first_communion' => 'First Communion',
+                    'confirmation' => 'Confirmation',
+                    'marriage' => 'Marriage'
+                ];
+
                 foreach ($request->sacraments as $sacrament) {
+                    $sacramentName = $sacramentMapping[$sacrament] ?? ucwords(str_replace('_', ' ', $sacrament));
                     $volunteer->sacraments()->create([
-                        'sacrament_name' => $sacrament
+                        'sacrament_name' => $sacramentName
                     ]);
                 }
             }
