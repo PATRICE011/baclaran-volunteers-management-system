@@ -1114,7 +1114,7 @@ function generateSacramentEditor(sacraments) {
             </div>
             <div class="flex justify-end gap-2 mt-4">
                 <button type="button" onclick="closeSacramentEditor()" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
-                <button type="button" onclick="saveSacramentCheckboxes()" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+                <button type="button" onclick="saveSacramentCheckboxes()" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Done</button>
             </div>
         </div>
     `;
@@ -1252,7 +1252,7 @@ function generateFormationEditor(formations) {
 
             <div class="flex justify-end gap-2 mt-4">
                 <button type="button" onclick="closeFormationEditor()" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
-                <button type="button" onclick="saveFormationCheckboxes()" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+                <button type="button" onclick="saveFormationCheckboxes()" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Done</button>
             </div>
         </div>
     `;
@@ -1590,7 +1590,7 @@ function addNewTimelineEntry(volunteerId) {
                 </div>
                 <div class="flex justify-end gap-2 mt-4">
                     <button onclick="cancelAddTimeline(this)" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
-                    <button onclick="saveNewTimeline(this, ${volunteerId}, ${index})" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">Save</button>
+                    <button onclick="saveNewTimeline(this, ${volunteerId}, ${index})" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">Done</button>
                 </div>
             </div>
         </div>
@@ -1674,7 +1674,7 @@ function deleteTimelineEntry(button, index) {
         return;
     volunteerChanges.timelines.splice(index, 1);
     button.closest(".timeline-entry").remove();
-    toastr.success(
+    toastr.info(
         "Timeline entry removed (staged). Use Save Changes to persist."
     );
 }
@@ -1737,7 +1737,7 @@ function saveNewTimeline(button, volunteerId, index) {
         ${generateTimelineEditMode(data, index)}
     `;
 
-    toastr.success("Timeline entry staged. Use Save Changes to persist.");
+    toastr.info("Timeline entry staged. Use Save Changes to persist.");
 }
 
 function cancelAddTimeline(button) {
@@ -1793,7 +1793,7 @@ function addNewAffiliation(volunteerId) {
                 </div>
                 <div class="flex justify-end gap-2 mt-4">
                     <button onclick="cancelAddAffiliation(this)" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
-                    <button onclick="saveNewAffiliation(this, ${volunteerId}, ${index})" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">Save</button>
+                    <button onclick="saveNewAffiliation(this, ${volunteerId}, ${index})" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">Done</button>
                 </div>
             </div>
         </div>
@@ -1876,9 +1876,7 @@ function deleteAffiliation(button, index) {
     if (!confirm("Are you sure you want to delete this affiliation?")) return;
     volunteerChanges.affiliations.splice(index, 1);
     button.closest(".affiliation-entry").remove();
-    toastr.success(
-        "Affiliation removed (staged). Use Save Changes to persist."
-    );
+    toastr.info("Affiliation removed (staged). Use Save Changes to persist.");
 }
 
 function saveNewAffiliation(button, volunteerId, index) {
