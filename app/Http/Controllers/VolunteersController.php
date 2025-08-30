@@ -819,17 +819,9 @@ class VolunteersController extends Controller
                 $volunteer->sacraments()->delete();
                 foreach ($request->sacraments as $sacrament) {
                     if (!empty($sacrament)) {
-                        // Handle both string and object formats
-                        if (is_array($sacrament)) {
-                            $volunteer->sacraments()->create([
-                                'sacrament_name' => $sacrament['sacrament_name'] ?? $sacrament,
-                                'year' => $sacrament['year'] ?? null
-                            ]);
-                        } else {
-                            $volunteer->sacraments()->create([
-                                'sacrament_name' => $sacrament
-                            ]);
-                        }
+                        $volunteer->sacraments()->create([
+                            'sacrament_name' => $sacrament
+                        ]);
                     }
                 }
             }

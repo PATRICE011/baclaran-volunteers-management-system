@@ -1937,7 +1937,7 @@ function saveNewAffiliation(button, volunteerId, index) {
         ${generateAffiliationEditMode(data, index)}
     `;
 
-    toastr.success("Affiliation staged. Use Save Changes to persist.");
+    toastr.info("Affiliation staged. Use Save Changes to persist.");
 }
 
 function cancelAddAffiliation(button) {
@@ -1969,18 +1969,8 @@ function saveSacramentCheckboxes() {
         document.querySelectorAll("#sacraments-editor .sacrament-cb:checked")
     ).map((cb) => cb.value);
 
-    if (checked.length === 0) {
-        toastr.warning("Please select at least one sacrament.");
-        return;
-    }
-
-    // Ensure volunteerChanges.sacraments is initialized
-    if (!window.volunteerChanges.sacraments) {
-        window.volunteerChanges.sacraments = [];
-    }
-
-    // Stage the selected sacraments as an array of strings
-    window.volunteerChanges.sacraments = [...checked];
+    // Stage the selected sacraments
+    volunteerChanges.sacraments = [...checked];
     closeSacramentEditor();
 
     // Re-render display
@@ -1993,7 +1983,6 @@ function saveSacramentCheckboxes() {
                 <div class="flex justify-between items-start">
                     <div>
                         <p class="text-sm font-medium text-gray-800">${name}</p>
-                        <p class="text-sm text-gray-500">Year not set</p>
                     </div>
                 </div>
             </div>
@@ -2002,7 +1991,7 @@ function saveSacramentCheckboxes() {
         )
         .join("");
 
-    toastr.success("Sacraments staged. Use Save Changes to persist.");
+    toastr.info("Sacraments staged. Use Save Changes to persist.");
 }
 
 // =============================================================================
@@ -2094,7 +2083,7 @@ function saveFormationCheckboxes() {
     }
 
     // Stage formations
-    window.volunteerChanges.formations = result;
+    volunteerChanges.formations = result;
     closeFormationEditor();
 
     // Refresh display
@@ -2109,9 +2098,11 @@ function saveFormationCheckboxes() {
                         <p class="text-sm font-medium text-gray-800">${
                             f.formation_name
                         }</p>
-                        <p class="text-sm text-gray-500">${
-                            f.year || "Year not set"
-                        }</p>
+                        ${
+                            f.year
+                                ? `<p class="text-sm text-gray-500">${f.year}</p>`
+                                : ""
+                        }
                     </div>
                 </div>
             </div>
@@ -2120,5 +2111,5 @@ function saveFormationCheckboxes() {
         )
         .join("");
 
-    toastr.success("Formations staged. Use Save Changes to persist.");
+    toastr.info("Formations staged. Use Save Changes to persist.");
 }
