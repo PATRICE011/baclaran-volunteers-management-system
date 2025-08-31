@@ -1,4 +1,3 @@
-{{-- resources/views/account.blade.php --}}
 @extends('components.layout')
 
 @section('title', 'Account Settings')

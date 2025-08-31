@@ -15,7 +15,7 @@ class RoleController extends Controller
     {
         $user = Auth::user();
 
-        // Get only non-archived users and exclude current user with pagination
+        // Get only non-archived users
         $nonArchivedUsers = User::with('ministry')
             ->where('is_archived', false)
             ->where('id', '!=', $user->id)
