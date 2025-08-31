@@ -6,24 +6,24 @@
 @section('styles')
     <style>
         /* ==========================================================================
-       ARCHIVES PAGE STYLES
-       ========================================================================== */
+                           ARCHIVES PAGE STYLES
+                           ========================================================================== */
 
         /* Base Utilities
-       ========================================================================== */
+                           ========================================================================== */
         [x-cloak] {
             display: none !important;
         }
 
         /* Modal Styles
-       ========================================================================== */
+                           ========================================================================== */
         .modal-bg {
             background: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(4px);
         }
 
         /* Animations
-       ========================================================================== */
+                           ========================================================================== */
         .fade-in {
             animation: fadeIn 0.3s ease-in-out;
         }
@@ -51,7 +51,7 @@
         }
 
         /* Table Styles
-       ========================================================================== */
+                           ========================================================================== */
         .table-hover tbody tr:hover {
             background-color: #f8fafc;
         }
@@ -86,13 +86,13 @@
         }
 
         /* Tab Navigation
-       ========================================================================== */
+                           ========================================================================== */
         .tab-indicator {
             transition: all 0.3s ease;
         }
 
         /* Form Elements
-       ========================================================================== */
+                           ========================================================================== */
         .search-input:focus {
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
@@ -113,7 +113,7 @@
         }
 
         /* Badge Components
-       ========================================================================== */
+                           ========================================================================== */
         .badge {
             display: inline-flex;
             align-items: center;
@@ -144,7 +144,7 @@
         }
 
         /* Button Groups
-       ========================================================================== */
+                           ========================================================================== */
         .btn-group {
             display: flex;
             gap: 0.5rem;
@@ -156,7 +156,7 @@
         }
 
         /* Empty State
-       ========================================================================== */
+                           ========================================================================== */
         .empty-state {
             text-align: center;
             padding: 3rem 1rem;
@@ -171,7 +171,7 @@
         }
 
         /* Pagination Styles
-       ========================================================================== */
+                           ========================================================================== */
 
         /* Main pagination container */
         .pagination {
@@ -286,7 +286,7 @@
         }
 
         /* Responsive Design
-       ========================================================================== */
+                           ========================================================================== */
         @media (max-width: 768px) {
 
             /* Responsive pagination */
@@ -356,7 +356,7 @@
         }
 
         /* Print Styles
-       ========================================================================== */
+                           ========================================================================== */
         @media print {
 
             .pagination,
@@ -376,7 +376,7 @@
         }
 
         /* High Contrast Mode Support
-       ========================================================================== */
+                           ========================================================================== */
         @media (prefers-contrast: high) {
             .pagination-btn {
                 border-width: 2px;
@@ -392,7 +392,7 @@
         }
 
         /* Reduced Motion Support
-       ========================================================================== */
+                           ========================================================================== */
         @media (prefers-reduced-motion: reduce) {
 
             .fade-in,
@@ -409,11 +409,11 @@
 @section('content')
     @include('components.settings_nav')
     <main class="flex-1 overflow-auto p-4 sm:p-6 md:ml-64" x-data="archivesManager({
-                                    roles: {{ Js::from($roles ?? []) }},
-                                    volunteers: {{ Js::from($volunteers) }},
-                                    tasks: {{ Js::from($tasks) }},
-                                    events: {{ Js::from($events) }}
-                                })" x-cloak>
+                                                        roles: {{ Js::from($roles ?? []) }},
+                                                        volunteers: {{ Js::from($volunteers) }},
+                                                        tasks: {{ Js::from($tasks) }},
+                                                        events: {{ Js::from($events) }}
+                                                    })" x-cloak>
         <div class="bg-white rounded-lg shadow-lg p-6">
 
             {{-- Header Section --}}
@@ -600,8 +600,7 @@
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="border border-gray-200 p-3 text-left">
-                                    <input type="checkbox" :checked="isAllSelected()" :indeterminate="isSomeSelected()"
-                                        @change="toggleAll($event)"
+                                    <input type="checkbox" @change="toggleAll($event)"
                                         class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                                 </th>
                                 <th class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-900">Email
@@ -1077,7 +1076,7 @@
                 // Pagination
                 currentPage: 1,
                 perPage: 10,
-                jumpToPage: '', // For jump to page functionality
+                jumpToPage: '',
 
                 // Use the initial data passed from the server
                 data: initialData,
@@ -1163,7 +1162,6 @@
                 },
 
                 goToNextPage(tabName) {
-                    const totalPages = this.getTotalPages(tabName);
                     if (this.currentPage < totalPages) {
                         this.goToPage(this.currentPage + 1, tabName);
                     }
@@ -1188,40 +1186,32 @@
                 getPageNumbers(tabName) {
                     const totalPages = this.getTotalPages(tabName);
                     const pages = [];
-                    const maxVisiblePages = 7; // Show more pages for better UX
+                    const maxVisiblePages = 7;
                     const ellipsis = '...';
 
                     if (totalPages <= maxVisiblePages) {
-                        // Show all pages if total is small
                         for (let i = 1; i <= totalPages; i++) {
                             pages.push(i);
                         }
                     } else {
-                        // Always show first page
                         pages.push(1);
-
-                        // Calculate range around current page
                         const start = Math.max(2, this.currentPage - 2);
                         const end = Math.min(totalPages - 1, this.currentPage + 2);
 
-                        // Add ellipsis after first page if needed
                         if (start > 2) {
                             pages.push(ellipsis);
                         }
 
-                        // Add pages around current page
                         for (let i = start; i <= end; i++) {
                             if (i !== 1 && i !== totalPages) {
                                 pages.push(i);
                             }
                         }
 
-                        // Add ellipsis before last page if needed
                         if (end < totalPages - 1) {
                             pages.push(ellipsis);
                         }
 
-                        // Always show last page
                         if (totalPages > 1) {
                             pages.push(totalPages);
                         }
@@ -1247,72 +1237,72 @@
                     const pageNumbers = this.getPageNumbers(tabName);
 
                     let paginationHtml = `
-                                <div class="pagination">
-                                    <div class="pagination-info">
-                                        Showing ${startItem} to ${endItem} of ${totalItems} results
-                                    </div>
-                                    <div class="flex items-center gap-4">
-                                        <div class="pagination-controls">
-                                            <button class="pagination-btn" ${this.currentPage === 1 ? 'disabled' : ''} 
-                                                    @click="goToFirstPage('${tabName}')" title="First page">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
-                                                </svg>
-                                            </button>
-                                            <button class="pagination-btn" ${this.currentPage === 1 ? 'disabled' : ''} 
-                                                    @click="goToPreviousPage('${tabName}')" title="Previous page">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                                                </svg>
-                                            </button>
-                            `;
+                                    <div class="pagination">
+                                        <div class="pagination-info">
+                                            Showing ${startItem} to ${endItem} of ${totalItems} results
+                                        </div>
+                                        <div class="flex items-center gap-4">
+                                            <div class="pagination-controls">
+                                                <button class="pagination-btn" ${this.currentPage === 1 ? 'disabled' : ''} 
+                                                        @click="goToFirstPage('${tabName}')" title="First page">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+                                                    </svg>
+                                                </button>
+                                                <button class="pagination-btn" ${this.currentPage === 1 ? 'disabled' : ''} 
+                                                        @click="goToPreviousPage('${tabName}')" title="Previous page">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                                    </svg>
+                                                </button>
+                                `;
 
                     pageNumbers.forEach(page => {
                         if (page === '...') {
                             paginationHtml += '<span class="pagination-ellipsis">...</span>';
                         } else {
                             paginationHtml += `
-                                        <button class="pagination-btn ${this.currentPage === page ? 'active' : ''}" 
-                                                @click="goToPage(${page}, '${tabName}')" title="Page ${page}">
-                                            ${page}
-                                        </button>
-                                    `;
+                                            <button class="pagination-btn ${this.currentPage === page ? 'active' : ''}" 
+                                                    @click="goToPage(${page}, '${tabName}')" title="Page ${page}">
+                                                ${page}
+                                            </button>
+                                        `;
                         }
                     });
 
                     paginationHtml += `
-                                            <button class="pagination-btn" ${this.currentPage === totalPages ? 'disabled' : ''} 
-                                                    @click="goToNextPage('${tabName}')" title="Next page">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                                </svg>
-                                            </button>
-                                            <button class="pagination-btn" ${this.currentPage === totalPages ? 'disabled' : ''} 
-                                                    @click="goToLastPage('${tabName}')" title="Last page">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
+                                                <button class="pagination-btn" ${this.currentPage === totalPages ? 'disabled' : ''} 
+                                                        @click="goToNextPage('${tabName}')" title="Next page">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                                    </svg>
+                                                </button>
+                                                <button class="pagination-btn" ${this.currentPage === totalPages ? 'disabled' : ''} 
+                                                        @click="goToLastPage('${tabName}')" title="Last page">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
 
-                                        <!-- Jump to page -->
-                                        <div class="pagination-jump">
-                                            <span class="text-sm text-gray-600">Go to:</span>
-                                            <input type="number" 
-                                                   x-model="jumpToPage" 
-                                                   @keyup.enter="jumpToPageHandler('${tabName}')"
-                                                   min="1" 
-                                                   max="${totalPages}"
-                                                   placeholder="${this.currentPage}"
-                                                   class="w-16 px-2 py-1 text-sm border border-gray-300 rounded text-center">
-                                            <button @click="jumpToPageHandler('${tabName}')" 
-                                                    class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
-                                                Go
-                                            </button>
+                                            <!-- Jump to page -->
+                                            <div class="pagination-jump">
+                                                <span class="text-sm text-gray-600">Go to:</span>
+                                                <input type="number" 
+                                                       x-model="jumpToPage" 
+                                                       @keyup.enter="jumpToPageHandler('${tabName}')"
+                                                       min="1" 
+                                                       max="${totalPages}"
+                                                       placeholder="${this.currentPage}"
+                                                       class="w-16 px-2 py-1 text-sm border border-gray-300 rounded text-center">
+                                                <button @click="jumpToPageHandler('${tabName}')" 
+                                                        class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+                                                    Go
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            `;
+                                `;
 
                     return paginationHtml;
                 },
@@ -1330,9 +1320,7 @@
                     this.jumpToPage = '';
                 },
 
-                // Handle per page change
                 changePerPage() {
-                    // Maintain relative position in results
                     const currentStartItem = (this.currentPage - 1) * this.perPage + 1;
                     const newPage = Math.ceil(currentStartItem / this.perPage);
                     this.currentPage = Math.max(1, newPage);
@@ -1354,22 +1342,49 @@
                     }
                 },
 
+                // FIXED: Ensure consistent data types for item IDs
                 toggleAll(event) {
                     if (event.target.checked) {
-                        this.selectedItems = this.getPaginatedItems(this.tab).map(item => item.id);
+                        // Convert all IDs to strings to match checkbox values
+                        this.selectedItems = this.getPaginatedItems(this.tab).map(item => String(item.id));
                     } else {
                         this.selectedItems = [];
                     }
                 },
 
+                // FIXED: Handle data type consistency for comparisons
                 isAllSelected() {
                     const currentPageItems = this.getPaginatedItems(this.tab);
-                    return currentPageItems.length > 0 && currentPageItems.every(item => this.selectedItems.includes(item.id));
+                    if (currentPageItems.length === 0) return false;
+
+                    return currentPageItems.every(item =>
+                        this.selectedItems.includes(String(item.id))
+                    );
                 },
 
                 isSomeSelected() {
                     const currentPageItems = this.getPaginatedItems(this.tab);
-                    return currentPageItems.some(item => this.selectedItems.includes(item.id)) && !this.isAllSelected();
+                    const hasSelected = currentPageItems.some(item =>
+                        this.selectedItems.includes(String(item.id))
+                    );
+                    return hasSelected && !this.isAllSelected();
+                },
+
+                // FIXED: Ensure item ID is treated as string for consistency
+                isItemSelected(itemId) {
+                    return this.selectedItems.includes(String(itemId));
+                },
+
+                // FIXED: Handle individual checkbox toggle
+                toggleItemSelection(itemId, event) {
+                    const idStr = String(itemId);
+                    if (event.target.checked) {
+                        if (!this.selectedItems.includes(idStr)) {
+                            this.selectedItems.push(idStr);
+                        }
+                    } else {
+                        this.selectedItems = this.selectedItems.filter(id => id !== idStr);
+                    }
                 },
 
                 showToastMessage(message, type) {
@@ -1416,10 +1431,12 @@
                         .then(data => {
                             if (data.success) {
                                 const tabData = this.data[this.tab];
-                                const index = tabData.findIndex(i => i.id === itemId);
+                                const index = tabData.findIndex(i => i.id == itemId); // Use == for flexible comparison
                                 if (index > -1) {
                                     tabData.splice(index, 1);
                                 }
+                                // Remove from selected items if it was selected
+                                this.selectedItems = this.selectedItems.filter(id => id != itemId);
                                 this.showToastMessage('Item restored successfully!', 'success');
 
                                 // Adjust pagination if current page is empty
@@ -1466,11 +1483,11 @@
                         .then(data => {
                             if (data.success) {
                                 const tabData = this.data[this.tab];
-                                const index = tabData.findIndex(item => item.id === itemId);
+                                const index = tabData.findIndex(item => item.id == itemId); // Use == for flexible comparison
                                 if (index > -1) {
                                     tabData.splice(index, 1);
                                 }
-                                this.selectedItems = this.selectedItems.filter(id => id !== itemId);
+                                this.selectedItems = this.selectedItems.filter(id => id != itemId);
                                 this.showToastMessage('Item deleted permanently!', 'success');
 
                                 // Adjust pagination if current page is empty
@@ -1502,6 +1519,9 @@
                         'tasks': '/tasks/bulk-restore',
                     };
 
+                    // Convert selected IDs back to integers for the API
+                    const selectedIds = this.selectedItems.map(id => parseInt(id));
+
                     fetch(endpoints[this.tab], {
                         method: 'POST',
                         headers: {
@@ -1510,15 +1530,15 @@
                             'Accept': 'application/json'
                         },
                         body: JSON.stringify({
-                            ids: this.selectedItems
+                            ids: selectedIds
                         })
                     })
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
                                 const tabData = this.data[this.tab];
-                                this.selectedItems.forEach(itemId => {
-                                    const index = tabData.findIndex(i => i.id === itemId);
+                                selectedIds.forEach(itemId => {
+                                    const index = tabData.findIndex(i => i.id == itemId);
                                     if (index > -1) tabData.splice(index, 1);
                                 });
                                 this.showToastMessage(
@@ -1558,6 +1578,9 @@
                         'tasks': '/tasks/bulk-force-delete',
                     };
 
+                    // Convert selected IDs back to integers for the API
+                    const selectedIds = this.selectedItems.map(id => parseInt(id));
+
                     fetch(endpoints[this.tab], {
                         method: 'POST',
                         headers: {
@@ -1566,15 +1589,15 @@
                             'Accept': 'application/json'
                         },
                         body: JSON.stringify({
-                            ids: this.selectedItems
+                            ids: selectedIds
                         })
                     })
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
                                 const tabData = this.data[this.tab];
-                                this.selectedItems.forEach(itemId => {
-                                    const index = tabData.findIndex(i => i.id === itemId);
+                                selectedIds.forEach(itemId => {
+                                    const index = tabData.findIndex(i => i.id == itemId);
                                     if (index > -1) tabData.splice(index, 1);
                                 });
                                 this.showToastMessage(
@@ -1598,7 +1621,6 @@
                         });
                 },
 
-                // Initialize event listeners and watchers
                 init() {
                     // Watch for changes that should reset pagination
                     this.$watch('searchQuery', () => {
@@ -1620,6 +1642,11 @@
                                 this.showToast = false;
                             }, 5000);
                         }
+                    });
+
+                    // Clear selections when changing tabs
+                    this.$watch('tab', () => {
+                        this.selectedItems = [];
                     });
                 }
             }
