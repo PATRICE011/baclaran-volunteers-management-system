@@ -134,11 +134,33 @@ function generateEditableField(
                 </select>
             `;
         }
-        // Special handling for civil_status
-        if (fieldName === "civil_status" && value === "Widowed") {
-            value = "Widow/er";
-        }
+        if (fieldName === "civil_status") {
+            // Special handling for civil_status
+            if (value === "Widowed") {
+                value = "Widow/er";
+            }
 
+            return `
+            <select id="${fieldId}-input" data-field="${fieldName}" data-original="${value}" 
+                    class="form-input editable-input hidden w-full mt-1 border-gray-300 rounded-md shadow-sm">
+                <option value="single" ${
+                    value === "Single" ? "selected" : ""
+                }>Single</option>
+                <option value="married" ${
+                    value === "Married" ? "selected" : ""
+                }>Married</option>
+                <option value="Widow/er" ${
+                    value === "Widow/er" ? "selected" : ""
+                }>Widow/er</option>
+                <option value="separated" ${
+                    value === "Separated" ? "selected" : ""
+                }>Separated</option>
+                <option value="others" ${
+                    value === "Others" ? "selected" : ""
+                }>Others</option>
+            </select>
+            `;
+        }
         if (inputType === "textarea") {
             return `
                 <textarea id="${fieldId}-input" data-field="${fieldName}" data-original="${

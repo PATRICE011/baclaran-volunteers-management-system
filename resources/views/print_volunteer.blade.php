@@ -1,3 +1,4 @@
+<!-- NOTE: SOME DATA ARE NOT IN THE TEMPLATE, THIS STILL NEEDS IMPROVEMENTS - REGARDS: FIRST DEVELOPERS -->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -177,7 +178,7 @@
         }
 
         #civil_others {
-            top: 921px;
+            top: 800px;
             font-size: 16px;
             font-weight: bold;
         }
@@ -187,17 +188,18 @@
         }
 
         #civil_widow {
-            left: 160px;
+            left: 114px;
         }
 
         #civil_separated {
-            left: 235px;
+            left: 203px;
         }
 
         #civil_married {
             left: 35px;
         }
 
+        /* church, civil is not an option in the system. advised to include it for future improvement */
         #civil_church {
             left: 185px;
         }
@@ -206,51 +208,53 @@
             left: 240px;
         }
 
+        /* current it is a check mark only. advised to make the input field as text */
         #civil_others {
-            left: 70px;
+            left: 90px;
         }
 
         /* Sacraments */
+        /* add marriage for future improvement */
         #sacrament_baptism,
         #sacrament_communion,
         #sacrament_confirmation {
-            top: 994px;
-            font-size: 16px;
+            top: 872px;
+            font-size: 12px;
             font-weight: bold;
         }
 
         #sacrament_baptism {
-            left: 70px;
+            left: 26px;
         }
 
         #sacrament_communion {
-            left: 155px;
+            left: 96px;
         }
 
         #sacrament_confirmation {
-            left: 260px;
+            left: 202px;
         }
 
         /* Formations */
+        /* #formation_safeguarding, */
         #formation_bos,
-        #formation_diocesan,
-        #formation_safeguarding {
-            font-size: 16px;
+        #formation_diocesan {
+            font-size: 12px;
             font-weight: bold;
-            left: 70px;
+            left: 50px;
         }
 
         #formation_bos {
-            top: 1102px;
+            top: 940px;
         }
 
         #formation_diocesan {
-            top: 1129px;
+            top: 962px;
         }
 
-        #formation_safeguarding {
+        /* #formation_safeguarding {
             top: 1156px;
-        }
+        } */
 
         #formation_others_1,
         #formation_others_2 {
@@ -260,11 +264,11 @@
         }
 
         #formation_others_1 {
-            top: 1180px;
+            top: 1005px;
         }
 
         #formation_others_2 {
-            top: 1210px;
+            top: 1030px;
         }
 
         /* Timeline entries */

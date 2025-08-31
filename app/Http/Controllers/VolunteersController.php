@@ -777,9 +777,23 @@ class VolunteersController extends Controller
                     }
                     $volunteer->detail->save();
                 }
+                $dataToFill = $request->except(['volunteer_status', 'ministry_id', 'full_name']);
 
-                // Update volunteer fields (excluding detail fields)
-                $volunteer->fill($request->except(['volunteer_status', 'ministry_id', 'full_name']));
+                // Handle civil status mapping
+                if ($request->has('civil_status')) {
+                    $civilStatus = $request->civil_status;
+                    $civilStatusMap = [
+                        'widowed' => 'Widow/er',
+                        'widower' => 'Widow/er',
+                    ];
+                    if (array_key_exists(strtolower($civilStatus), $civilStatusMap)) {
+                        $dataToFill['civil_status'] = $civilStatusMap[strtolower($civilStatus)];
+                    } else {
+                        $dataToFill['civil_status'] = Str::title($civilStatus);
+                    }
+                }
+
+                $volunteer->fill($dataToFill);
                 $volunteer->save();
             }
 
