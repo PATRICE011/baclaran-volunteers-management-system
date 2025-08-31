@@ -3,9 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Volunteer;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 class VolunteerFactory extends Factory
@@ -14,21 +12,20 @@ class VolunteerFactory extends Factory
 
     public function definition(): array
     {
+        // Set faker locale to English
+        $this->faker = \Faker\Factory::create('en_US');
         return [
-            'volunteer_id' => 'VOL-' . Str::upper(Str::random(8)),
-            'nickname' => $this->faker->firstName,
-            'date_of_birth' => $this->faker->date(),
-            'sex' => Arr::random(['Male', 'Female']),
-            'address' => $this->faker->address,
-            'mobile_number' => $this->faker->phoneNumber,
-            'email_address' => $this->faker->unique()->safeEmail,
-            'occupation' => $this->faker->jobTitle,
-            'civil_status' => Arr::random(['Single', 'Married', 'Widow/er', 'Separated', 'Church', 'Civil', 'Others']),
+            'volunteer_id' => 'VOL-' . strtoupper(Str::random(6)),
+            'nickname' => $this->faker->firstName(),
+            'date_of_birth' => $this->faker->dateTimeBetween('-70 years', '-18 years')->format('Y-m-d'),
+            'sex' => $this->faker->randomElement(['Male', 'Female']),
+            'address' => $this->faker->address(),
+            'mobile_number' => $this->faker->phoneNumber(),
+            'email_address' => $this->faker->unique()->safeEmail(),
+            'occupation' => $this->faker->jobTitle(),
+            'civil_status' => $this->faker->randomElement(['Single', 'Married', 'Widow/er', 'Separated', 'Church', 'Civil', 'Others']),
             'profile_picture' => null,
             'is_archived' => false,
-            'archived_at' => null,
-            'archived_by' => null,
-            'archive_reason' => null,
         ];
     }
 
@@ -36,8 +33,7 @@ class VolunteerFactory extends Factory
     {
         return $this->state(fn(array $attributes) => [
             'is_archived' => true,
-            'archived_at' => now(),
-            'archived_by' => User::factory(),
+            'archived_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
             'archive_reason' => $this->faker->sentence(),
         ]);
     }

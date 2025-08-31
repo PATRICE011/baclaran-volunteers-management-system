@@ -173,6 +173,7 @@ Route::middleware(['auth', 'role:admin,staff'])->group(function () {
 
         Route::prefix('archives')->group(function () {
             Route::get('/', [ArchivesController::class, 'index']);
+            Route::get('/paginate', [ArchivesController::class, 'paginate'])->name('archives.paginate');
         });
     });
 });

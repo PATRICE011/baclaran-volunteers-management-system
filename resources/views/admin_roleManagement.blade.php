@@ -551,7 +551,12 @@
                             @endforeach
                         </tbody>
                     </table>
+
                 </div>
+
+            </div>
+            <div class="mt-4">
+                {{ $nonArchivedUsers->links('vendor.pagination.tailwind') }}
             </div>
         </div>
 
@@ -723,18 +728,21 @@
                 toggleConfirmPassword: document.getElementById('toggle-confirm-password'),
 
                 // Toggle text
-                toggleText: document.getElementById('toggle-text')
+                toggleText: document.getElementById('toggle-text'),
+                paginationLinks: document.querySelectorAll('.pagination a')
             };
 
             // Initialize
             function init() {
                 bindEventListeners();
-                renderTable();
-                updateStats();
 
-                // Set initial filter active state
-                if (elements.filterButtons.length > 0) {
-                    elements.filterButtons[0].classList.add('filter-active');
+                // Add loading indicator for pagination
+                if (elements.paginationLinks) {
+                    elements.paginationLinks.forEach(link => {
+                        link.addEventListener('click', function (e) {
+                            showLoadingIndicator();
+                        });
+                    });
                 }
             }
 
@@ -825,6 +833,22 @@
                         }
                     });
                 }
+            }
+
+            function showLoadingIndicator() {
+                // Create loading overlay
+                const overlay = document.createElement('div');
+                overlay.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50';
+                overlay.innerHTML = `
+                                        <div class="bg-white rounded-lg p-4 flex items-center">
+                                            <svg class="animate-spin h-5 w-5 text-blue-600 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            <span>Loading...</span>
+                                        </div>
+                                    `;
+                document.body.appendChild(overlay);
             }
 
             function handleAddUser(e) {
@@ -1096,42 +1120,42 @@
                     if (elements.showingCount) elements.showingCount.textContent = displayUsers.length;
 
                     elements.rolesTableBody.innerHTML = displayUsers.map(user => `
-                                    <tr data-user-id="${user.id}">
-                                        <td>
-                                            <div class="flex items-center">
-                                                <div class="flex-shrink-0 h-8 w-8 mr-3">
-                                                    <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium overflow-hidden">
-                                                        ${user.profile_picture ?
+                                                                                <tr data-user-id="${user.id}">
+                                                                                    <td>
+                                                                                        <div class="flex items-center">
+                                                                                            <div class="flex-shrink-0 h-8 w-8 mr-3">
+                                                                                                <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium overflow-hidden">
+                                                                                                    ${user.profile_picture ?
                             `<img src="${config.storageBaseUrl}/${user.profile_picture}" alt="${user.email}" class="w-full h-full object-cover rounded-full">`
                             :
                             `<img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.email)}" alt="${user.email}" class="w-full h-full object-cover rounded-full">`
                         }
-                                                    </div>
-                                                </div>
-                                                <div class="text-sm font-medium text-gray-900">${user.email}</div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="role-badge role-${user.role}">${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</span>
-                                        </td>
-                                        <td class="text-sm text-gray-500">
-                                            ${user.ministry_name || 'Not Assigned'}
-                                        </td>
-                                        <td class="text-sm text-gray-500">
-                                            ${formatDate(user.dateAdded || user.created_at || user.created_at)}
-                                        </td>
-                                        <td>
-                                            <div class="flex space-x-2">
-                                                <button onclick="editUser(${user.id})" class="text-blue-600 hover:text-blue-900 transition-colors text-sm">
-                                                    Edit
-                                                </button>
-                                                <button onclick="archiveUser(${user.id}, '${user.email}')" class="text-red-600 hover:text-red-900 transition-colors text-sm">
-                                                    Archive
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                `).join('');
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="text-sm font-medium text-gray-900">${user.email}</div>
+                                                                                        </div>
+                                                                                    </td>
+                                                                                    <td>
+                                                                                        <span class="role-badge role-${user.role}">${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</span>
+                                                                                    </td>
+                                                                                    <td class="text-sm text-gray-500">
+                                                                                        ${user.ministry_name || 'Not Assigned'}
+                                                                                    </td>
+                                                                                    <td class="text-sm text-gray-500">
+                                                                                        ${formatDate(user.dateAdded || user.created_at || user.created_at)}
+                                                                                    </td>
+                                                                                    <td>
+                                                                                        <div class="flex space-x-2">
+                                                                                            <button onclick="editUser(${user.id})" class="text-blue-600 hover:text-blue-900 transition-colors text-sm">
+                                                                                                Edit
+                                                                                            </button>
+                                                                                            <button onclick="archiveUser(${user.id}, '${user.email}')" class="text-red-600 hover:text-red-900 transition-colors text-sm">
+                                                                                                Archive
+                                                                                            </button>
+                                                                                        </div>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            `).join('');
                 }
 
                 if (elements.totalCount) {
@@ -1359,6 +1383,7 @@
             } else {
                 init();
             }
+
 
         })();
     </script>

@@ -138,7 +138,7 @@
 
         #address {
             top: 530px;
-            left: 50px;
+            left: 40px;
             width: 230px;
         }
 

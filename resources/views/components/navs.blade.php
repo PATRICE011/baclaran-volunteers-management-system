@@ -284,18 +284,20 @@
                             <i class="bx bx-cog text-slate-500"></i>
                             <span>Account Settings</span>
                         </a>
+                        @if($user->role == 'admin')
+                            <a href="{{ url('/settings/role') }}"
+                                class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200">
+                                <i class="bx bx-shield text-slate-500"></i>
+                                <span>Role Management</span>
+                            </a>
 
-                        <a href="{{ url('/settings/role') }}"
-                            class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200">
-                            <i class="bx bx-shield text-slate-500"></i>
-                            <span>Role Management</span>
-                        </a>
+                            <a href="{{ url('/settings/archives') }}"
+                                class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200">
+                                <i class="bx bx-archive text-slate-500"></i>
+                                <span>Archives</span>
+                            </a>
+                        @endif
 
-                        <a href="{{ url('/settings/archives') }}"
-                            class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200">
-                            <i class="bx bx-archive text-slate-500"></i>
-                            <span>Archives</span>
-                        </a>
                     </div>
 
                     <!-- Divider -->

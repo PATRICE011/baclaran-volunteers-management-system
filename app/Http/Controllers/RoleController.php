@@ -15,18 +15,18 @@ class RoleController extends Controller
     {
         $user = Auth::user();
 
-        // Get only non-archived users and exclude current user
+        // Get only non-archived users and exclude current user with pagination
         $nonArchivedUsers = User::with('ministry')
             ->where('is_archived', false)
             ->where('id', '!=', $user->id)
-            ->get();
+            ->paginate(10); // Paginate with 10 users per page
 
         // Get all ministries with hierarchical structure
         $ministries = Ministry::with(['children.children'])
             ->whereNull('parent_id')
             ->get();
 
-        // Map users for JavaScript
+        // Map users for JavaScript (only current page users)
         $users = $nonArchivedUsers->map(function ($user) {
             return [
                 'id' => $user->id,
@@ -34,7 +34,7 @@ class RoleController extends Controller
                 'role' => $user->role,
                 'ministry_id' => $user->ministry_id,
                 'ministry_name' => $user->ministry ? $user->ministry->ministry_name : null,
-                'created_at' => $user->created_at, // Make sure this is included
+                'created_at' => $user->created_at,
                 'dateAdded' => $user->created_at->format('Y-m-d'),
                 'profile_picture' => $user->profile_picture,
             ];

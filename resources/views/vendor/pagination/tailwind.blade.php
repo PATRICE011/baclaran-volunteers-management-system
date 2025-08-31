@@ -11,7 +11,8 @@
                 </li>
             @else
                 <li>
-                    <a href="{{ $paginator->previousPageUrl() }}" class="px-2 py-1 sm:px-3 sm:py-1 rounded-md text-gray-800 hover:bg-gray-100 transition">
+                    <a href="{{ $paginator->previousPageUrl() }}"
+                        class="px-2 py-1 sm:px-3 sm:py-1 rounded-md text-gray-800 hover:bg-gray-100 transition">
                         <span class="hidden sm:inline">&lt; Previous</span>
                         <span class="sm:hidden">&lt;</span>
                     </a>
@@ -30,20 +31,21 @@
                     @foreach ($element as $page => $url)
                         @php
                             $currentPage = $paginator->currentPage();
-                            $showOnMobile = $page == $currentPage || 
-                                           $page == $currentPage - 1 || 
-                                           $page == $currentPage + 1 ||
-                                           $page == 1 || 
-                                           $page == $paginator->lastPage();
+                            $showOnMobile = $page == $currentPage ||
+                                $page == $currentPage - 1 ||
+                                $page == $currentPage + 1 ||
+                                $page == 1 ||
+                                $page == $paginator->lastPage();
                         @endphp
-                        
+
                         <li class="{{ $showOnMobile ? '' : 'hidden sm:block' }}">
                             @if ($page == $paginator->currentPage())
                                 <span class="px-2 py-1 sm:px-3 sm:py-1 rounded-md border border-gray-300 bg-white text-black shadow-sm">
                                     {{ $page }}
                                 </span>
                             @else
-                                <a href="{{ $url }}" class="px-2 py-1 sm:px-3 sm:py-1 rounded-md text-gray-800 hover:bg-gray-100 transition">
+                                <a href="{{ $url }}"
+                                    class="px-2 py-1 sm:px-3 sm:py-1 rounded-md text-gray-800 hover:bg-gray-100 transition">
                                     {{ $page }}
                                 </a>
                             @endif
@@ -55,7 +57,8 @@
             {{-- Next Link --}}
             @if ($paginator->hasMorePages())
                 <li>
-                    <a href="{{ $paginator->nextPageUrl() }}" class="px-2 py-1 sm:px-3 sm:py-1 rounded-md text-gray-800 hover:bg-gray-100 transition">
+                    <a href="{{ $paginator->nextPageUrl() }}"
+                        class="px-2 py-1 sm:px-3 sm:py-1 rounded-md text-gray-800 hover:bg-gray-100 transition">
                         <span class="hidden sm:inline">Next &gt;</span>
                         <span class="sm:hidden">&gt;</span>
                     </a>

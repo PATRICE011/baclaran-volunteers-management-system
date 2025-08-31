@@ -66,21 +66,23 @@
                     <span class="font-medium">Account Settings</span>
                 </a>
 
-                <!-- Role Management Link -->
+
                 @if($user->role == 'admin')
+                    <!-- Role Management Link -->
                     <a href="{{ url('/settings/role') }}"
                         class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('settings/role') }}">
                         <i class="bx bx-shield text-lg"></i>
                         <span class="font-medium">Role Management</span>
+                        <!-- Archives Link -->
+                        <a href="{{ url('/settings/archives') }}"
+                            class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('settings/archives') }}">
+                            <i class="bx bx-archive text-lg"></i>
+                            <span class="font-medium">Archives</span>
+                        </a>
                     </a>
                 @endif
 
-                <!-- Archives Link -->
-                <a href="{{ url('/settings/archives') }}"
-                    class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ navActive('settings/archives') }}">
-                    <i class="bx bx-archive text-lg"></i>
-                    <span class="font-medium">Archives</span>
-                </a>
+
             </nav>
         </div>
 
@@ -144,21 +146,24 @@
                     <span class="font-medium">Account Settings</span>
                 </a>
 
-                <!-- Role Management Link -->
+
                 @if($user->role == 'admin')
+                    <!-- Role Management Link -->
                     <a href="{{ url('/settings/role') }}"
                         class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ dnavActive('settings/role') }}">
                         <i class="bx bx-shield text-lg"></i>
                         <span class="font-medium">Role Management</span>
                     </a>
+
+                    <!-- Archives Link -->
+                    <a href="{{ url('/settings/archives') }}"
+                        class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ dnavActive('settings/archives') }}">
+                        <i class="bx bx-archive text-lg"></i>
+                        <span class="font-medium">Archives</span>
+                    </a>
                 @endif
 
-                <!-- Archives Link -->
-                <a href="{{ url('/settings/archives') }}"
-                    class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 {{ dnavActive('settings/archives') }}">
-                    <i class="bx bx-archive text-lg"></i>
-                    <span class="font-medium">Archives</span>
-                </a>
+
             </nav>
         </div>
 
