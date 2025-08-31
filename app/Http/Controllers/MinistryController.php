@@ -369,7 +369,7 @@ class MinistryController extends Controller
     private function wouldCreateCircularReference($ministryId, $parentId)
     {
         if (!$parentId || $ministryId === $parentId) {
-            return $ministryId === $parentId; // Self-reference
+            return $ministryId === $parentId;
         }
 
         // If we're creating a new ministry, no circular reference possible
@@ -381,7 +381,7 @@ class MinistryController extends Controller
         $parent = Ministry::find($parentId);
         while ($parent) {
             if ($parent->id == $ministryId) {
-                return true; // Circular reference found
+                return true;
             }
             $parent = $parent->parent;
         }

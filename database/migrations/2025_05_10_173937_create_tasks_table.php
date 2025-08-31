@@ -23,7 +23,7 @@ return new class extends Migration {
 
             // archive fields
             $table->boolean('is_archived')->default(false);
-            $table->dateTime('archived_at')->nullable();  // Add the column properly
+            $table->dateTime('archived_at')->nullable();
             $table->foreignId('archived_by')->nullable()->constrained('users')->onDelete('set null');
             $table->text('archive_reason')->nullable();
             $table->timestamps();

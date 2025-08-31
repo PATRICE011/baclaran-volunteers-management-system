@@ -165,7 +165,7 @@ class EventController extends Controller
             }
         }
 
-        // Fix: Specify the table name to avoid ambiguity
+
         if ($event->volunteers()->where('event_volunteer.volunteer_id', $volunteerId)->exists()) {
             return response()->json([
                 'success' => false,

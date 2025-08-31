@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -24,7 +23,7 @@ return new class extends Migration
             $table->timestamps();
             // archive fields
             $table->boolean('is_archived')->default(false);
-            $table->dateTime('archived_at')->nullable();  // Add the column properly
+            $table->dateTime('archived_at')->nullable();
             $table->foreignId('archived_by')->nullable()->constrained('users')->onDelete('set null');
             $table->text('archive_reason')->nullable();
         });

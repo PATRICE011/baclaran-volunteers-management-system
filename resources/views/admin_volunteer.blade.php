@@ -456,9 +456,9 @@
                                     + Add Other Formation Received
                                 </button>
                                 <!-- <button type="button" id="add-other-formation"
-                                                                                        class="mt-2 px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">
-                                                                                        + Add Other Formation Received
-                                                                                    </button> -->
+                                                                                            class="mt-2 px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">
+                                                                                            + Add Other Formation Received
+                                                                                        </button> -->
                             </div>
                         </div>
 
@@ -585,9 +585,9 @@
                     Print Profile
                 </button>
                 <!-- <button id="archiveVolunteer"
-                                    class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
+                                        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
 
-                                </button> -->
+                                    </button> -->
                 <button id="editProfile" class="px-4 py-2 bg-blue-600 text-white rounded flex items-center">
                     <!-- content will be rendered via js -->
                 </button>

@@ -1,0 +1,442 @@
+document.addEventListener("DOMContentLoaded", function () {
+    // Initialize the export functionality
+    initializeExport();
+
+    // Add event listener to the export button
+    const exportBtn = document.getElementById("openExportModal");
+    if (exportBtn) {
+        exportBtn.addEventListener("click", openExportModal);
+    }
+});
+
+let exportData = {
+    availableFields: {},
+    selectedFields: [],
+    fieldOrder: [],
+    sampleData: [],
+    totalCount: 0,
+    ministryId: null,
+};
+
+function initializeExport() {
+    const exportModal = document.getElementById("exportModal");
+    const closeExportModal = document.getElementById("closeExportModal");
+    const cancelExport = document.getElementById("cancelExport");
+    const confirmExport = document.getElementById("confirmExport");
+
+    // Close modal handlers
+    [closeExportModal, cancelExport].forEach((btn) => {
+        if (btn) {
+            btn.addEventListener("click", closeExportModal);
+        }
+    });
+
+    // Confirm export handler
+    if (confirmExport) {
+        confirmExport.addEventListener("click", performExport);
+    }
+
+    // Initialize drag and drop
+    initializeDragAndDrop();
+}
+
+function openExportModal() {
+    const modal = document.getElementById("exportModal");
+    const loadingState = document.getElementById("exportLoadingState");
+    const content = document.getElementById("exportContent");
+    const footer = document.getElementById("exportFooter");
+
+    // Show modal
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+
+    // Show loading state
+    loadingState.style.display = "flex";
+    content.classList.add("hidden");
+    footer.style.display = "none";
+
+    // Mock data for demonstration
+    setTimeout(() => {
+        const mockData = {
+            success: true,
+            availableFields: {
+                no: "No.",
+                volunteer_id: "Volunteer ID",
+                full_name: "Full Name",
+                nickname: "Nickname",
+                ministry: "Ministry",
+                status: "Status",
+                email: "Email Address",
+                mobile: "Mobile Number",
+                address: "Address",
+                date_of_birth: "Date of Birth",
+                sex: "Sex",
+                civil_status: "Civil Status",
+                occupation: "Occupation",
+                applied_date: "Date Applied",
+                active_duration: "Active Duration",
+            },
+            defaultSelectedFields: [
+                "no",
+                "volunteer_id",
+                "full_name",
+                "nickname",
+                "ministry",
+                "status",
+            ],
+            sampleData: [
+                {
+                    no: 1,
+                    volunteer_id: "VOL-12345",
+                    full_name: "John A. Doe",
+                    nickname: "Johnny",
+                    ministry: "Music Ministry",
+                    status: "Active",
+                    email: "john.doe@example.com",
+                    mobile: "+63 912 345 6789",
+                    address: "123 Main St, City, Province",
+                    date_of_birth: "Jan 15, 1990",
+                    sex: "Male",
+                    civil_status: "Single",
+                    occupation: "Software Developer",
+                    applied_date: "Jan 2020",
+                    active_duration: "3 years 8 months",
+                },
+                {
+                    no: 2,
+                    volunteer_id: "VOL-67890",
+                    full_name: "Jane B. Smith",
+                    nickname: "Janie",
+                    ministry: "Youth Ministry",
+                    status: "Active",
+                    email: "jane.smith@example.com",
+                    mobile: "+63 917 654 3210",
+                    address: "456 Oak St, City, Province",
+                    date_of_birth: "Mar 22, 1985",
+                    sex: "Female",
+                    civil_status: "Married",
+                    occupation: "Teacher",
+                    applied_date: "Mar 2019",
+                    active_duration: "4 years 6 months",
+                },
+            ],
+            totalCount: 42,
+            ministryId: null,
+        };
+
+        populateExportModal(mockData);
+        showExportContent();
+    }, 1000);
+}
+
+function closeExportModal() {
+    const modal = document.getElementById("exportModal");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+}
+
+function populateExportModal(data) {
+    // Update export info
+    document.getElementById("totalRecords").textContent = data.totalCount;
+
+    // Populate available fields
+    populateAvailableFields(data.availableFields, data.defaultSelectedFields);
+
+    // Populate selected fields
+    populateSelectedFields(data.defaultSelectedFields, data.availableFields);
+
+    // Update field order
+    exportData.fieldOrder = [...data.defaultSelectedFields];
+    exportData.availableFields = data.availableFields;
+    exportData.sampleData = data.sampleData;
+
+    // Update preview table
+    updatePreviewTable();
+}
+
+function populateAvailableFields(allFields, selectedFields) {
+    const container = document.getElementById("availableFields");
+    container.innerHTML = "";
+
+    Object.keys(allFields).forEach((fieldKey) => {
+        if (!selectedFields.includes(fieldKey)) {
+            const fieldElement = createFieldElement(
+                fieldKey,
+                allFields[fieldKey],
+                false
+            );
+            container.appendChild(fieldElement);
+        }
+    });
+}
+
+function populateSelectedFields(selectedFields, allFields) {
+    const container = document.getElementById("selectedFields");
+    container.innerHTML = "";
+
+    selectedFields.forEach((fieldKey) => {
+        const fieldElement = createFieldElement(
+            fieldKey,
+            allFields[fieldKey],
+            true
+        );
+        container.appendChild(fieldElement);
+    });
+
+    exportData.selectedFields = [...selectedFields];
+    updateSelectedFieldsCount();
+}
+
+function createFieldElement(fieldKey, fieldLabel, isSelected) {
+    const div = document.createElement("div");
+    div.className = `field-item ${isSelected ? "selected" : ""}`;
+    div.draggable = true;
+    div.dataset.fieldKey = fieldKey;
+
+    div.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium">${fieldLabel}</span>
+                    ${
+                        isSelected
+                            ? '<span class="remove-field text-lg leading-none" title="Remove field">×</span>'
+                            : ""
+                    }
+                </div>
+            `;
+
+    // Add event listeners
+    div.addEventListener("dragstart", handleDragStart);
+    div.addEventListener("dragend", handleDragEnd);
+
+    if (isSelected) {
+        const removeBtn = div.querySelector(".remove-field");
+        removeBtn.addEventListener("click", () => removeField(fieldKey));
+    }
+
+    return div;
+}
+
+function initializeDragAndDrop() {
+    const selectedFieldsContainer = document.getElementById("selectedFields");
+    const availableFieldsContainer = document.getElementById("availableFields");
+
+    // Add drop zone event listeners
+    [selectedFieldsContainer, availableFieldsContainer].forEach((container) => {
+        container.addEventListener("dragover", handleDragOver);
+        container.addEventListener("drop", handleDrop);
+        container.addEventListener("dragenter", handleDragEnter);
+        container.addEventListener("dragleave", handleDragLeave);
+    });
+}
+
+function handleDragStart(e) {
+    e.dataTransfer.setData("text/plain", e.target.dataset.fieldKey);
+    e.target.classList.add("dragging");
+}
+
+function handleDragEnd(e) {
+    e.target.classList.remove("dragging");
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+}
+
+function handleDragEnter(e) {
+    e.preventDefault();
+    e.currentTarget.classList.add("drag-over");
+}
+
+function handleDragLeave(e) {
+    e.currentTarget.classList.remove("drag-over");
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    e.currentTarget.classList.remove("drag-over");
+
+    const fieldKey = e.dataTransfer.getData("text/plain");
+    const targetContainer = e.currentTarget;
+
+    if (targetContainer.id === "selectedFields") {
+        addFieldToSelected(fieldKey);
+    } else if (targetContainer.id === "availableFields") {
+        removeField(fieldKey);
+    }
+}
+
+function addFieldToSelected(fieldKey) {
+    if (!exportData.selectedFields.includes(fieldKey)) {
+        exportData.selectedFields.push(fieldKey);
+        exportData.fieldOrder.push(fieldKey);
+
+        // Move field element
+        moveFieldElement(fieldKey, "selectedFields");
+        updatePreviewTable();
+        updateSelectedFieldsCount();
+    }
+}
+
+function removeField(fieldKey) {
+    const index = exportData.selectedFields.indexOf(fieldKey);
+    if (index > -1) {
+        exportData.selectedFields.splice(index, 1);
+
+        const orderIndex = exportData.fieldOrder.indexOf(fieldKey);
+        if (orderIndex > -1) {
+            exportData.fieldOrder.splice(orderIndex, 1);
+        }
+
+        // Move field element back to available
+        moveFieldElement(fieldKey, "availableFields");
+        updatePreviewTable();
+        updateSelectedFieldsCount();
+    }
+}
+
+function moveFieldElement(fieldKey, targetContainerId) {
+    const fieldElement = document.querySelector(
+        `[data-field-key="${fieldKey}"]`
+    );
+    const targetContainer = document.getElementById(targetContainerId);
+
+    if (fieldElement && targetContainer) {
+        // Update element appearance
+        if (targetContainerId === "selectedFields") {
+            fieldElement.classList.add("selected");
+            // Add remove button
+            const removeBtn = fieldElement.querySelector(".remove-field");
+            if (!removeBtn) {
+                const span = document.createElement("span");
+                span.className = "remove-field text-lg leading-none";
+                span.title = "Remove field";
+                span.textContent = "×";
+                span.addEventListener("click", () => removeField(fieldKey));
+                fieldElement.querySelector("div").appendChild(span);
+            }
+        } else {
+            fieldElement.classList.remove("selected");
+            // Remove remove button
+            const removeBtn = fieldElement.querySelector(".remove-field");
+            if (removeBtn) {
+                removeBtn.remove();
+            }
+        }
+
+        targetContainer.appendChild(fieldElement);
+    }
+}
+
+function updatePreviewTable() {
+    updatePreviewHeaders();
+    updatePreviewData();
+}
+
+function updatePreviewHeaders() {
+    const thead = document.getElementById("previewTableHead");
+    thead.innerHTML = "";
+
+    const headerRow = document.createElement("tr");
+
+    exportData.fieldOrder.forEach((fieldKey) => {
+        if (exportData.selectedFields.includes(fieldKey)) {
+            const th = document.createElement("th");
+            th.className =
+                "px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider";
+            th.textContent = exportData.availableFields[fieldKey] || fieldKey;
+            headerRow.appendChild(th);
+        }
+    });
+
+    thead.appendChild(headerRow);
+}
+
+function updatePreviewData() {
+    const tbody = document.getElementById("previewTableBody");
+    tbody.innerHTML = "";
+
+    exportData.sampleData.forEach((rowData) => {
+        const row = document.createElement("tr");
+        row.className = "hover:bg-gray-50";
+
+        exportData.fieldOrder.forEach((fieldKey) => {
+            if (exportData.selectedFields.includes(fieldKey)) {
+                const td = document.createElement("td");
+                td.className =
+                    "px-4 py-2 text-sm text-gray-900 whitespace-nowrap";
+                td.textContent = rowData[fieldKey] || "N/A";
+                row.appendChild(td);
+            }
+        });
+
+        tbody.appendChild(row);
+    });
+}
+
+function updateSelectedFieldsCount() {
+    const countElement = document.getElementById("selectedFieldsCount");
+    if (countElement) {
+        countElement.textContent = exportData.selectedFields.length;
+    }
+}
+
+function showExportContent() {
+    const loadingState = document.getElementById("exportLoadingState");
+    const content = document.getElementById("exportContent");
+    const footer = document.getElementById("exportFooter");
+
+    loadingState.style.display = "none";
+    content.classList.remove("hidden");
+    footer.style.display = "flex";
+}
+
+function performExport() {
+    if (exportData.selectedFields.length === 0) {
+        alert("Please select at least one field to export.");
+        return;
+    }
+
+    const confirmBtn = document.getElementById("confirmExport");
+    const exportText = document.getElementById("exportButtonText");
+    const processingDiv = document.getElementById("exportProcessing");
+    const exportContent = document.getElementById("exportContent");
+    const exportFooter = document.getElementById("exportFooter");
+
+    // Show processing state
+    exportContent.classList.add("hidden");
+    exportFooter.style.display = "none";
+    processingDiv.classList.remove("hidden");
+    processingDiv.style.display = "flex";
+
+    // Simulate export process
+    setTimeout(() => {
+        // Show success message
+        processingDiv.innerHTML = `
+                    <div class="text-center">
+                        <svg class="w-12 h-12 text-green-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <p class="text-green-600 font-medium">Export completed successfully!</p>
+                        <p class="text-sm text-gray-600 mt-1">Your file should start downloading shortly.</p>
+                    </div>
+                `;
+
+        // Close modal after short delay
+        setTimeout(() => {
+            closeExportModal();
+
+            // Reset processing state
+            setTimeout(() => {
+                processingDiv.classList.add("hidden");
+                exportContent.classList.remove("hidden");
+                exportFooter.style.display = "flex";
+                processingDiv.innerHTML = `
+                            <div class="flex items-center space-x-3">
+                                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                                <span class="text-gray-700">Preparing your export...</span>
+                            </div>
+                        `;
+            }, 500);
+        }, 2000);
+    }, 1500);
+}
